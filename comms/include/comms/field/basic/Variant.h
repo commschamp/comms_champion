@@ -278,14 +278,14 @@ public:
     }
 
 private:
-    template <typename TField>
-    void updateVersion(TField& field, NoVersionDependencyTag<>)
+    template <typename TField, typename... TParams>
+    void updateVersion(TField& field, NoVersionDependencyTag<TParams...>)
     {
         static_cast<void>(field);
     }
 
-    template <typename TField>
-    void updateVersion(TField& field, VersionDependentTag<>)
+    template <typename TField, typename... TParams>
+    void updateVersion(TField& field, VersionDependentTag<TParams...>)
     {
         field.setVersion(verBase_.getVersion());
     }
@@ -786,13 +786,15 @@ private:
         return idx < MembersCount;
     }
 
-    bool setVersionInternal(VersionType version, NoVersionDependencyTag<>)
+    template <typename... TParams>
+    bool setVersionInternal(VersionType version, NoVersionDependencyTag<TParams...>)
     {
         static_cast<void>(version);
         return false;
     }
 
-    bool setVersionInternal(VersionType version, VersionDependentTag<>)
+    template <typename... TParams>
+    bool setVersionInternal(VersionType version, VersionDependentTag<TParams...>)
     {
         VersionBaseImpl::version_ = version;
         bool updated = false;
@@ -803,16 +805,19 @@ private:
         return updated;
     }
 
-    VersionType getVersionInternal(VersionDependentTag<>) const
+    template <typename... TParams>
+    VersionType getVersionInternal(VersionDependentTag<TParams...>) const
     {
         return VersionBaseImpl::version_;;
     }
 
-    void updateVersionInternal(NoVersionDependencyTag<>)
+    template <typename... TParams>
+    void updateVersionInternal(NoVersionDependencyTag<TParams...>)
     {
     }
 
-    void updateVersionInternal(VersionDependentTag<>)
+    template <typename... TParams>
+    void updateVersionInternal(VersionDependentTag<TParams...>)
     {
         setVersion(VersionBaseImpl::version_);
     }

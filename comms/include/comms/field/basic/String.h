@@ -280,14 +280,14 @@ private:
         doAdvance(iter, len, Tag());
     }
 
-    template <typename TIter>
-    static void doAdvance(TIter& iter, std::size_t len, AdvancableTag<>)
+    template <typename TIter, typename... TParams>
+    static void doAdvance(TIter& iter, std::size_t len, AdvancableTag<TParams...>)
     {
         std::advance(iter, len);
     }
 
-    template <typename TIter>
-    static void doAdvance(TIter&, std::size_t, NotAdvancableTag<>)
+    template <typename TIter, typename... TParams>
+    static void doAdvance(TIter&, std::size_t, NotAdvancableTag<TParams...>)
     {
     }
 

@@ -221,11 +221,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 IsRandomAccessIter && IsRawData
             >::template Type<
-                RawDataTag<>,
-                FieldElemTag<>
+                RawDataTag,
+                FieldElemTag
             >;
         return readInternal(iter, len, Tag());
     }
@@ -250,11 +250,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 IsRandomAccessIter && IsRawData
             >::template Type<
-                RawDataTag<>,
-                FieldElemTag<>
+                RawDataTag,
+                FieldElemTag
             >;
 
         return readInternalN(count, iter, len, Tag());
@@ -272,11 +272,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 IsRandomAccessIter && IsRawData
             >::template Type<
-                RawDataTag<>,
-                FieldElemTag<>
+                RawDataTag,
+                FieldElemTag
             >;
 
         return readNoStatusInternalN(count, iter, Tag());
@@ -388,7 +388,8 @@ private:
             NoVersionDependencyTag<TParams...>
         >;
 
-    constexpr std::size_t lengthInternal(FieldElemTag<>) const
+    template <typename... TParams>
+    constexpr std::size_t lengthInternal(FieldElemTag<TParams...>) const
     {
         using Tag = 
             typename comms::util::LazyShallowConditional<
@@ -401,17 +402,20 @@ private:
         return fieldLength(Tag());
     }
 
-    constexpr std::size_t lengthInternal(IntegralElemTag<>) const
+    template <typename... TParams>
+    constexpr std::size_t lengthInternal(IntegralElemTag<TParams...>) const
     {
         return value_.size() * sizeof(ElementType);
     }
 
-    constexpr std::size_t fieldLength(FixedLengthTag<>) const
+    template <typename... TParams>
+    constexpr std::size_t fieldLength(FixedLengthTag<TParams...>) const
     {
         return ElementType().length() * value_.size();
     }
 
-    std::size_t fieldLength(VarLengthTag<>) const
+    template <typename... TParams>
+    std::size_t fieldLength(VarLengthTag<TParams...>) const
     {
         return
             std::accumulate(value_.begin(), value_.end(), std::size_t(0),
@@ -421,12 +425,14 @@ private:
                 });
     }
 
-    static constexpr std::size_t maxLengthInternal(FieldElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t maxLengthInternal(FieldElemTag<TParams...>)
     {
         return ElementType::maxLength();
     }
 
-    static constexpr std::size_t maxLengthInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t maxLengthInternal(IntegralElemTag<TParams...>)
     {
         return sizeof(ElementType);
     }
@@ -456,14 +462,14 @@ private:
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    static ErrorStatus readElementInternal(ElementType& elem, TIter& iter, std::size_t& len, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    static ErrorStatus readElementInternal(ElementType& elem, TIter& iter, std::size_t& len, FieldElemTag<TParams...>)
     {
         return readFieldElement(elem, iter, len);
     }
 
-    template <typename TIter>
-    static ErrorStatus readElementInternal(ElementType& elem, TIter& iter, std::size_t& len, IntegralElemTag<>)
+    template <typename TIter, typename... TParams>
+    static ErrorStatus readElementInternal(ElementType& elem, TIter& iter, std::size_t& len, IntegralElemTag<TParams...>)
     {
         return readIntegralElement(elem, iter, len);
     }
@@ -480,14 +486,14 @@ private:
         elem = comms::util::readData<ElementType>(iter, Endian());
     }
 
-    template <typename TIter>
-    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, FieldElemTag<TParams...>)
     {
         readNoStatusFieldElement(elem, iter);
     }
 
-    template <typename TIter>
-    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, IntegralElemTag<>)
+    template <typename TIter, typename... TParams>
+    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, IntegralElemTag<TParams...>)
     {
         readElementNoStatusInternal(elem, iter);
     }
@@ -514,14 +520,14 @@ private:
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    static ErrorStatus writeElementInternal(const ElementType& elem, TIter& iter, std::size_t& len, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    static ErrorStatus writeElementInternal(const ElementType& elem, TIter& iter, std::size_t& len, FieldElemTag<TParams...>)
     {
         return writeFieldElement(elem, iter, len);
     }
 
-    template <typename TIter>
-    static ErrorStatus writeElementInternal(const ElementType& elem, TIter& iter, std::size_t& len, IntegralElemTag<>)
+    template <typename TIter, typename... TParams>
+    static ErrorStatus writeElementInternal(const ElementType& elem, TIter& iter, std::size_t& len, IntegralElemTag<TParams...>)
     {
         return writeIntegralElement(elem, iter, len);
     }
@@ -538,19 +544,20 @@ private:
         BaseImpl::writeData(elem, iter);
     }
 
-    template <typename TIter>
-    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, FieldElemTag<TParams...>)
     {
         return writeNoStatusFieldElement(elem, iter);
     }
 
-    template <typename TIter>
-    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, IntegralElemTag<>)
+    template <typename TIter, typename... TParams>
+    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, IntegralElemTag<TParams...>)
     {
         return writeNoStatusIntegralElement(elem, iter);
     }
 
-    constexpr bool validInternal(FieldElemTag<>) const
+    template <typename... TParams>
+    constexpr bool validInternal(FieldElemTag<TParams...>) const
     {
         return std::all_of(
             value_.begin(), value_.end(),
@@ -560,12 +567,14 @@ private:
             });
     }
 
-    static constexpr bool validInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr bool validInternal(IntegralElemTag<TParams...>)
     {
         return true;
     }
 
-    bool refreshInternal(FieldElemTag<>)
+    template <typename... TParams>
+    bool refreshInternal(FieldElemTag<TParams...>)
     {
         return
             std::accumulate(
@@ -576,43 +585,50 @@ private:
                 });
     }
 
-    static constexpr bool refreshInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr bool refreshInternal(IntegralElemTag<TParams...>)
     {
         return false;
     }
 
-    static constexpr std::size_t minElemLengthInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t minElemLengthInternal(IntegralElemTag<TParams...>)
     {
         return sizeof(ElementType);
     }
 
-    static constexpr std::size_t minElemLengthInternal(FieldElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t minElemLengthInternal(FieldElemTag<TParams...>)
     {
         return ElementType::minLength();
     }
 
-    static constexpr std::size_t maxElemLengthInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t maxElemLengthInternal(IntegralElemTag<TParams...>)
     {
         return sizeof(ElementType);
     }
 
-    static constexpr std::size_t maxElemLengthInternal(FieldElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t maxElemLengthInternal(FieldElemTag<TParams...>)
     {
         return ElementType::maxLength();
     }
 
-    static constexpr std::size_t elementLengthInternal(const ElementType&, IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t elementLengthInternal(const ElementType&, IntegralElemTag<TParams...>)
     {
         return sizeof(ElementType);
     }
 
-    static constexpr std::size_t elementLengthInternal(const ElementType& elem, FieldElemTag<>)
+    template <typename... TParams>
+    static constexpr std::size_t elementLengthInternal(const ElementType& elem, FieldElemTag<TParams...>)
     {
         return elem.length();
     }
 
-    template <typename TIter>
-    ErrorStatus readInternal(TIter& iter, std::size_t len, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    ErrorStatus readInternal(TIter& iter, std::size_t len, FieldElemTag<TParams...>)
     {
         static_assert(comms::util::detect::hasClearFunc<ValueType>(),
             "The used storage type for ArrayList must have clear() member function");
@@ -630,16 +646,16 @@ private:
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag<>)
+    template <typename TIter, typename... TParams>
+    ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag<TParams...>)
     {
         comms::util::assign(value(), iter, iter + len);
         std::advance(iter, len);
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, FieldElemTag<TParams...>)
     {
         clear();
         while (0 < count) {
@@ -656,8 +672,8 @@ private:
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, RawDataTag<>)
+    template <typename TIter, typename... TParams>
+    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, RawDataTag<TParams...>)
     {
         if (len < count) {
             return comms::ErrorStatus::NotEnoughData;
@@ -666,8 +682,8 @@ private:
         return readInternal(iter, count, RawDataTag<>());
     }
 
-    template <typename TIter>
-    void readNoStatusInternalN(std::size_t count, TIter& iter, FieldElemTag<>)
+    template <typename TIter, typename... TParams>
+    void readNoStatusInternalN(std::size_t count, TIter& iter, FieldElemTag<TParams...>)
     {
         clear();
         while (0 < count) {
@@ -677,23 +693,26 @@ private:
         }
     }
 
-    template <typename TIter>
-    void readNoStatusInternalN(std::size_t count, TIter& iter, RawDataTag<>)
+    template <typename TIter, typename... TParams>
+    void readNoStatusInternalN(std::size_t count, TIter& iter, RawDataTag<TParams...>)
     {
         readInternal(iter, count, RawDataTag<>());
     }
 
-    bool updateElemVersion(ElementType& elem, VersionDependentTag<>)
+    template <typename... TParams>
+    bool updateElemVersion(ElementType& elem, VersionDependentTag<TParams...>)
     {
         return elem.setVersion(VersionBaseImpl::version_);
     }
 
-    static constexpr bool updateElemVersion(ElementType&, NoVersionDependencyTag<>)
+    template <typename... TParams>
+    static constexpr bool updateElemVersion(ElementType&, NoVersionDependencyTag<TParams...>)
     {
         return false;
     }
 
-    bool setVersionInternal(VersionType version, VersionDependentTag<>)
+    template <typename... TParams>
+    bool setVersionInternal(VersionType version, VersionDependentTag<TParams...>)
     {
         VersionBaseImpl::version_ = version;
         bool updated = false;
@@ -704,29 +723,33 @@ private:
         return updated;
     }
 
-
-    static constexpr bool setVersionInternal(VersionType, NoVersionDependencyTag<>)
+    template <typename... TParams>
+    static constexpr bool setVersionInternal(VersionType, NoVersionDependencyTag<TParams...>)
     {
         return false;
     }
 
-    static bool canWriteElementInternal(const ElementType& elem, FieldElemTag<>)
+    template <typename... TParams>
+    static bool canWriteElementInternal(const ElementType& elem, FieldElemTag<TParams...>)
     {
         return elem.canWrite();
     }
 
-    static bool canWriteElementInternal(const ElementType& elem, IntegralElemTag<>)
+    template <typename... TParams>
+    static bool canWriteElementInternal(const ElementType& elem, IntegralElemTag<TParams...>)
     {
         static_cast<void>(elem);
         return true;
     }
 
-    static constexpr bool hasWriteNoStatusInternal(FieldElemTag<>)
+    template <typename... TParams>
+    static constexpr bool hasWriteNoStatusInternal(FieldElemTag<TParams...>)
     {
         return ElementType::hasWriteNoStatus();
     }
 
-    static constexpr bool hasWriteNoStatusInternal(IntegralElemTag<>)
+    template <typename... TParams>
+    static constexpr bool hasWriteNoStatusInternal(IntegralElemTag<TParams...>)
     {
         return true;
     }

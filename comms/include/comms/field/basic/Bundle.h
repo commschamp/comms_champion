@@ -335,12 +335,12 @@ public:
 
     static constexpr bool isVersionDependent()
     {
-        return CommonFuncs::areMembersVersionDependent<ValueType>();
+        return CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value;
     }
 
     static constexpr bool hasNonDefaultRefresh()
     {
-        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<ValueType>();
+        return CommonFuncs::AnyFieldHasNonDefaultRefreshBoolType<TMembers...>::value;
     }
 
     bool setVersion(VersionType version)

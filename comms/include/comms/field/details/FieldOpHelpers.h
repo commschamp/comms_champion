@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <type_traits>
+#include <limits>
 #include "comms/ErrorStatus.h"
 
 namespace comms
@@ -61,6 +63,39 @@ struct FieldMaxLengthSumCalcHelper
     constexpr std::size_t operator()(std::size_t sum) const
     {
         return sum + TField::maxLength();
+    }
+};
+
+template <bool THasBitLengthLimit>
+struct FieldBitLengthRetrieveHelper
+{
+    template <typename TField>
+    using Type = 
+        std::integral_constant<
+            std::size_t,
+            TField::ParsedOptions::FixedBitLength
+        >;
+};
+
+template <>
+struct FieldBitLengthRetrieveHelper<false>
+{
+    template <typename TField>
+    using Type = 
+        std::integral_constant<
+            std::size_t,
+            TField::maxLength() * std::numeric_limits<std::uint8_t>::digits
+        >;
+};
+
+
+template <typename...>
+struct FieldTotalBitLengthSumCalcHelper
+{
+    template <typename TField>
+    constexpr std::size_t operator()(std::size_t sum) const
+    {
+        return sum + FieldBitLengthRetrieveHelper<TField::ParsedOptions::HasFixedBitLengthLimit>::template Type<TField>::value;
     }
 };
 

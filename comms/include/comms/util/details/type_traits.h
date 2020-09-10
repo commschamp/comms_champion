@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <limits>
 #include <type_traits>
 
 namespace comms
@@ -145,7 +146,7 @@ struct AccumulateFromUntilImpl
                 TRest...
             >,
             typename AccumulateFromUntilLoop<
-                (0U == sizeof...(TRest)) || (TUntil <= sizeof...(TRest))
+                (0U == sizeof...(TRest)) || (TUntil <= 1)
             >::template Type<
                 0U,
                 TUntil - 1,
@@ -171,6 +172,25 @@ struct AccumulateFromUntilImpl<true>
         typename TStart,
         typename...>
     using Type = TStart;
+};
+
+template <bool THasFixedBitLength>
+struct FieldBitLengthIntTypeImpl
+{
+    template <typename T>
+    using Type = 
+        std::integral_constant<std::size_t, T::ParsedOptions::FixedBitLength>;
+};
+
+template <>
+struct FieldBitLengthIntTypeImpl<false>
+{
+public:
+    template <typename T>
+    using Type = 
+        std::integral_constant<
+            std::size_t, 
+            T::maxLength() * std::numeric_limits<std::uint8_t>::digits>;
 };
 
 } // namespace details

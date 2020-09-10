@@ -202,6 +202,17 @@ public:
 };
 
 template <typename...>
+class FieldBitLengthIntType
+{
+public:
+    template <typename T>
+    using Type = 
+        typename details::FieldBitLengthIntTypeImpl<
+            T::ParsedOptions::HasFixedBitLengthLimit
+        >::template Type<T>;
+};
+
+template <typename...>
 struct AccumulateFromUntil
 {
     template <

@@ -229,7 +229,23 @@ struct CommonFuncs
             std::size_t, 
             comms::util::tupleTypeAccumulateFromUntil<TFrom, TUntil, std::tuple<TFields...> >(
                 std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>())
-        >;    
+        >;   
+
+    template <typename... TFields>
+    using FieldSumTotalBitLengthIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldTotalBitLengthSumCalcHelper<>())
+        >;       
+
+    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
+    using FieldSumTotalBitLengthFromUntilIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulateFromUntil<TFrom, TUntil, std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldTotalBitLengthSumCalcHelper<>())
+        >;              
 
     template <typename... TFields>
     using AnyFieldHasNonDefaultRefreshBoolType = 
@@ -319,7 +335,27 @@ struct CommonFuncs
             comms::util::IntSumBinaryOp,
             std::integral_constant<std::size_t, 0U>,
             TFields...
-        >;                          
+        >;  
+
+    template <typename... TFields>
+    using FieldSumTotalBitLengthIntType = 
+        typename comms::util::Accumulate<>::template Type<
+            comms::util::FieldBitLengthIntType,
+            comms::util::IntSumBinaryOp,
+            std::integral_constant<std::size_t, 0U>,
+            TFields...
+        >;  
+
+    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
+    using FieldSumTotalBitLengthFromUntilIntType = 
+        typename comms::util::AccumulateFromUntil<>::template Type<
+            TFrom,
+            TUntil,
+            comms::util::FieldBitLengthIntType,
+            comms::util::IntSumBinaryOp,
+            std::integral_constant<std::size_t, 0U>,
+            TFields...
+        >;          
 
     template <typename... TFields>
     using AnyFieldHasNonDefaultRefreshBoolType = 

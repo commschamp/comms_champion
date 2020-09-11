@@ -26,7 +26,7 @@ template <>
 class ChecksumLayerOptionsParser<>
 {
 public:
-    static const bool HasVerifyBeforeRead = false;
+    static constexpr bool HasVerifyBeforeRead = false;
 };
 
 template <typename... TOptions>
@@ -34,7 +34,7 @@ class ChecksumLayerOptionsParser<comms::option::def::ChecksumLayerVerifyBeforeRe
         public ChecksumLayerOptionsParser<TOptions...>
 {
 public:
-    static const bool HasVerifyBeforeRead = true;
+    static constexpr bool HasVerifyBeforeRead = true;
 };
 
 template <typename... TOptions>

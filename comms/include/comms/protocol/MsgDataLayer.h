@@ -820,7 +820,7 @@ private:
     }
 
     template <typename... TExtraValues>
-    static bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues...)
+    static bool missingSizeRequiredInternal(details::MissingSizeRetriever<>, TExtraValues...)
     {
         return true;
     }
@@ -842,7 +842,7 @@ private:
     template <typename... TExtraValues>
     static void updateMissingSizeInternal(
         std::size_t val,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues)
     {
         retriever.setValue(val);

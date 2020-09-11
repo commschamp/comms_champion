@@ -1262,7 +1262,7 @@ private:
     template <typename... TExtraValues>
     void updateMissingSizeInternal(
         std::size_t size,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues) const
     {
         COMMS_ASSERT(size <= length());
@@ -1274,7 +1274,7 @@ private:
     void updateMissingSizeInternal(
         const Field& field,
         std::size_t size,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues) const
     {
         static_assert(
@@ -1320,7 +1320,7 @@ private:
     template <typename... TExtraValues>
     static void setMissingSizeInternal(
         std::size_t val,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues)
     {
         retriever.setValue(val);
@@ -1450,9 +1450,9 @@ toProtocolLayerBase(const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptio
 /// @see @ref comms::protocol::ProtocolLayerBase::read()
 /// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
 inline
-details::MissingSizeRetriever missingSize(std::size_t& val)
+details::MissingSizeRetriever<> missingSize(std::size_t& val)
 {
-    return details::MissingSizeRetriever(val);
+    return details::MissingSizeRetriever<>(val);
 }
 
 /// @brief Add "message ID" output parameter to protocol stack's (frame's)

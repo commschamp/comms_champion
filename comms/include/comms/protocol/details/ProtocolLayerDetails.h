@@ -105,6 +105,7 @@ struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T
     using Type = typename T::MsgPtr;
 };
 
+template<typename...>
 class MissingSizeRetriever
 {
 public:
@@ -125,8 +126,8 @@ struct IsMissingSizeRetrieverHelper
     static const bool Value = false;
 };
 
-template <>
-struct IsMissingSizeRetrieverHelper<MissingSizeRetriever>
+template <typename... TParams>
+struct IsMissingSizeRetrieverHelper<MissingSizeRetriever<TParams...> >
 {
     static const bool Value = true;
 };

@@ -26,8 +26,8 @@ template <>
 class ProtocolLayerBaseOptionsParser<>
 {
 public:
-    static const bool HasForceReadUntilDataSplit = false;
-    static const bool HasDisallowReadUntilDataSplit = false;
+    static constexpr bool HasForceReadUntilDataSplit = false;
+    static constexpr bool HasDisallowReadUntilDataSplit = false;
 };
 
 template <typename... TOptions>
@@ -36,7 +36,7 @@ class ProtocolLayerBaseOptionsParser<
         public ProtocolLayerBaseOptionsParser<TOptions...>
 {
 public:
-    static const bool HasForceReadUntilDataSplit = true;
+    static constexpr bool HasForceReadUntilDataSplit = true;
 };
 
 template <typename... TOptions>
@@ -45,7 +45,7 @@ class ProtocolLayerBaseOptionsParser<
         public ProtocolLayerBaseOptionsParser<TOptions...>
 {
 public:
-    static const bool HasDisallowReadUntilDataSplit = true;
+    static constexpr bool HasDisallowReadUntilDataSplit = true;
 };
 
 template <typename... TOptions>

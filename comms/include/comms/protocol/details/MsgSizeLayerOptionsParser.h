@@ -27,7 +27,10 @@ template <>
 class MsgSizeLayerOptionsParser<>
 {
 public:
-    static const bool HasExtendingClass = false;
+    static constexpr bool HasExtendingClass = false;
+
+    template <typename TLayer>
+    using DefineExtendingClass = TLayer;
 };
 
 template <typename T, typename... TOptions>
@@ -35,8 +38,11 @@ class MsgSizeLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions.
         public MsgSizeLayerOptionsParser<TOptions...>
 {
 public:
-    static const bool HasExtendingClass = true;
+    static constexpr bool HasExtendingClass = true;
     using ExtendingClass = T;
+
+    template <typename TLayer>
+    using DefineExtendingClass = ExtendingClass;    
 };
 
 template <typename... TOptions>

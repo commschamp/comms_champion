@@ -29,6 +29,9 @@ class MsgIdLayerOptionsParser<>
 public:
     static const bool HasExtendingClass = false;
     using FactoryOptions = std::tuple<>;
+
+    template <typename TLayer>
+    using DefineExtendingClass = TLayer;    
 };
 
 template <typename T, typename... TOptions>
@@ -38,6 +41,9 @@ class MsgIdLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...
 public:
     static const bool HasExtendingClass = true;
     using ExtendingClass = T;
+
+    template <typename TLayer>
+    using DefineExtendingClass = ExtendingClass;       
 };
 
 template <typename... TOptions>

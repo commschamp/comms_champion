@@ -17,6 +17,7 @@
 #include "comms/protocol/details/MsgSizeLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -27,10 +28,7 @@ namespace protocol
 namespace details
 {
 template <bool TValidPtr>
-struct MsgSizeLayerConstNullPtrCastHelper;
-
-template <>
-struct MsgSizeLayerConstNullPtrCastHelper<true>
+struct MsgSizeLayerConstNullPtrCastHelper
 {
     template <typename TPtr>
     using Type = const typename TPtr::element_type*;
@@ -115,7 +113,7 @@ public:
     template <typename TMsg>
     constexpr std::size_t doFieldLength(const TMsg& msg) const
     {
-        return fieldLengthInternal(msg, LengthTag());
+        return fieldLengthInternal(msg, LengthTag<>());
     }
     /// @endcond
 
@@ -332,30 +330,45 @@ protected:
     }
 
 private:
+    template <typename... TParams>
+    using FixedLengthTag = typename BaseImpl::template FixedLengthTag<TParams...>;
 
-    using FixedLengthTag = typename BaseImpl::FixedLengthTag;
-    using VarLengthTag = typename BaseImpl::VarLengthTag;
-    using LengthTag = typename BaseImpl::LengthTag;
-    struct MsgHasLengthTag {};
-    struct MsgNoLengthTag {};
-    struct ValidMsgTypeTag {};
-    struct NoMsgTypeTag {};
+    template <typename...TParams>
+    using VarLengthTag = typename BaseImpl::template VarLengthTag<TParams...>;
+
+    template <typename... TParams>
+    using LengthTag = typename BaseImpl::template LengthTag<TParams...>;
+
+    template <typename... TParams>
+    using MsgHasLengthTag = comms::details::tag::Tag3<TParams...>;  
+
+    template <typename... TParams>
+    using MsgNoLengthTag = comms::details::tag::Tag4<TParams...>;   
+
+    template <typename... TParams>
+    using ValidMsgTypeTag = comms::details::tag::Tag5<TParams...>;     
+
+    template <typename... TParams>
+    using NoMsgTypeTag = comms::details::tag::Tag6<TParams...>;         
 
     template<typename TMsg>
     using MsgLengthTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             details::ProtocolLayerHasFieldsImpl<TMsg>::Value || TMsg::InterfaceOptions::HasLength
         >::template Type<
             MsgHasLengthTag,
             MsgNoLengthTag
         >;
 
-    struct PtrToMsgTag {};
-    struct DirectMsgTag {};
+    template <typename... TParams>
+    using PtrToMsgTag = comms::details::tag::Tag7<TParams...>;   
+
+    template <typename... TParams>
+    using DirectMsgTag = comms::details::tag::Tag8<TParams...>;             
 
     template <typename TMsg>
     using MsgTypeTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             comms::isMessage<TMsg>()
         >::template Type<
             DirectMsgTag,
@@ -476,38 +489,38 @@ private:
         return writeInternalNoLengthTagged(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter), Tag());
     }
 
-    template <typename TMsg, typename TIter, typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter, typename... TParams>
     ErrorStatus writeInternal(
         Field& field,
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
-        MsgHasLengthTag) const
+        MsgHasLengthTag<TParams...>) const
     {
         return writeInternalHasLength(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TMsg, typename TIter, typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter, typename... TParams>
     ErrorStatus writeInternal(
         Field& field,
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
-        MsgNoLengthTag) const
+        MsgNoLengthTag<TParams...>) const
     {
         return writeInternalNoLength(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TMsg>
-    constexpr std::size_t fieldLengthInternal(const TMsg& msg, FixedLengthTag) const
+    template <typename TMsg, typename... TParams>
+    constexpr std::size_t fieldLengthInternal(const TMsg& msg, FixedLengthTag<TParams...>) const
     {
         return BaseImpl::doFieldLength(msg);
     }
 
-    template <typename TMsg>
-    std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag) const
+    template <typename TMsg, typename... TParams>
+    std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag<TParams...>) const
     {
         auto remSize = BaseImpl::nextLayer().length(msg);
         Field fieldTmp;
@@ -515,14 +528,14 @@ private:
         return fieldTmp.length();
     }
 
-    template <typename TMsg>
-    auto getPtrToMsgInternal(TMsg& msg, PtrToMsgTag) -> decltype (msg.get())
+    template <typename TMsg, typename... TParams>
+    auto getPtrToMsgInternal(TMsg& msg, PtrToMsgTag<TParams...>) -> decltype (msg.get())
     {
         return msg.get();
     }
 
-    template <typename TMsg>
-    auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag) -> decltype (&msg)
+    template <typename TMsg, typename... TParams>
+    auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag<TParams...>) -> decltype (&msg)
     {
         return &msg;
     }
@@ -549,7 +562,7 @@ private:
         }
 
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_void<typename std::decay<TMsg>::type>::value
             >::template Type<
                 NoMsgTypeTag,
@@ -559,25 +572,25 @@ private:
         return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus doUpdateForward(
         const TMsg* msg,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        NoMsgTypeTag) const
+        NoMsgTypeTag<TParams...>) const
     {
         static_cast<void>(msg);
         return nextLayerUpdater.update(iter, size);
     } 
 
-    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus doUpdateForward(
         const TMsg* msg,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        ValidMsgTypeTag) const
+        ValidMsgTypeTag<TParams...>) const
     {
         if (msg == nullptr) {
             return nextLayerUpdater.update(iter, size);

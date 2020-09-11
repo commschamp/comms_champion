@@ -149,6 +149,14 @@ public:
 };
 
 template <typename...>
+class AliasType
+{
+public:
+    template <typename T, typename...>
+    using Type = T;    
+};
+
+template <typename...>
 struct LogicalOrBinaryOp
 {
     // TFirst and TSecond are either std::true_type || std::false_type

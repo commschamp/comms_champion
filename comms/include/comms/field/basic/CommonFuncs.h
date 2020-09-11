@@ -387,27 +387,11 @@ struct CommonFuncs
 
 private:
 
-    template <typename TVerType>
-    class VersionUpdater
+    template <typename TVersionType>
+    static comms::field::details::FieldVersionUpdateHelper<TVersionType> makeVersionUpdater(TVersionType version)
     {
-    public:
-        explicit VersionUpdater(TVerType val) : version_(val) {}
-
-        template <typename TField>
-        bool operator()(bool soFar, TField& field) const
-        {
-            return field.setVersion(static_cast<typename TField::VersionType>(version_)) || soFar;
-        }
-    private:
-        TVerType version_;
-    };
-
-    template <typename TVerType>
-    static VersionUpdater<TVerType> makeVersionUpdater(TVerType val)
-    {
-        return VersionUpdater<TVerType>(val);
+        return comms::field::details::FieldVersionUpdateHelper<TVersionType>(version);
     }
-
 };
 
 } // namespace basic

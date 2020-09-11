@@ -12,12 +12,8 @@
 
 #include "comms/util/Tuple.h"
 #include "comms/details/tag.h"
-// #include "comms/Field.h"
-// #include "comms/util/access.h"
-// #include "comms/util/type_traits.h"
-// #include "comms/options.h"
-// #include "comms/Assert.h"
-// #include "comms/ErrorStatus.h"
+#include "comms/field/basic/CommonFuncs.h"
+#include "comms/field/details/FieldOpHelpers.h"
 
 namespace comms
 {
@@ -26,10 +22,13 @@ namespace details
 {
 
 template <typename TAllFields>
-class MessageImplFieldsContainer
+class MessageImplFieldsContainer;
+
+template <typename... TAllFields>
+class MessageImplFieldsContainer<std::tuple<TAllFields...> >    
 {
 public:
-    using AllFields = TAllFields;
+    using AllFields = std::tuple<TAllFields...>;
 
     AllFields& fields()
     {
@@ -43,35 +42,25 @@ public:
 
     static constexpr bool areFieldsVersionDependent()
     {
-        return comms::util::tupleTypeIsAnyOf<AllFields>(VersionDepChecker());
+        return comms::field::basic::CommonFuncs::IsAnyFieldVersionDependentBoolType<TAllFields...>::value;
     }
 
     static constexpr bool doFieldsHaveNonDefaultRefresh()
     {
-        return comms::util::tupleTypeIsAnyOf<AllFields>(RefreshChecker());
+        return comms::field::basic::CommonFuncs::AnyFieldHasNonDefaultRefreshBoolType<TAllFields...>::value;
     }    
 
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
-#if COMMS_IS_MSVC
-// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
-// warning on the code below
-#pragma warning( push )
-#pragma warning( disable : 4307)
-#endif
-
         using Tag =
-            typename comms::util::Conditional<
-                comms::util::tupleTypeAccumulate<AllFields>(true, ReadNoStatusDetector())
+            typename comms::util::LazyShallowConditional<
+                comms::field::basic::CommonFuncs::AllFieldsHaveReadNoStatusBoolType<TAllFields...>::value
             >::template Type<
                 NoStatusTag,
                 UseStatusTag
             >;
 
-#if COMMS_IS_MSVC
-#pragma warning( pop )
-#endif
         return doReadInternal(iter, size, Tag());
     }
 
@@ -80,36 +69,26 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-#if COMMS_IS_MSVC
-// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
-// warning on the code below
-#pragma warning( push )
-#pragma warning( disable : 4307)
-#endif
 
         using Tag =
-            typename comms::util::Conditional<
-                comms::util::tupleTypeAccumulate<AllFields>(true, WriteNoStatusDetector())
+            typename comms::util::LazyShallowConditional<
+                comms::field::basic::CommonFuncs::AllFieldsHaveWriteNoStatusBoolType<TAllFields...>::value
             >::template Type<
                 NoStatusTag,
                 UseStatusTag
             >;
-
-#if COMMS_IS_MSVC
-#pragma warning( pop )
-#endif
 
         return doWriteInternal(iter, size, Tag());
     }
 
     bool doValid() const
     {
-        return util::tupleAccumulate(fields(), true, FieldValidityRetriever());
+        return util::tupleAccumulate(fields(), true, comms::field::details::FieldValidCheckHelper<>());
     }
 
     std::size_t doLength() const
     {
-        return util::tupleAccumulate(fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
+        return util::tupleAccumulate(fields(), static_cast<std::size_t>(0U), comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx>
@@ -117,7 +96,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value>(
-                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TUntilIdx>
@@ -125,7 +104,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<0, TUntilIdx>(
-                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
@@ -133,64 +112,88 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
-                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     static constexpr std::size_t doMinLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMinLengthRetriever());
+        return comms::field::basic::CommonFuncs::FieldSumMinLengthIntType<TAllFields...>::value;
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMinLengthFrom()
     {
-        return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
+                TFromIdx, 
+                std::tuple_size<AllFields>::value,
+                TAllFields...
+            >::value;
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthUntil()
     {
-        return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
+                0U,
+                TUntilIdx, 
+                TAllFields...
+            >::value;
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthFromUntil()
     {
-        return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
+                TFromIdx,
+                TUntilIdx, 
+                TAllFields...
+            >::value;
     }
 
     static constexpr std::size_t doMaxLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
+        return comms::field::basic::CommonFuncs::FieldSumMaxLengthIntType<TAllFields...>::value;
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMaxLengthFrom()
     {
-        return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
+                TFromIdx, 
+                std::tuple_size<AllFields>::value,
+                TAllFields...
+            >::value;
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthUntil()
     {
-        return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
+                0U,
+                TUntilIdx, 
+                TAllFields...
+            >::value;
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthFromUntil()
     {
-        return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
+        return 
+            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
+                TFromIdx,
+                TUntilIdx, 
+                TAllFields...
+            >::value;
     }
 
     bool doRefresh()
     {
-        return util::tupleAccumulate(fields(), false, FieldRefresher());
+        return util::tupleAccumulate(fields(), false, comms::field::details::FieldRefreshHelper<>());
     }
 
 protected:
@@ -341,45 +344,26 @@ protected:
     }
 
 private:
-    using NoStatusTag = comms::details::tag::Tag1<>;
-    using UseStatusTag = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using NoStatusTag = comms::details::tag::Tag1<TParams...>;
 
-    struct ReadNoStatusDetector
-    {
-        constexpr ReadNoStatusDetector() = default;
+    template <typename... TParams>
+    using UseStatusTag = comms::details::tag::Tag2<TParams...>;
 
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasReadNoStatus() && soFar;
-        }
-    };
-
-    struct WriteNoStatusDetector
-    {
-        constexpr WriteNoStatusDetector() = default;
-
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasWriteNoStatus() && soFar;
-        }
-    };
-
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus doReadInternal(
         TIter& iter,
         std::size_t size,
-        UseStatusTag)
+        UseStatusTag<TParams...>)
     {
         return doReadFromAndUpdateLen<0>(iter, size);
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus doReadInternal(
         TIter& iter,
         std::size_t size,
-        NoStatusTag)
+        NoStatusTag<TParams...>)
     {
         if (size < doLength()) {
             return comms::ErrorStatus::NotEnoughData;
@@ -389,20 +373,20 @@ private:
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus doWriteInternal(
         TIter& iter,
         std::size_t size,
-        UseStatusTag) const
+        UseStatusTag<TParams...>) const
     {
         return doWriteFromAndUpdateLen<0>(iter, size);
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus doWriteInternal(
         TIter& iter,
         std::size_t size,
-        NoStatusTag) const
+        NoStatusTag<TParams...>) const
     {
         if (size < doLength()) {
             return comms::ErrorStatus::BufferOverflow;
@@ -413,192 +397,34 @@ private:
     }
 
     template <typename TIter>
-    class FieldReader
-    {
-    public:
-        FieldReader(TIter& iter, comms::ErrorStatus& status, std::size_t& size)
-            : iter_(iter),
-              status_(status),
-              size_(size)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field) {
-            if (status_ == comms::ErrorStatus::Success) {
-                auto fromIter = iter_;
-                status_ = field.read(iter_, size_);
-                if (status_ == comms::ErrorStatus::Success) {
-                    auto diff = static_cast<std::size_t>(std::distance(fromIter, iter_));
-                    COMMS_ASSERT(diff <= size_);
-                    size_ -= diff;
-                }
-            }
-        }
-
-    private:
-        TIter& iter_;
-        comms::ErrorStatus& status_;
-        std::size_t& size_;
-    };
-
-    template <typename TIter>
-    static FieldReader<TIter> makeFieldReader(
+    static comms::field::details::FieldReadHelper<TIter> makeFieldReader(
         TIter& iter,
         comms::ErrorStatus& status,
         std::size_t& size)
     {
-        return FieldReader<TIter>(iter, status, size);
+        return comms::field::details::FieldReadHelper<TIter>(status, iter, size);
     }
 
     template <typename TIter>
-    class FieldNoStatusReader
+    static comms::field::details::FieldReadNoStatusHelper<TIter> makeFieldNoStatusReader(TIter& iter)
     {
-    public:
-        FieldNoStatusReader(TIter& iter)
-            : iter_(iter)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field) {
-            field.readNoStatus(iter_);
-        }
-
-    private:
-        TIter& iter_;
-    };
-
-    template <typename TIter>
-    static FieldNoStatusReader<TIter> makeFieldNoStatusReader(TIter& iter)
-    {
-        return FieldNoStatusReader<TIter>(iter);
+        return comms::field::details::FieldReadNoStatusHelper<TIter>(iter);
     }
 
     template <typename TIter>
-    class FieldWriter
-    {
-    public:
-        FieldWriter(TIter& iter, comms::ErrorStatus& status, std::size_t& size)
-            : iter_(iter),
-              status_(status),
-              size_(size)
-        {
-        }
-
-        template <typename TField>
-        void operator()(const TField& field) {
-            if (status_ == comms::ErrorStatus::Success) {
-                status_ = field.write(iter_, size_);
-                if (status_ == comms::ErrorStatus::Success) {
-                    COMMS_ASSERT(field.length() <= size_);
-                    size_ -= field.length();
-                }
-            }
-        }
-
-    private:
-        TIter& iter_;
-        comms::ErrorStatus& status_;
-        std::size_t& size_;
-    };
-
-    template <typename TIter>
-    static FieldWriter<TIter> makeFieldWriter(
+    static comms::field::details::FieldWriteHelper<TIter> makeFieldWriter(
         TIter& iter,
         comms::ErrorStatus& status,
         std::size_t& size)
     {
-        return FieldWriter<TIter>(iter, status, size);
+        return comms::field::details::FieldWriteHelper<TIter>(status, iter, size);
     }
 
     template <typename TIter>
-    class FieldNoStatusWriter
+    static comms::field::details::FieldWriteNoStatusHelper<TIter> makeFieldNoStatusWriter(TIter& iter)
     {
-    public:
-        FieldNoStatusWriter(TIter& iter)
-            : iter_(iter)
-        {
-        }
-
-        template <typename TField>
-        void operator()(const TField& field) {
-            field.writeNoStatus(iter_);
-        }
-
-    private:
-        TIter& iter_;
-    };
-
-    template <typename TIter>
-    static FieldNoStatusWriter<TIter> makeFieldNoStatusWriter(TIter& iter)
-    {
-        return FieldNoStatusWriter<TIter>(iter);
+        return comms::field::details::FieldWriteNoStatusHelper<TIter>(iter);
     }
-
-    struct FieldValidityRetriever
-    {
-        template <typename TField>
-        bool operator()(bool valid, const TField& field) const
-        {
-            return valid && field.valid();
-        }
-    };
-
-    struct FieldRefresher
-    {
-        template <typename TField>
-        bool operator()(bool refreshed, TField& field) const
-        {
-            return field.refresh() || refreshed;
-        }
-    };
-
-
-    struct FieldLengthRetriever
-    {
-        template <typename TField>
-        std::size_t operator()(std::size_t size, const TField& field) const
-        {
-            return size + field.length();
-        }
-    };
-
-    struct FieldMinLengthRetriever
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t size) const
-        {
-            return size + TField::minLength();
-        }
-    };
-
-    struct FieldMaxLengthRetriever
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t size) const
-        {
-            return size + TField::maxLength();
-        }
-    };
-
-    struct VersionDepChecker
-    {
-        template <typename TField>
-        constexpr bool operator()() const
-        {
-            return TField::isVersionDependent();
-        }
-    };
-
-    struct RefreshChecker
-    {
-        template <typename TField>
-        constexpr bool operator()() const
-        {
-            return TField::hasNonDefaultRefresh();
-        }
-    };
 
     AllFields fields_;
 };
@@ -661,7 +487,7 @@ public:
 
     bool doFieldsVersionUpdate()
     {
-        return util::tupleAccumulate(TBase::fields(), false, FieldVersionUpdater(TBase::version()));
+        return comms::field::basic::CommonFuncs::setVersionForMembers(TBase::fields(), TBase::version());
     }
 
     template <typename TIter>
@@ -689,23 +515,6 @@ protected:
 
     MessageImplVersionBase& operator=(const MessageImplVersionBase&) = default;
     MessageImplVersionBase& operator=(MessageImplVersionBase&&) = default;
-
-private:
-
-    struct FieldVersionUpdater
-    {
-        FieldVersionUpdater(VersionType version) : version_(version) {}
-
-        template <typename TField>
-        bool operator()(bool updated, TField& field) const
-        {
-            using FieldVersionType = typename std::decay<decltype(field)>::type::VersionType;
-            return field.setVersion(static_cast<FieldVersionType>(version_)) || updated;
-        }
-
-    private:
-        const VersionType version_ = static_cast<VersionType>(0);
-    };
 };
 
 // ------------------------------------------------------
@@ -721,7 +530,7 @@ protected:
         std::size_t size) override
     {
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoActual,
@@ -731,21 +540,26 @@ protected:
     }
 
 private:
-    using HasActual = comms::details::tag::Tag1<>;
-    using NoActual = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using HasActual = comms::details::tag::Tag1<TParams...>;
 
+    template <typename... TParams>
+    using NoActual = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
     comms::ErrorStatus readImplInternal(
         typename BaseImpl::ReadIterator& iter,
         std::size_t size,
-        NoActual)
+        NoActual<TParams...>)
     {
         return BaseImpl::doRead(iter, size);
     }
 
+    template <typename... TParams>
     comms::ErrorStatus readImplInternal(
         typename BaseImpl::ReadIterator& iter,
         std::size_t size,
-        HasActual)
+        HasActual<TParams...>)
     {
         return static_cast<TActual*>(this)->doRead(iter, size);
     }
@@ -765,7 +579,7 @@ protected:
         std::size_t size) const override
     {
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoActual,
@@ -775,21 +589,26 @@ protected:
     }
 
 private:
-    using HasActual = comms::details::tag::Tag1<>;
-    using NoActual = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using HasActual = comms::details::tag::Tag1<TParams...>;
 
+    template <typename... TParams>
+    using NoActual = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
     comms::ErrorStatus writeImplInternal(
         typename BaseImpl::WriteIterator& iter,
         std::size_t size,
-        NoActual) const
+        NoActual<TParams...>) const
     {
         return BaseImpl::doWrite(iter, size);
     }
 
+    template <typename... TParams>
     comms::ErrorStatus writeImplInternal(
         typename BaseImpl::WriteIterator& iter,
         std::size_t size,
-        HasActual) const
+        HasActual<TParams...>) const
     {
         return static_cast<const TActual*>(this)->doWrite(iter, size);
     }
@@ -807,7 +626,7 @@ protected:
     virtual bool validImpl() const override
     {
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoActual,
@@ -817,15 +636,20 @@ protected:
     }
 
 private:
-    using HasActual = comms::details::tag::Tag1<>;
-    using NoActual = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using HasActual = comms::details::tag::Tag1<TParams...>;
 
-    bool validImplInternal(NoActual) const
+    template <typename... TParams>
+    using NoActual = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    bool validImplInternal(NoActual<TParams...>) const
     {
         return BaseImpl::doValid();
     }
 
-    bool validImplInternal(HasActual) const
+    template <typename... TParams>
+    bool validImplInternal(HasActual<TParams...>) const
     {
         return static_cast<const TActual*>(this)->doValid();
     }
@@ -843,7 +667,7 @@ protected:
     virtual std::size_t lengthImpl() const override
     {
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoActual,
@@ -853,15 +677,20 @@ protected:
     }
 
 private:
-    using HasActual = comms::details::tag::Tag1<>;
-    using NoActual = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using HasActual = comms::details::tag::Tag1<TParams...>;
 
-    std::size_t lengthImplInternal(NoActual) const
+    template <typename... TParams>
+    using NoActual = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    std::size_t lengthImplInternal(NoActual<TParams...>) const
     {
         return BaseImpl::doLength();
     }
 
-    std::size_t lengthImplInternal(HasActual) const
+    template <typename... TParams>
+    std::size_t lengthImplInternal(HasActual<TParams...>) const
     {
         return static_cast<const TActual*>(this)->doLength();
     }
@@ -877,7 +706,7 @@ protected:
     virtual bool refreshImpl() override
     {
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoDowncast,
@@ -887,15 +716,20 @@ protected:
     }
 
 private:
-    using NoDowncast = comms::details::tag::Tag1<>;
-    using Downcast = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using Downcast = comms::details::tag::Tag1<TParams...>;
 
-    bool refreshInternal(Downcast)
+    template <typename... TParams>
+    using NoDowncast = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    bool refreshInternal(Downcast<TParams...>)
     {
         return static_cast<TActual*>(this)->doRefresh();
     }
 
-    bool refreshInternal(NoDowncast)
+    template <typename... TParams>
+    bool refreshInternal(NoDowncast<TParams...>)
     {
         return TBase::doRefresh();
     }
@@ -945,7 +779,7 @@ protected:
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<TActual, void>::value
             >::template Type<
                 NoDowncastTag,
@@ -955,15 +789,20 @@ protected:
     }
 
 private:
-    using NoDowncastTag = comms::details::tag::Tag1<>;
-    using DowncastTag = comms::details::tag::Tag2<>;
+    template <typename... TParams>
+    using DowncastTag = comms::details::tag::Tag1<TParams...>;
 
-    typename TBase::MsgIdParamType getIdInternal(NoDowncastTag) const
+    template <typename... TParams>
+    using NoDowncastTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    typename TBase::MsgIdParamType getIdInternal(NoDowncastTag<TParams...>) const
     {
         return TBase::doGetId();
     }
 
-    typename TBase::MsgIdParamType getIdInternal(DowncastTag) const
+    template <typename... TParams>
+    typename TBase::MsgIdParamType getIdInternal(DowncastTag<TParams...>) const
     {
         return static_cast<const TActual*>(this)->doGetId();
     }

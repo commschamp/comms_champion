@@ -298,6 +298,22 @@ struct FieldCanWriteCheckHelper
         return soFar && field.canWrite();
     }
 };
+
+template <typename TVersionType>
+struct FieldVersionUpdateHelper
+{
+    FieldVersionUpdateHelper(TVersionType version) : version_(version) {}
+
+    template <typename TField>
+    bool operator()(bool updated, TField& field) const
+    {
+        using FieldVersionType = typename std::decay<decltype(field)>::type::VersionType;
+        return field.setVersion(static_cast<FieldVersionType>(version_)) || updated;
+    }
+
+private:
+    const TVersionType version_ = static_cast<TVersionType>(0);
+};
     
 } // namespace details
 

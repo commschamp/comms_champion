@@ -26,6 +26,7 @@
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/MsgIdLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -200,7 +201,7 @@ public:
         auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 comms::isMessageBase<typename std::decay<decltype(msg)>::type>()
             >::template Type<
                 DirectOpTag,
@@ -266,7 +267,7 @@ public:
         COMMS_ASSERT(field.length() <= size);
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 comms::isMessageBase<MsgType>() || MsgType::hasWrite()
             >::template Type<
                 DirectOpTag,
@@ -361,34 +362,47 @@ protected:
 
 private:
 
-    struct PolymorphicOpTag {};
-    struct DirectOpTag {};
-    struct PointerOpTag {};
-    struct StaticBinSearchOpTag {};
+    template <typename... TParams>
+    using PolymorphicOpTag = comms::details::tag::Tag1<TParams...>;
+
+    template <typename... TParams>
+    using DirectOpTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    using PointerOpTag = comms::details::tag::Tag3<TParams...>;
+
+    template <typename... TParams>
+    using StaticBinSearchOpTag = comms::details::tag::Tag4<TParams...>;         
 
     template <typename TMsg>
     using IdRetrieveTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             details::protocolLayerHasDoGetId<TMsg>()
         >::template Type<
             DirectOpTag,
             PolymorphicOpTag
         >;
 
-    struct IdParamAsIsTag {};
-    struct IdParamCastTag {};
+    template <typename... TParams>
+    using IdParamAsIsTag = comms::details::tag::Tag5<TParams...>; 
+
+    template <typename... TParams>
+    using IdParamCastTag = comms::details::tag::Tag6<TParams...>;     
 
     template <typename TId>
     using IdParamTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             std::is_base_of<MsgIdType, TId>::value
         >::template Type<
             IdParamAsIsTag,
             IdParamCastTag
         >;
 
-    struct HasGenericMsgTag {};
-    struct NoGenericMsgTag {};
+    template <typename... TParams>
+    using HasGenericMsgTag = comms::details::tag::Tag7<TParams...>; 
+
+    template <typename... TParams>
+    using NoGenericMsgTag = comms::details::tag::Tag8<TParams...>;     
 
     template <typename TIter, typename TNextLayerReader, typename... TExtraValues>
     class ReadRedirectionHandler
@@ -560,8 +574,8 @@ private:
         return WriteRedirectionHandler<TIter, TNextLayerWriter>(iter, size, std::move(nextLayerWriter));
     }
 
-    template <typename TMsg>
-    static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
+    template <typename TMsg, typename... TParams>
+    static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(comms::isMessage<MsgType>(),
@@ -573,8 +587,8 @@ private:
         return msg.getId();
     }
 
-    template <typename TMsg>
-    static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag)
+    template <typename TMsg, typename... TParams>
+    static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag<TParams...>)
     {
         return msg.doGetId();
     }
@@ -611,7 +625,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        PolymorphicOpTag,
+        PolymorphicOpTag<>,
         TExtraValues... extraValues)
     {
         static_cast<void>(id);
@@ -626,7 +640,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        DirectOpTag,
+        DirectOpTag<>,
         TExtraValues... extraValues)
     {
         return
@@ -646,7 +660,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        PointerOpTag,
+        PointerOpTag<>,
         TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
@@ -660,7 +674,7 @@ private:
 //            "However, there is no virtual desctructor to perform proper destruction.");
 
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 MsgElementType::hasRead()
             >::template Type<
                 PolymorphicOpTag,
@@ -705,7 +719,7 @@ private:
         
         COMMS_ASSERT(failureReason == CreateFailureReason::InvalidId);
         using GenericMsgTag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 Factory::ParsedOptions::HasSupportGenericMessage
             >::template Type<
                 HasGenericMsgTag,
@@ -732,7 +746,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        StaticBinSearchOpTag,
+        StaticBinSearchOpTag<>,
         TExtraValues... extraValues)
     {
         auto handler =
@@ -744,14 +758,14 @@ private:
         return comms::dispatchMsgStaticBinSearch<AllMessages>(id, idx, *msg, handler);
     }
 
-    template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamAsIsTag)
+    template <typename TId, typename... TParams>
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamAsIsTag<TParams...>)
     {
         return createMsg(std::forward<TId>(id), idx, reason);
     }
 
-    template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamCastTag)
+    template <typename TId, typename... TParams>
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamCastTag<TParams...>)
     {
         return createMsg(static_cast<MsgIdType>(id), idx, reason);
     }
@@ -763,14 +777,14 @@ private:
         return createMsgInternalTagged(std::forward<TId>(id), idx, reason, IdParamTag<IdType>());
     }
 
-    template <typename TId>
-    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag)
+    template <typename TId, typename... TParams>
+    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag<TParams...>)
     {
         return factory_.createGenericMsg(std::forward<TId>(id), idx);
     }
 
-    template <typename TId>
-    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag)
+    template <typename TId, typename... TParams>
+    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag<TParams...>)
     {
         return factory_.createGenericMsg(static_cast<MsgIdType>(id), idx);
     }
@@ -791,7 +805,7 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
-        NoGenericMsgTag,
+        NoGenericMsgTag<>,
         TExtraValues...)
     {
         static_cast<void>(field);
@@ -812,7 +826,7 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
-        HasGenericMsgTag,
+        HasGenericMsgTag<>,
         TExtraValues... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
@@ -826,7 +840,7 @@ private:
         static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
 
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 GenericMsgType::hasRead()
             >::template Type<
                 PolymorphicOpTag,
@@ -849,7 +863,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        PolymorphicOpTag,
+        PolymorphicOpTag<>,
         TExtraValues... extraValues)
     {
         return nextLayerReader.read(msg, iter, size, extraValues...);
@@ -861,7 +875,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        DirectOpTag,
+        DirectOpTag<>,
         TExtraValues... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
@@ -869,14 +883,14 @@ private:
         return nextLayerReader.read(castedMsgRef, iter, size, extraValues...);
     }               
 
-    template <typename TId>
-    std::size_t msgCountInternalTagged(TId&& id, IdParamAsIsTag)
+    template <typename TId, typename... TParams>
+    std::size_t msgCountInternalTagged(TId&& id, IdParamAsIsTag<TParams...>)
     {
         return factory_.msgCount(std::forward<TId>(id));
     }
 
-    template <typename TId>
-    std::size_t msgCountInternalTagged(TId&& id, IdParamCastTag)
+    template <typename TId, typename... TParams>
+    std::size_t msgCountInternalTagged(TId&& id, IdParamCastTag<TParams...>)
     {
         return factory_.msgCount(static_cast<MsgIdType>(id));
     }
@@ -889,28 +903,28 @@ private:
         return msgCountInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    template <typename TMsg, typename TIter, typename TNextLayerWriter, typename... TParams>
     ErrorStatus writeInternal(
         Field& field,
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter,
-        DirectOpTag) const
+        DirectOpTag<TParams...>) const
     {
         static_cast<void>(field);
         return nextLayerWriter.write(msg, iter, size);
     }
 
 
-    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    template <typename TMsg, typename TIter, typename TNextLayerWriter, typename... TParams>
     ErrorStatus writeInternal(
         Field& field,
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter,
-        StaticBinSearchOpTag) const
+        StaticBinSearchOpTag<TParams...>) const
     {
         auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
         auto id = static_cast<const ExtendingClass*>(this)->getMsgIdFromField(field);

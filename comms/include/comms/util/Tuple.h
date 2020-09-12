@@ -30,14 +30,14 @@ struct IsTuple
 {
     /// @brief By default Value has value false. Will be true for any
     /// variant of <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
-    static const bool Value = false;
+    static constexpr bool Value = false;
 };
 
 /// @cond SKIP_DOC
 template <typename... TArgs>
 struct IsTuple<std::tuple<TArgs...> >
 {
-    static const bool Value = true;
+    static constexpr bool Value = true;
 };
 /// @endcond
 
@@ -64,7 +64,7 @@ public:
 
     /// @brief By default the value is false, will be set to true if TType
     ///     is found in TTuple.
-    static const bool Value = false;
+    static constexpr bool Value = false;
 };
 
 /// @cond SKIP_DOC
@@ -75,7 +75,7 @@ template <typename TType, typename TFirst, typename... TRest>
 class IsInTuple<TType, std::tuple<TFirst, TRest...> >
 {
 public:
-    static const bool Value =
+    static constexpr bool Value =
         std::is_same<TType, TFirst>::value ||
         IsInTuple<TType, std::tuple<TRest...> >::Value;
 };
@@ -84,7 +84,7 @@ template <typename TType>
 class IsInTuple<TType, std::tuple<> >
 {
 public:
-    static const bool Value = false;
+    static constexpr bool Value = false;
 };
 
 #else // #if COMMS_IS_MSVC_2017_OR_BELOW
@@ -100,7 +100,7 @@ class IsInTuple<TType, std::tuple<TRest...> >
     };
 
 public:
-    static const bool Value = 
+    static constexpr bool Value = 
         comms::util::Accumulate<>::template Type<
             SameTypeCheck,
             comms::util::LogicalOrBinaryOp,
@@ -146,53 +146,22 @@ using TupleAsAlignedUnionT = typename TupleAsAlignedUnion<TTuple>::Type;
 
 //----------------------------------------
 
-/// @brief Check whether tuple is unique, i.e. doesn't have contain types.
-template <typename TTuple>
-struct TupleIsUnique
-{
-    static_assert(IsTuple<TTuple>::Value, "TTuple must be std::tuple");
-
-    /// @brief Value is set to true when tuple is discovered to be unique.
-    static const bool Value = false;
-};
-
-/// @cond SKIP_DOC
-template <typename TFirst, typename... TRest>
-struct TupleIsUnique<std::tuple<TFirst, TRest...> >
-{
-    static const bool Value =
-        (!IsInTuple<TFirst, std::tuple<TRest...> >::Value) &&
-        TupleIsUnique<std::tuple<TRest...> >::Value;
-};
-
-template <>
-struct TupleIsUnique<std::tuple<> >
-{
-    static const bool Value = true;
-};
-
-/// @endcond
-
-//----------------------------------------
-
 namespace details
 {
 
 template <bool THasElems>
-class TupleForEachHelper
+struct TupleForEachHelper
 {
-
-public:
     template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-        static const std::size_t OffsetedRem = TRem + TOff;
+        static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static constexpr std::size_t OffsetedRem = TRem + TOff;
         static_assert(OffsetedRem <= TupleSize, "Incorrect parameters");
 
-        static const std::size_t Idx = TupleSize - OffsetedRem;
+        static constexpr std::size_t Idx = TupleSize - OffsetedRem;
         static constexpr std::size_t NextRem = TRem - 1;
         static constexpr bool HasElemsToProcess = (NextRem != 0U);
         func(std::get<Idx>(std::forward<TTuple>(tuple)));
@@ -203,10 +172,8 @@ public:
 };
 
 template <>
-class TupleForEachHelper<false>
+struct TupleForEachHelper<false>
 {
-
-public:
     template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
@@ -232,7 +199,7 @@ template <typename TTuple, typename TFunc>
 void tupleForEach(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static constexpr bool HasTupleElems = (TupleSize != 0U);
 
     details::TupleForEachHelper<HasTupleElems>::template exec<0, TupleSize>(
@@ -253,7 +220,7 @@ template <std::size_t TIdx, typename TTuple, typename TFunc>
 void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
@@ -276,7 +243,7 @@ template <std::size_t TIdx, typename TTuple, typename TFunc>
 void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
     static constexpr std::size_t RemCount = TupleSize - TIdx;
@@ -302,7 +269,7 @@ template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TTuple, typename
 void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TFromIdx <= TupleSize,
         "The from index is too big.");
 
@@ -312,7 +279,7 @@ void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
     static_assert(TFromIdx <= TUntilIdx,
         "The from index must be less than until index.");
 
-    static const std::size_t FieldsCount = TUntilIdx - TFromIdx;
+    static constexpr std::size_t FieldsCount = TUntilIdx - TFromIdx;
     static constexpr bool HasTupleElems = (FieldsCount != 0U);
 
     details::TupleForEachHelper<HasTupleElems>::template exec<TupleSize - TUntilIdx, FieldsCount>(
@@ -324,19 +291,21 @@ void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
 namespace details
 {
 
-template <std::size_t TRem>
-class TupleForEachTypeHelper
+template <bool THasElems>
+struct TupleForEachTypeHelper
 {
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
-        static const std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t NextRem = TRem - 1U;
+        static constexpr bool NextHasElems = (NextRem != 0U);
+
         using ElemType = typename std::tuple_element<Idx, Tuple>::type;
 #if COMMS_IS_MSVC
         // VS compiler
@@ -344,17 +313,15 @@ public:
 #else // #if COMMS_IS_MSVC
         func.template operator()<ElemType>();
 #endif // #if COMMS_IS_MSVC
-        TupleForEachTypeHelper<TRem - 1>::template exec<TTuple>(
+        TupleForEachTypeHelper<NextHasElems>::template exec<NextRem, TTuple>(
             std::forward<TFunc>(func));
     }
 };
 
 template <>
-class TupleForEachTypeHelper<0>
+struct TupleForEachTypeHelper<false>
 {
-
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TFunc&& func)
     {
         static_cast<void>(func);
@@ -377,9 +344,10 @@ template <typename TTuple, typename TFunc>
 void tupleForEachType(TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr bool HasElems = (TupleSize != 0U);
 
-    details::TupleForEachTypeHelper<TupleSize>::template exec<Tuple>(
+    details::TupleForEachTypeHelper<HasElems>::template exec<TupleSize, Tuple>(
         std::forward<TFunc>(func));
 }
 //----------------------------------------
@@ -388,33 +356,32 @@ void tupleForEachType(TFunc&& func)
 namespace details
 {
 
-template <std::size_t TRem>
-class TupleForEachWithIdxHelper
+template <bool THasElems>
+struct TupleForEachWithIdxHelper
 {
-
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
-        static const std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t NextRem = TRem - 1;
+        static constexpr bool NextHasElems = (NextRem != 0U);
+
         func(std::get<Idx>(std::forward<TTuple>(tuple)), Idx);
-        TupleForEachWithIdxHelper<TRem - 1>::exec(
+        TupleForEachWithIdxHelper<NextHasElems>::template exec<NextRem>(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
     }
 };
 
 template <>
-class TupleForEachWithIdxHelper<0>
+struct TupleForEachWithIdxHelper<false>
 {
-
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         static_cast<void>(tuple);
@@ -442,9 +409,10 @@ template <typename TTuple, typename TFunc>
 void tupleForEachWithIdx(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr bool HasElems = (TupleSize != 0U);
 
-    details::TupleForEachWithIdxHelper<TupleSize>::exec(
+    details::TupleForEachWithIdxHelper<HasElems>::template exec<TupleSize>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -452,38 +420,37 @@ void tupleForEachWithIdx(TTuple&& tuple, TFunc&& func)
 namespace details
 {
 
-template <std::size_t TRem>
-class TupleForEachWithTemplateParamIdxHelper
+template <bool THasElems>
+struct TupleForEachWithTemplateParamIdxHelper
 {
-
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
-        static const std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t Idx = TupleSize - TRem;
+        static constexpr std::size_t NextRem = TRem - 1;
+        static constexpr bool NextHasElems = (NextRem != 0U);
+
 #if COMMS_IS_MSVC
         // VS compiler
         func.operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
 #else // #if COMMS_IS_MSVC
         func.template operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
 #endif // #if COMMS_IS_MSVC
-        TupleForEachWithTemplateParamIdxHelper<TRem - 1>::exec(
+        TupleForEachWithTemplateParamIdxHelper<NextHasElems>::template exec<NextRem>(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
     }
 };
 
 template <>
-class TupleForEachWithTemplateParamIdxHelper<0>
+struct TupleForEachWithTemplateParamIdxHelper<false>
 {
-
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         static_cast<void>(tuple);
@@ -513,9 +480,10 @@ template <typename TTuple, typename TFunc>
 void tupleForEachWithTemplateParamIdx(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr bool HasElems = (TupleSize != 0U);
 
-    details::TupleForEachWithTemplateParamIdxHelper<TupleSize>::exec(
+    details::TupleForEachWithTemplateParamIdxHelper<HasElems>::template exec<TupleSize>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -526,30 +494,28 @@ void tupleForEachWithTemplateParamIdx(TTuple&& tuple, TFunc&& func)
 namespace details
 {
 
-template <std::size_t TOff, std::size_t TRem>
-class TupleAccumulateHelper
+template <bool THasElems>
+struct TupleAccumulateHelper
 {
-
-public:
-    template <typename TTuple, typename TValue, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(TTuple&& tuple, const TValue& value, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static_assert((TOff + TRem) <= std::tuple_size<Tuple>::value, "Incorrect params");
 
-        return TupleAccumulateHelper<TOff + 1, TRem - 1>::exec(
-                    std::forward<TTuple>(tuple),
-                    func(value, std::get<TOff>(std::forward<TTuple>(tuple))),
-                    std::forward<TFunc>(func));
+        return 
+            TupleAccumulateHelper<(1U < TRem)>::template exec<TOff + 1, TRem - 1U>(
+                std::forward<TTuple>(tuple),
+                func(value, std::get<TOff>(std::forward<TTuple>(tuple))),
+                std::forward<TFunc>(func));
     }
 };
 
-template <std::size_t TOff>
-class TupleAccumulateHelper<TOff, 0>
+template <>
+struct TupleAccumulateHelper<false>
 {
-public:
-    template <typename TTuple, typename TValue, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(TTuple&& /* tuple */, const TValue& value, TFunc&& /* func */)
     {
         return value;
@@ -581,7 +547,7 @@ constexpr TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& fu
 {
     using Tuple = typename std::decay<TTuple>::type;
 
-    return details::TupleAccumulateHelper<0, std::tuple_size<Tuple>::value>::exec(
+    return details::TupleAccumulateHelper<std::tuple_size<Tuple>::value != 0>::template exec<0, std::tuple_size<Tuple>::value>(
                 std::forward<TTuple>(tuple),
                 value,
                 std::forward<TFunc>(func));
@@ -612,7 +578,7 @@ constexpr TValue tupleAccumulateFromUntil(TTuple&& tuple, const TValue& value, T
     static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
     static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
 
-    return details::TupleAccumulateHelper<TFrom, TUntil - TFrom>::exec(
+    return details::TupleAccumulateHelper<(TFrom < TUntil)>::template exec<TFrom, TUntil - TFrom>(
                 std::forward<TTuple>(tuple),
                 value,
                 std::forward<TFunc>(func));
@@ -623,19 +589,19 @@ constexpr TValue tupleAccumulateFromUntil(TTuple&& tuple, const TValue& value, T
 namespace details
 {
 
-template <std::size_t TOff, std::size_t TRem>
+template <bool THasElems>
 class TupleTypeAccumulateHelper
 {
 
 public:
-    template <typename TTuple, typename TValue, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(const TValue& value, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static_assert((TOff + TRem) <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
-        return TupleTypeAccumulateHelper<TOff + 1, TRem - 1>::template exec<Tuple>(
+        return TupleTypeAccumulateHelper<(1U < TRem)>::template exec<TOff + 1, TRem - 1, Tuple>(
 #if COMMS_IS_MSVC
             func.operator()
 #else // #if COMMS_IS_MSVC
@@ -643,17 +609,16 @@ public:
 #endif // #if COMMS_IS_MSVC
             <typename std::tuple_element<TOff, Tuple>::type>(value),
             std::forward<TFunc>(func));
-
     }
 
 };
 
-template <std::size_t TOff>
-class TupleTypeAccumulateHelper<TOff, 0>
+template <>
+class TupleTypeAccumulateHelper<false>
 {
 
 public:
-    template <typename TTuple, typename TValue, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(const TValue& value, TFunc&& /* func */)
     {
         return value;
@@ -680,9 +645,12 @@ template <typename TTuple, typename TValue, typename TFunc>
 constexpr TValue tupleTypeAccumulate(const TValue& value, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    return details::TupleTypeAccumulateHelper<0, std::tuple_size<Tuple>::value>::template exec<Tuple>(
-        value,
-        std::forward<TFunc>(func));
+    return 
+        details::TupleTypeAccumulateHelper<
+            (0U < std::tuple_size<Tuple>::value)
+        >::template exec<0, std::tuple_size<Tuple>::value, Tuple>(
+            value,
+            std::forward<TFunc>(func));
 }
 
 /// @brief Performs "accumulate" algorithm on specified types inside the tuple.
@@ -707,9 +675,12 @@ constexpr TValue tupleTypeAccumulateFromUntil(const TValue& value, TFunc&& func)
     using Tuple = typename std::decay<TTuple>::type;
     static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
     static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
-    return details::TupleTypeAccumulateHelper<TFrom, TUntil - TFrom>::template exec<Tuple>(
-        value,
-        std::forward<TFunc>(func));
+    return 
+        details::TupleTypeAccumulateHelper<
+            (TFrom < TUntil)
+        >::template exec<TFrom, TUntil - TFrom, Tuple>(
+            value,
+            std::forward<TFunc>(func));
 }
 
 
@@ -739,52 +710,17 @@ using TupleCatT = typename TupleCat<TField, TTuple>::Type;
 namespace details
 {
 
-template <std::size_t TFromIdx, std::size_t TToIdx, std::size_t TCount>
-class TupleSelectedTypeHelper
+template <bool THasElems>
+struct TupleSelectedTypeHelper;
+
+template <>
+struct TupleSelectedTypeHelper<false>
 {
-    static_assert(TCount == (TToIdx - TFromIdx), "Internal error: Bad parameters");
-    static_assert(TFromIdx < TToIdx, "Internal error: Bad parameters");
-public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TFromIdx, std::size_t TToIdx, std::size_t TCount, typename TTuple, typename TFunc>
     static void exec(std::size_t idx, TFunc&& func)
     {
-        using Tuple = typename std::decay<TTuple>::type;
-        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-        static_assert(TCount <= TupleSize, "Incorrect TCount");
-        static_assert(0U < TCount, "Incorrect instantiation");
-
-        COMMS_ASSERT(TFromIdx <= idx);
-        COMMS_ASSERT(idx < TToIdx);
-        if (idx == TFromIdx) {
-            TupleSelectedTypeHelper<TFromIdx, TFromIdx + 1, 1U>::template exec<TTuple>(
-                idx, std::forward<TFunc>(func));
-            return;
-        }
-
-        static const std::size_t MidIdx = TFromIdx + TCount / 2;
-        static_assert(MidIdx < TToIdx, "Internal error: bad calculation");
-        static_assert(TFromIdx <= MidIdx, "Internal error: bad calculation");
-        if (MidIdx <= idx) {
-            TupleSelectedTypeHelper<MidIdx, TToIdx, TToIdx - MidIdx>::template exec<TTuple>(
-                idx, std::forward<TFunc>(func));
-            return;
-        }
-
-        TupleSelectedTypeHelper<TFromIdx, MidIdx, MidIdx - TFromIdx>::template exec<TTuple>(
-            idx, std::forward<TFunc>(func));
-    }
-};
-
-template <std::size_t TFromIdx, std::size_t TToIdx>
-class TupleSelectedTypeHelper<TFromIdx, TToIdx, 1U>
-{
-    static_assert((TFromIdx + 1) == TToIdx, "Internal error: Bad parameters");
-
-public:
-    template <typename TTuple, typename TFunc>
-    static void exec(std::size_t idx, TFunc&& func)
-    {
+        static_assert((TFromIdx + 1) == TToIdx, "Internal error: Bad parameters");
+        static_assert(TCount == 1, "Internal error: Bad parameters");
         static_cast<void>(idx);
         COMMS_ASSERT(idx == TFromIdx);
         using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
@@ -794,6 +730,50 @@ public:
 #else // #if COMMS_IS_MSVC
         func.template operator()<TFromIdx, ElemType>();
 #endif // #if COMMS_IS_MSVC
+    }
+};
+
+template <bool THasElems>
+struct TupleSelectedTypeHelper
+{
+    template <std::size_t TFromIdx, std::size_t TToIdx, std::size_t TCount, typename TTuple, typename TFunc>
+    static void exec(std::size_t idx, TFunc&& func)
+    {
+        static_assert(1U < TCount, "Internal error: Bad parameters");
+        static_assert(TCount == (TToIdx - TFromIdx), "Internal error: Bad parameters");
+        static_assert(TFromIdx < TToIdx, "Internal error: Bad parameters");
+
+        using Tuple = typename std::decay<TTuple>::type;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static_assert(TCount <= TupleSize, "Incorrect TCount");
+        static_assert(0U < TCount, "Incorrect instantiation");
+
+        COMMS_ASSERT(TFromIdx <= idx);
+        COMMS_ASSERT(idx < TToIdx);
+        if (idx == TFromIdx) {
+            TupleSelectedTypeHelper<false>::template exec<TFromIdx, TFromIdx + 1, 1U, TTuple>(
+                idx, std::forward<TFunc>(func));
+            return;
+        }
+
+        static constexpr std::size_t MidIdx = TFromIdx + TCount / 2;
+        static_assert(MidIdx < TToIdx, "Internal error: bad calculation");
+        static_assert(TFromIdx <= MidIdx, "Internal error: bad calculation");
+        if (MidIdx <= idx) {
+            static constexpr std::size_t NextCount = TToIdx - MidIdx;
+            static constexpr bool HasNextElems = (1U < NextCount);
+
+            TupleSelectedTypeHelper<HasNextElems>::template exec<MidIdx, TToIdx, NextCount, TTuple>(
+                idx, std::forward<TFunc>(func));
+            return;
+        }
+
+        static constexpr std::size_t NextCount = MidIdx - TFromIdx;
+        static constexpr bool HasNextElems = (1U < NextCount);
+
+        TupleSelectedTypeHelper<HasNextElems>::template exec<TFromIdx, MidIdx, NextCount, TTuple>(
+            idx, std::forward<TFunc>(func));
     }
 };
 
@@ -818,10 +798,10 @@ void tupleForSelectedType(std::size_t idx, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
     static_assert(isTuple<Tuple>(), "Provided tupe must be std::tuple");
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(0U < TupleSize, "Empty tuples are not supported");
 
-    details::TupleSelectedTypeHelper<0, TupleSize, TupleSize>::template exec<Tuple>(
+    details::TupleSelectedTypeHelper<(1U < TupleSize)>::template exec<0, TupleSize, TupleSize, Tuple>(
         idx, std::forward<TFunc>(func));
 }
 //----------------------------------------
@@ -829,33 +809,72 @@ void tupleForSelectedType(std::size_t idx, TFunc&& func)
 namespace details
 {
 
-template <typename TTuple>
-struct TupleStripFirst;
-
-template <typename TFirst, typename... TRest>
-struct TupleStripFirst<std::tuple<TFirst, TRest...> >
+template <bool THasElems>
+struct TupleStripFirstN
 {
-    using Type = std::tuple<TRest...>;
+    template <std::size_t TCount, typename TFirst, typename... TElems>
+    using Type = 
+        typename TupleStripFirstN<
+            (1U < TCount)
+        >::template Type<
+            TCount - 1, 
+            TElems...
+        >;
+};
+
+template <>
+struct TupleStripFirstN<false>
+{
+    template <std::size_t TCount, typename... TElems>
+    using Type = std::tuple<TElems...>;
 };
 
 template <typename TTuple>
-using TupleStripFirstT = typename TupleStripFirst<TTuple>::Type;
+struct TuplePackedStripFirstN;
 
+template <typename... TElems>
+struct TuplePackedStripFirstN<std::tuple<TElems...> >
+{
+    template <std::size_t TCount>
+    using Type = 
+        typename TupleStripFirstN<
+            (0 < TCount)
+        >::template Type<TCount, TElems...>;
+};
 
-template <typename TTail, typename TTuple, std::size_t TStripRem>
+template <bool TMustStrip>
 struct TupleTailCheckHelpler
 {
-    static_assert(0U < TStripRem, "Invalid instantiation");
-    static const bool Value =
-            TupleTailCheckHelpler<TTail, TupleStripFirstT<TTuple>, TStripRem - 1>::Value;
+    template <std::size_t TCount, typename TElems>
+    using StrippedTail = 
+        typename TuplePackedStripFirstN<TElems>::template Type<
+            TCount
+        >;
+
+    template <typename TTail, typename TElems>
+    using Type = 
+        std::integral_constant<
+            bool,
+            std::is_same<
+                TTail, 
+                StrippedTail<
+                    (std::tuple_size<TElems>::value - std::tuple_size<TTail>::value),
+                    TElems
+                >
+            >::value
+        >;
 };
 
-template <typename TTail, typename TTuple>
-struct TupleTailCheckHelpler<TTail, TTuple, 0>
+template <>
+struct TupleTailCheckHelpler<false>
 {
-    static const bool Value =  std::is_same<TTail, TTuple>::value;
+    template <typename TTail, typename TElems>
+    using Type = 
+        std::integral_constant<
+            bool,
+            std::is_same<TTail, TElems>::value
+    >;
 };
-
 
 } // namespace details
 
@@ -868,9 +887,9 @@ constexpr bool tupleIsTailOf()
     static_assert(isTuple<TTail>(), "TTail param must be tuple");
     static_assert(isTuple<TTuple>(), "TTuple param must be tuple");
     return
-        std::tuple_size<TTail>::value <= std::tuple_size<TTuple>::value &&
-        details::TupleTailCheckHelpler<TTail, TTuple, std::tuple_size<TTuple>::value - std::tuple_size<TTail>::value>::Value;
-//    return true;
+        details::TupleTailCheckHelpler<
+            std::tuple_size<TTail>::value < std::tuple_size<TTuple>::value
+        >::template Type<TTail, TTuple>::value;
 }
 
 //----------------------------------------
@@ -878,11 +897,11 @@ constexpr bool tupleIsTailOf()
 namespace details
 {
 
-template <std::size_t TRem>
+template <bool THasElems>
 class TupleTypeIsAnyOfHelper
 {
 public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static constexpr bool check(TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
@@ -896,17 +915,17 @@ public:
 #else // #if COMMS_IS_MSVC
             func.template operator()<ElemType>() ||
 #endif // #if COMMS_IS_MSVC
-        TupleTypeIsAnyOfHelper<TRem - 1>::template check<TTuple>(
-            std::forward<TFunc>(func));
+            TupleTypeIsAnyOfHelper<1U < TRem>::template check<TRem - 1, TTuple>(
+                std::forward<TFunc>(func));
     }
 };
 
 template <>
-class TupleTypeIsAnyOfHelper<0>
+class TupleTypeIsAnyOfHelper<false>
 {
 
 public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TRem, typename TTuple, typename TFunc>
     static constexpr bool check(TFunc&&)
     {
         return false;
@@ -931,8 +950,8 @@ template <typename TTuple, typename TFunc>
 constexpr bool tupleTypeIsAnyOf(TFunc&& func)
 {
     static_assert(isTuple<TTuple>(), "Tuple as argument is expected");
-    return details::TupleTypeIsAnyOfHelper<std::tuple_size<TTuple>::value>::
-            template check<TTuple>(std::forward<TFunc>(func));
+    return details::TupleTypeIsAnyOfHelper<(0U < std::tuple_size<TTuple>::value)>::
+            template check<std::tuple_size<TTuple>::value, TTuple>(std::forward<TFunc>(func));
 }
 
 }  // namespace util

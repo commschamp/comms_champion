@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "comms/options.h"
 
 namespace comms
@@ -22,9 +24,14 @@ template <>
 class MsgFactoryOptionsParser<>
 {
 public:
-    static const bool HasInPlaceAllocation = false;
-    static const bool HasSupportGenericMessage = false;
-    static const bool HasForcedDispatch = false;
+    static constexpr bool HasInPlaceAllocation = false;
+    static constexpr bool HasSupportGenericMessage = false;
+    static constexpr bool HasForcedDispatch = false;
+
+    using GenericMessage = void;
+
+    template <typename TAll>
+    using AllMessages = TAll;
 };
 
 template <typename... TOptions>
@@ -32,7 +39,7 @@ class MsgFactoryOptionsParser<comms::option::app::InPlaceAllocation, TOptions...
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
-    static const bool HasInPlaceAllocation = true;
+    static constexpr bool HasInPlaceAllocation = true;
 };
 
 template <typename TMsg, typename... TOptions>
@@ -40,8 +47,19 @@ class MsgFactoryOptionsParser<comms::option::app::SupportGenericMessage<TMsg>, T
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
-    static const bool HasSupportGenericMessage = true;
+    static constexpr bool HasSupportGenericMessage = true;
     using GenericMessage = TMsg;
+
+    template <typename TAll>
+    using AllMessages = 
+        typename std::decay<
+            decltype(
+                std::tuple_cat(
+                    std::declval<TAll>(),
+                    std::declval<std::tuple<GenericMessage> >()
+                )
+            )
+        >::type;
 };
 
 template <typename T, typename... TOptions>
@@ -49,7 +67,7 @@ class MsgFactoryOptionsParser<comms::option::app::ForceDispatch<T>, TOptions...>
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
-    static const bool HasForcedDispatch = true;
+    static constexpr bool HasForcedDispatch = true;
     using ForcedDispatch = T;
 };
 

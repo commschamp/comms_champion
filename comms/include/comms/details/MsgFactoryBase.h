@@ -19,6 +19,7 @@
 #include "comms/traits.h"
 #include "comms/dispatch.h"
 #include "comms/details/message_check.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -38,57 +39,6 @@ constexpr bool msgFactoryMessageHasStaticNumId()
     return messageHasStaticNumId<TMessage>();
 }
 
-template<bool TMustCat>
-struct MsgFactoryAllMessagesRetrieveHelper;
-
-template<>
-struct MsgFactoryAllMessagesRetrieveHelper<true>
-{
-    template <typename TAll, typename TOpt>
-    using Type =
-        typename std::decay<
-            decltype(
-                std::tuple_cat(
-                    std::declval<TAll>(),
-                    std::declval<std::tuple<typename TOpt::GenericMessage> >()
-                )
-            )
-        >::type;
-};
-
-template<>
-struct MsgFactoryAllMessagesRetrieveHelper<false>
-{
-    template <typename TAll, typename TOpt>
-    using Type = TAll;
-};
-
-template <typename TAll, typename TOpt>
-using AllMessagesBundle =
-    typename MsgFactoryAllMessagesRetrieveHelper<TOpt::HasInPlaceAllocation && TOpt::HasSupportGenericMessage>::template Type<TAll, TOpt>;
-
-template <bool THasGenericMessage>
-struct MsgFactorGenericMsgRetrieveHelper;
-
-template <>
-struct MsgFactorGenericMsgRetrieveHelper<true>
-{
-    template <typename TOpt>
-    using Type = typename TOpt::GenericMessage;
-};
-
-template <>
-struct MsgFactorGenericMsgRetrieveHelper<false>
-{
-    template <typename TOpt>
-    using Type = void;
-};
-
-template <typename TOpt>
-using MsgFactoryGenericMsgType =
-    typename MsgFactorGenericMsgRetrieveHelper<TOpt::HasSupportGenericMessage>::
-        template Type<TOpt>;
-
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryBase
 {
@@ -100,37 +50,68 @@ class MsgFactoryBase
     static const bool InterfaceHasVirtualDestructor =
         std::has_virtual_destructor<TMsgBase>::value;
 
-    using AllMessagesInternal = AllMessagesBundle<TAllMessages, ParsedOptionsInternal>;
-    using GenericMessageInternal = MsgFactoryGenericMsgType<ParsedOptionsInternal>;
+    using AllMessagesInternal = 
+        typename ParsedOptionsInternal::template AllMessages<TAllMessages>;
+    using GenericMessageInternal = typename ParsedOptionsInternal::GenericMessage; 
+
+    template <typename...>
+    struct InPlaceAllocDeepCondWrap
+    {
+        template <
+            typename TInterface,
+            typename TAllocMessages,
+            typename TOrigMessages,
+            typename TId,
+            typename TDefaultType,
+            typename...>        
+        using Type = 
+            typename comms::util::LazyDeepConditional<
+                InterfaceHasVirtualDestructor
+            >::template Type<
+                comms::util::alloc::details::InPlaceSingleDeepCondWrap,
+                comms::util::alloc::details::InPlaceSingleNoVirtualDestructorDeepCondWrap,
+                TInterface,
+                TAllocMessages,
+                TOrigMessages,
+                TId,
+                TDefaultType
+            >;
+    };
+
+    template <typename...>
+    struct DynMemoryAllocDeepCondWrap
+    {
+        template <
+            typename TInterface,
+            typename TAllocMessages,
+            typename TOrigMessages,
+            typename TId,
+            typename TDefaultType,
+            typename...>        
+        using Type = 
+            typename comms::util::LazyDeepConditional<
+                InterfaceHasVirtualDestructor
+            >::template Type<
+                comms::util::alloc::details::DynMemoryDeepCondWrap,
+                comms::util::alloc::details::DynMemoryNoVirtualDestructorDeepCondWrap,
+                TInterface,
+                TOrigMessages,
+                TId,
+                TDefaultType
+            >;
+    };    
 
     using Alloc =
-        typename comms::util::Conditional<
+        typename comms::util::LazyDeepConditional<
             ParsedOptionsInternal::HasInPlaceAllocation
         >::template Type<
-            typename comms::util::Conditional<
-                InterfaceHasVirtualDestructor
-            >::template Type<
-                util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
-                util::alloc::InPlaceSingleNoVirtualDestructor<
-                    TMsgBase,
-                    AllMessagesInternal,
-                    TAllMessages,
-                    typename
-                    TMsgBase::MsgIdType,
-                    GenericMessageInternal
-                >
-            >,
-            typename comms::util::Conditional<
-                InterfaceHasVirtualDestructor
-            >::template Type<
-                util::alloc::DynMemory<TMsgBase>,
-                util::alloc::DynMemoryNoVirtualDestructor<
-                    TMsgBase,
-                    TAllMessages,
-                    typename TMsgBase::MsgIdType,
-                    GenericMessageInternal
-                >
-            >
+            InPlaceAllocDeepCondWrap,
+            DynMemoryAllocDeepCondWrap,
+            TMsgBase,
+            AllMessagesInternal,
+            TAllMessages,
+            typename TMsgBase::MsgIdType,
+            GenericMessageInternal
         >;
 public:
     using ParsedOptions = ParsedOptionsInternal;
@@ -152,7 +133,7 @@ public:
     {
         CreateFailureReason reasonTmp = CreateFailureReason::None;
         bool result = false;
-        MsgPtr msg = createMsgInternal(id, idx, result, DestructorTag());
+        MsgPtr msg = createMsgInternal(id, idx, result, DestructorTag<>());
         do {
             if (msg) {
                 COMMS_ASSERT(result);
@@ -178,14 +159,14 @@ public:
     {
         static_cast<void>(this);
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 ParsedOptions::HasSupportGenericMessage
             >::template Type<
                 AllocGenericTag,
                 NoAllocTag
             >;
 
-        return createGenericMsgInternal(id, idx, Tag(), DestructorTag());
+        return createGenericMsgInternal(id, idx, Tag(), DestructorTag<>());
     }
 
     bool canAllocate() const
@@ -205,17 +186,17 @@ public:
 
     static constexpr bool isDispatchPolymorphic()
     {
-        return isDispatchPolymorphicInternal(DispatchTag());
+        return isDispatchPolymorphicInternal(DispatchTag<>());
     }
 
     static constexpr bool isDispatchStaticBinSearch()
     {
-        return isDispatchStaticBinSearchInternal(DispatchTag());
+        return isDispatchStaticBinSearchInternal(DispatchTag<>());
     }
 
     static constexpr bool isDispatchLinearSwitch()
     {
-        return isDispatchLinearSwitchInternal(DispatchTag());
+        return isDispatchLinearSwitchInternal(DispatchTag<>());
     }
 
 protected:
@@ -259,25 +240,36 @@ protected:
     }
 
 private:
-    struct AllocGenericTag {};
-    struct NoAllocTag {};
+    template <typename... TParams>
+    using AllocGenericTag = comms::details::tag::Tag1<TParams...>;
 
-    struct ForcedTag {};
-    struct StandardTag {};
+    template <typename... TParams>
+    using NoAllocTag = comms::details::tag::Tag2<TParams...>;    
 
-    struct VirtualDestructorTag {};
-    struct NonVirtualDestructorTag {};
+    template <typename... TParams>
+    using ForcedTag = comms::details::tag::Tag3<TParams...>;    
 
+    template <typename... TParams>
+    using StandardTag = comms::details::tag::Tag4<TParams...>; 
+
+    template <typename... TParams>
+    using VirtualDestructorTag = comms::details::tag::Tag5<TParams...>; 
+
+    template <typename... TParams>
+    using NonVirtualDestructorTag = comms::details::tag::Tag6<TParams...>;              
+
+    template <typename...>
     using DispatchTag = 
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             ParsedOptions::HasForcedDispatch
         >::template Type<
             ForcedTag,
             StandardTag
         >;
 
+    template <typename...>
     using DestructorTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             InterfaceHasVirtualDestructor
         >::template Type<
             VirtualDestructorTag,
@@ -333,7 +325,8 @@ private:
         MsgPtr msg_;
     };
 
-    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag, VirtualDestructorTag) const
+    template <typename... TParams>
+    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag<TParams...>, VirtualDestructorTag<TParams...>) const
     {
         static_cast<void>(idx);
         static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
@@ -341,27 +334,28 @@ private:
         return allocMsg<typename ParsedOptions::GenericMessage>(id);
     }
 
-    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag, NonVirtualDestructorTag) const
+    template <typename... TParams>
+    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag<TParams...>, NonVirtualDestructorTag<TParams...>) const
     {
         static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
             "The requested GenericMessage class must have the same interface class as all other messages");
         return allocMsg<typename ParsedOptions::GenericMessage>(id, idx, id);
     }
 
-    template <typename TDestructorTag>
-    static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag, TDestructorTag)
+    template <typename TDestructorTag, typename... TParams>
+    static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag<TParams...>, TDestructorTag)
     {
         return MsgPtr();
     }
 
-    template <typename THandler>
-    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, StandardTag)
+    template <typename THandler, typename... TParams>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, StandardTag<TParams...>)
     {
         return comms::dispatchMsgType<AllMessages>(id, idx, handler);
     }
 
-    template <typename THandler>
-    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, ForcedTag)
+    template <typename THandler, typename... TParams>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, ForcedTag<TParams...>)
     {
         using Tag = typename ParsedOptions::ForcedDispatch;
         return dispatchMsgTypeInternal(id, idx, handler, Tag());
@@ -385,50 +379,57 @@ private:
         return comms::dispatchMsgTypeStaticBinSearch<AllMessages>(id, idx, handler);    
     }
 
-    static constexpr bool isDispatchPolymorphicInternal(ForcedTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchPolymorphicInternal(ForcedTag<TParams...>)
     {
         return std::is_same<comms::traits::dispatch::Polymorphic, typename ParsedOptions::ForcedDispatch>::value; 
     }
 
-    static constexpr bool isDispatchPolymorphicInternal(StandardTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchPolymorphicInternal(StandardTag<TParams...>)
     {
         return dispatchMsgTypeIsPolymorphic<AllMessages>(); 
     }
 
-    static constexpr bool isDispatchStaticBinSearchInternal(ForcedTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchStaticBinSearchInternal(ForcedTag<TParams...>)
     {
         return std::is_same<comms::traits::dispatch::StaticBinSearch, typename ParsedOptions::ForcedDispatch>::value; 
     }
 
-    static constexpr bool isDispatchStaticBinSearchInternal(StandardTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchStaticBinSearchInternal(StandardTag<TParams...>)
     {
         return dispatchMsgTypeIsStaticBinSearch<AllMessages>(); 
     }
 
-    static constexpr bool isDispatchLinearSwitchInternal(ForcedTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchLinearSwitchInternal(ForcedTag<TParams...>)
     {
         return std::is_same<comms::traits::dispatch::LinearSwitch, typename ParsedOptions::ForcedDispatch>::value; 
     }
 
-    static constexpr bool isDispatchLinearSwitchInternal(StandardTag)
+    template <typename... TParams>
+    static constexpr bool isDispatchLinearSwitchInternal(StandardTag<TParams...>)
     {
         return false;
     }
 
-    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, VirtualDestructorTag) const
+    template <typename... TParams>
+    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, VirtualDestructorTag<TParams...>) const
     {
         CreateHandler handler(alloc_);
-        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag<>());
         return handler.getMsg();
     }
 
-    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, NonVirtualDestructorTag) const
+    template <typename... TParams>
+    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, NonVirtualDestructorTag<TParams...>) const
     {
         NonVirtualDestructorCreateHandler handler(id, idx, alloc_);
-        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag<>());
         return handler.getMsg();
     }
-
 
     mutable Alloc alloc_;
 };

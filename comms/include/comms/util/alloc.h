@@ -639,7 +639,64 @@ private:
     Pool pool_;
 };
 
+namespace details
+{
 
+template <typename...>
+struct InPlaceSingleDeepCondWrap
+{
+    template <typename TInterface, typename TAllTypes, typename...>
+    using Type = comms::util::alloc::InPlaceSingle<TInterface, TAllTypes>;
+};
+
+template <typename...>
+struct InPlaceSingleNoVirtualDestructorDeepCondWrap
+{
+    template <
+        typename TInterface,
+        typename TAllocMessages,
+        typename TOrigMessages,
+        typename TId,
+        typename TDefaultType,
+        typename...>
+    using Type = 
+        comms::util::alloc::InPlaceSingleNoVirtualDestructor<
+            TInterface, 
+            TAllocMessages,
+            TOrigMessages,
+            TId,
+            TDefaultType
+        >;
+};
+
+template <typename...>
+struct DynMemoryDeepCondWrap
+{
+    template <typename TInterface, typename...>
+    using Type = comms::util::alloc::DynMemory<TInterface>;
+};
+
+template <typename...>
+struct DynMemoryNoVirtualDestructorDeepCondWrap
+{
+    template <
+        typename TInterface, 
+        typename TAllMessages, 
+        typename TId, 
+        typename TDefaultType,
+        typename...
+    >
+    using Type = 
+        comms::util::alloc::DynMemoryNoVirtualDestructor<
+            TInterface,
+            TAllMessages,
+            TId, 
+            TDefaultType
+        >;
+};
+
+
+} // namespace details
 
 }  // namespace alloc
 

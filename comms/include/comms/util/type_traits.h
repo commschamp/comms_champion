@@ -221,6 +221,22 @@ public:
 };
 
 template <typename...>
+class AlignmentIntType
+{
+public:
+    template <typename T>
+    using Type = std::integral_constant<std::size_t, alignof(T)>;
+};
+
+template <typename...>
+class SizeIntType
+{
+public:
+    template <typename T>
+    using Type = std::integral_constant<std::size_t, sizeof(T)>;
+};
+
+template <typename...>
 struct AccumulateFromUntil
 {
     template <

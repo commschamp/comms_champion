@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "comms/CompileControl.h"
+#include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 #include "AlignedUnion.h"
 
@@ -67,6 +68,9 @@ public:
 };
 
 /// @cond SKIP_DOC
+
+#if COMMS_IS_MSVC_2017_OR_BELOW
+
 template <typename TType, typename TFirst, typename... TRest>
 class IsInTuple<TType, std::tuple<TFirst, TRest...> >
 {
@@ -82,6 +86,30 @@ class IsInTuple<TType, std::tuple<> >
 public:
     static const bool Value = false;
 };
+
+#else // #if COMMS_IS_MSVC_2017_OR_BELOW
+
+template <typename TType, typename... TRest>
+class IsInTuple<TType, std::tuple<TRest...> >
+{
+    template <typename...>
+    struct SameTypeCheck
+    {
+        template <typename T>
+        using Type = std::integral_constant<bool, std::is_same<TType, T>::value>;
+    };
+
+public:
+    static const bool Value = 
+        comms::util::Accumulate<>::template Type<
+            SameTypeCheck,
+            comms::util::LogicalOrBinaryOp,
+            std::false_type,
+            TRest...
+        >::value;
+};
+
+#endif // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 /// @endcond
 
@@ -150,12 +178,12 @@ struct TupleIsUnique<std::tuple<> >
 namespace details
 {
 
-template <std::size_t TRem, std::size_t TOff = 0>
+template <std::size_t TRem>
 class TupleForEachHelper
 {
 
 public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TOff, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
@@ -166,18 +194,18 @@ public:
 
         static const std::size_t Idx = TupleSize - OffsetedRem;
         func(std::get<Idx>(std::forward<TTuple>(tuple)));
-        TupleForEachHelper<TRem - 1, TOff>::exec(
+        TupleForEachHelper<TRem - 1>::template exec<TOff>(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
     }
 };
 
-template <std::size_t TOff>
-class TupleForEachHelper<0, TOff>
+template <>
+class TupleForEachHelper<0>
 {
 
 public:
-    template <typename TTuple, typename TFunc>
+    template <std::size_t TOff, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         static_cast<void>(tuple);
@@ -204,7 +232,7 @@ void tupleForEach(TTuple&& tuple, TFunc&& func)
     using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
-    details::TupleForEachHelper<TupleSize>::exec(
+    details::TupleForEachHelper<TupleSize>::template exec<0>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -226,7 +254,7 @@ void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
-    details::TupleForEachHelper<TIdx, TupleSize - TIdx>::exec(
+    details::TupleForEachHelper<TIdx>::template exec<TupleSize - TIdx>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -247,7 +275,7 @@ void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
-    details::TupleForEachHelper<TupleSize - TIdx>::exec(
+    details::TupleForEachHelper<TupleSize - TIdx>::template exec<0>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -279,7 +307,7 @@ void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
 
     static const std::size_t FieldsCount = TUntilIdx - TFromIdx;
 
-    details::TupleForEachHelper<FieldsCount, TupleSize - TUntilIdx>::exec(
+    details::TupleForEachHelper<FieldsCount>::template exec<TupleSize - TUntilIdx>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }

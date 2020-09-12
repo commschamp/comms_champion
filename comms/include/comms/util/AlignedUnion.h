@@ -7,7 +7,9 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
 #include <type_traits>
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -16,6 +18,8 @@ namespace util
 {
 
 /// @cond SKIP_DOC
+#if COMMS_IS_MSVC_2017_OR_BELOW
+
 template <typename TType, typename... TTypes>
 class AlignedUnion
 {
@@ -39,6 +43,35 @@ class AlignedUnion<TType>
 public:
     using Type = typename std::aligned_storage<sizeof(TType), std::alignment_of<TType>::value>::type;
 };
+
+#else // #if COMMS_IS_MSVC_2017_OR_BELOW
+
+template <typename... TTypes>
+class AlignedUnion
+{
+    using AlignmentIntType = 
+        comms::util::Accumulate<>::template Type<
+            comms::util::AlignmentIntType,
+            comms::util::IntMaxBinaryOp,
+            std::integral_constant<std::size_t, 0U>,
+            TTypes...
+        >;
+
+    using SizeIntType = 
+        comms::util::Accumulate<>::template Type<
+            comms::util::SizeIntType,
+            comms::util::IntMaxBinaryOp,
+            std::integral_constant<std::size_t, 0U>,
+            TTypes...
+        >;        
+public:
+    /// Type that has proper size and proper alignment to keep any of the
+    /// specified types
+    using Type = typename std::aligned_storage<SizeIntType::value, AlignmentIntType::value>::type;
+};
+
+
+#endif // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 /// @endcond
 

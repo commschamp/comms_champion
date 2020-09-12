@@ -178,12 +178,12 @@ struct TupleIsUnique<std::tuple<> >
 namespace details
 {
 
-template <std::size_t TRem>
+template <bool THasElems>
 class TupleForEachHelper
 {
 
 public:
-    template <std::size_t TOff, typename TTuple, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         using Tuple = typename std::decay<TTuple>::type;
@@ -193,19 +193,21 @@ public:
         static_assert(OffsetedRem <= TupleSize, "Incorrect parameters");
 
         static const std::size_t Idx = TupleSize - OffsetedRem;
+        static constexpr std::size_t NextRem = TRem - 1;
+        static constexpr bool HasElemsToProcess = (NextRem != 0U);
         func(std::get<Idx>(std::forward<TTuple>(tuple)));
-        TupleForEachHelper<TRem - 1>::template exec<TOff>(
+        TupleForEachHelper<HasElemsToProcess>::template exec<TOff, NextRem>(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
     }
 };
 
 template <>
-class TupleForEachHelper<0>
+class TupleForEachHelper<false>
 {
 
 public:
-    template <std::size_t TOff, typename TTuple, typename TFunc>
+    template <std::size_t TOff, std::size_t TRem, typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
         static_cast<void>(tuple);
@@ -231,8 +233,9 @@ void tupleForEach(TTuple&& tuple, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static constexpr bool HasTupleElems = (TupleSize != 0U);
 
-    details::TupleForEachHelper<TupleSize>::template exec<0>(
+    details::TupleForEachHelper<HasTupleElems>::template exec<0, TupleSize>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -254,7 +257,9 @@ void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
-    details::TupleForEachHelper<TIdx>::template exec<TupleSize - TIdx>(
+    static constexpr bool HasTupleElems = (TIdx != 0U);
+
+    details::TupleForEachHelper<HasTupleElems>::template exec<TupleSize - TIdx, TIdx>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -274,8 +279,10 @@ void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
+    static constexpr std::size_t RemCount = TupleSize - TIdx;
+    static constexpr bool HasTupleElems = (RemCount != 0U);
 
-    details::TupleForEachHelper<TupleSize - TIdx>::template exec<0>(
+    details::TupleForEachHelper<HasTupleElems>::template exec<0, RemCount>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
@@ -306,8 +313,9 @@ void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
         "The from index must be less than until index.");
 
     static const std::size_t FieldsCount = TUntilIdx - TFromIdx;
+    static constexpr bool HasTupleElems = (FieldsCount != 0U);
 
-    details::TupleForEachHelper<FieldsCount>::template exec<TupleSize - TUntilIdx>(
+    details::TupleForEachHelper<HasTupleElems>::template exec<TupleSize - TUntilIdx, FieldsCount>(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }

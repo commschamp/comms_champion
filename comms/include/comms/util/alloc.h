@@ -22,6 +22,7 @@
 #include "comms/dispatch.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -41,40 +42,45 @@ struct DynMemoryDeleteHandler
     template <typename TObj>
     void handle(TObj& obj) const
     {
+        using HandleTag =
+            typename comms::util::LazyShallowConditional<
+                std::is_void<TDefaultType>::value
+            >::template Type<
+                NoDefaultCastTag,
+                DefaultCastCheckTag
+            >;
+
         handleInternal(obj, HandleTag());
     }
 
 private:
-    struct NoDefaultCastTag {};
-    struct DefaultCastCheckTag {};
-    struct ForcedDefaultCastTag {};
+    template <typename... TParams>
+    using NoDefaultCastTag = comms::details::tag::Tag1<TParams...>;
 
-    using HandleTag =
-        typename comms::util::Conditional<
-            std::is_void<TDefaultType>::value
-        >::template Type<
-            NoDefaultCastTag,
-            DefaultCastCheckTag
-        >;
+    template <typename... TParams>
+    using DefaultCastCheckTag = comms::details::tag::Tag2<TParams...>;
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, NoDefaultCastTag) const
+    template <typename... TParams>
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<TParams...>;
+
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
     {
         delete (&obj);
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, ForcedDefaultCastTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, ForcedDefaultCastTag<TParams...>) const
     {
         delete static_cast<TDefaultType*>(&obj);
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, DefaultCastCheckTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, DefaultCastCheckTag<TParams...>) const
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<ObjType, TInterfaceType>::value
             >::template Type<
                 ForcedDefaultCastTag,
@@ -91,40 +97,45 @@ struct InPlaceDeleteHandler
     template <typename TObj>
     void handle(TObj& obj) const
     {
+        using HandleTag =
+            typename comms::util::LazyShallowConditional<
+                std::is_void<TDefaultType>::value
+            >::template Type<
+                NoDefaultCastTag,
+                DefaultCastCheckTag
+            >;
+
         handleInternal(obj, HandleTag());
     }
 
 private:
-    struct NoDefaultCastTag {};
-    struct DefaultCastCheckTag {};
-    struct ForcedDefaultCastTag {};
+    template <typename... TParams>
+    using NoDefaultCastTag = comms::details::tag::Tag1<TParams...>;
 
-    using HandleTag =
-        typename comms::util::Conditional<
-            std::is_void<TDefaultType>::value
-        >::template Type<
-            NoDefaultCastTag,
-            DefaultCastCheckTag
-        >;
+    template <typename... TParams>
+    using DefaultCastCheckTag = comms::details::tag::Tag2<TParams...>;
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, NoDefaultCastTag) const
+    template <typename... TParams>
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<TParams...>;
+
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
     {
         obj.~TObj();
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, ForcedDefaultCastTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, ForcedDefaultCastTag<TParams...>) const
     {
         static_cast<TDefaultType&>(obj).~TDefaultType();
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, DefaultCastCheckTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, DefaultCastCheckTag<TParams...>) const
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_same<ObjType, TInterfaceType>::value
             >::template Type<
                 ForcedDefaultCastTag,

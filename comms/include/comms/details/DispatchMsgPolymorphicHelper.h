@@ -467,28 +467,29 @@ static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
         DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
 }
 
-template <typename TMsg, typename THandler, bool THasDispatch>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector;
-
-template <typename TMsg, typename THandler>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, false>
+template <typename...>
+struct DispatchMsgPolymorphicCompatibleHandlerDetector
 {
-    static const bool Value = false;
+    template <typename TMsg, typename THandler>
+    using Type = std::is_base_of<typename TMsg::Handler, THandler>;
 };
 
 template <typename TMsg, typename THandler>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, true>
-{
-    static const bool Value = std::is_base_of<typename TMsg::Handler, THandler>::value;
-};
+using DispatchMsgPolymorphicCompatibleHandlerDetectBoolType = 
+    typename comms::util::LazyDeepConditional<
+        TMsg::hasDispatch()
+    >::template Type<
+        DispatchMsgPolymorphicCompatibleHandlerDetector,
+        comms::util::FalseType,
+        TMsg, THandler
+    >;
+
 
 template <typename TMsg, typename THandler>
 constexpr bool dispatchMsgPolymorphicIsCompatibleHandler()
 {
-    return
-        DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, TMsg::hasDispatch()>::Value;
+    return DispatchMsgPolymorphicCompatibleHandlerDetectBoolType<TMsg, THandler>::value;
 }
-
 
 template <typename TAllMessages, typename TMsgBase, typename THandler>
 class DispatchMsgPolymorphicHelper

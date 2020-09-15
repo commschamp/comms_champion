@@ -237,6 +237,14 @@ public:
 };
 
 template <typename...>
+class MessageCheckHasStaticId
+{
+public:
+    template <typename TMessage>
+    using Type = std::integral_constant<bool, TMessage::ImplOptions::HasStaticMsgId>;
+};
+
+template <typename...>
 struct AccumulateFromUntil
 {
     template <

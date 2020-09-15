@@ -166,7 +166,6 @@ struct CommonFuncs
     }
 
 #if COMMS_IS_MSVC_2017_OR_BELOW    
-// #if 1
     template <typename... TFields>
     using IsAnyFieldVersionDependentBoolType = 
         typename comms::util::Conditional<

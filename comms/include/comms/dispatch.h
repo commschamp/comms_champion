@@ -167,7 +167,7 @@ auto dispatchMsgStaticBinSearch(TId&& id, std::size_t index, TMsg& msg, THandler
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgStaticBinSearchHelper<>::template dispatch<TAllMessages>(
             std::forward<TId>(id),
             index,
             msg,
@@ -198,7 +198,7 @@ auto dispatchMsgStaticBinSearch(TId&& id, TMsg& msg, THandler& handler) ->
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgStaticBinSearchHelper<>::template dispatch<TAllMessages>(
             std::forward<TId>(id),
             msg,
             handler);
@@ -229,7 +229,7 @@ auto dispatchMsgStaticBinSearch(TMsg& msg, THandler& handler) ->
         "The used message object must provide polymorphic ID retrieval function");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgStaticBinSearchHelper<>::template dispatch<TAllMessages>(
             msg,
             handler);
 }
@@ -255,8 +255,8 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, THandler& handler)
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::
-            dispatchType(std::forward<TId>(id), handler);
+        details::DispatchMsgStaticBinSearchHelper<>::template
+            dispatchType<TAllMessages>(std::forward<TId>(id), handler);
 }
 
 /// @brief Dispatch message id into appropriate @b handle() function in the
@@ -281,8 +281,8 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, std::size_t index, THandler& handl
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::
-            dispatchType(std::forward<TId>(id), index, handler);
+        details::DispatchMsgStaticBinSearchHelper<>::template
+            dispatchType<TAllMessages>(std::forward<TId>(id), index, handler);
 }
 
 /// @brief Count number of message types in the provided tuple that
@@ -298,8 +298,8 @@ std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id)
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::
-            dispatchTypeCount(std::forward<TId>(id));
+        details::DispatchMsgStaticBinSearchHelper<>::template
+            dispatchTypeCount<TAllMessages>(std::forward<TId>(id));
 }
 
 /// @brief Dispatch message object into appropriate @b handle() function in the

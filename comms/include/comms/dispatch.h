@@ -39,10 +39,9 @@ auto dispatchMsgPolymorphic(TId&& id, TMsg& msg, THandler& handler) ->
 {
     using MsgType = typename std::decay<decltype(msg)>::type;
     static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
-    using HandlerType = typename std::decay<decltype(handler)>::type;
     return 
-        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
-            dispatch(std::forward<TId>(id), msg, handler);
+        details::DispatchMsgPolymorphicHelper<>::template
+            dispatch<TAllMessages>(std::forward<TId>(id), msg, handler);
 }
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
@@ -68,10 +67,9 @@ auto dispatchMsgPolymorphic(TId&& id, std::size_t index, TMsg& msg, THandler& ha
 {
     using MsgType = typename std::decay<decltype(msg)>::type;
     static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
-    using HandlerType = typename std::decay<decltype(handler)>::type;
     return 
-        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
-            dispatch(std::forward<TId>(id), index, msg, handler);
+        details::DispatchMsgPolymorphicHelper<>::template
+            dispatch<TAllMessages>(std::forward<TId>(id), index, msg, handler);
 }
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
@@ -94,10 +92,9 @@ auto dispatchMsgPolymorphic(TMsg& msg, THandler& handler) ->
 {
     using MsgType = typename std::decay<decltype(msg)>::type;
     static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
-    using HandlerType = typename std::decay<decltype(handler)>::type;
     return 
-        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
-            dispatch(msg, handler);
+        details::DispatchMsgPolymorphicHelper<>::template
+            dispatch<TAllMessages>(msg, handler);
 }
 
 /// @brief Dispatch message id into appropriate @b handle() function in the

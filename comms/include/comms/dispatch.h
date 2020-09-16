@@ -114,10 +114,9 @@ template <
     typename THandler>
 bool dispatchMsgTypePolymorphic(TId&& id, THandler& handler) 
 {
-    using HandlerType = typename std::decay<decltype(handler)>::type;
     return 
-        details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
-            dispatch(std::forward<TId>(id), handler);
+        details::DispatchMsgTypePolymorphicHelper<>::template
+            dispatch<TAllMessages>(std::forward<TId>(id), handler);
 }
 
 /// @brief Dispatch message id into appropriate @b handle() function in the
@@ -138,10 +137,9 @@ template <
     typename THandler>
 bool dispatchMsgTypePolymorphic(TId&& id, std::size_t index, THandler& handler)
 {
-    using HandlerType = typename std::decay<decltype(handler)>::type;
     return 
-        details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
-            dispatch(std::forward<TId>(id), index, handler);
+        details::DispatchMsgTypePolymorphicHelper<>::template
+            dispatch<TAllMessages>(std::forward<TId>(id), index, handler);
 }
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
@@ -167,7 +165,6 @@ auto dispatchMsgStaticBinSearch(TId&& id, std::size_t index, TMsg& msg, THandler
 {
     static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
         "All messages in the provided tuple must statically define their numeric ID");
-
 
     return 
         details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(

@@ -171,99 +171,16 @@ struct AllMessagesSortedCheckHelperWrap<TStrong, std::tuple<TAllMessages...> >
     static constexpr bool Value = ValueType::value;
 };
 
-// template <bool TAllStaticIds, bool TStrong, typename... TMessages>
-// struct AllMessagesSortedCheckHelper;
-
-// template <bool TStrong, typename... TMessages>
-// struct AllMessagesSortedCheckHelper<false, TStrong, TMessages...>
-// {
-//     static const bool Value = false;
-// };
-
-// template <
-//     bool TStrong,
-//     typename TMessage1,
-//     typename TMessage2,
-//     typename TMessage3,
-//     typename... TRest>
-// struct AllMessagesSortedCheckHelper<true, TStrong, TMessage1, TMessage2, TMessage3, TRest...>
-// {
-//     static const bool Value =
-//         AllMessagesSortedCheckHelper<true, TStrong, TMessage1, TMessage2>::Value &&
-//         AllMessagesSortedCheckHelper<true, TStrong, TMessage2, TMessage3, TRest...>::Value;
-// };
-
-// template <bool TStrong, typename TMessage1, typename TMessage2>
-// struct AllMessagesSortedCheckHelper<true, TStrong, TMessage1, TMessage2>
-// {
-// private:
-//     struct StrongTag {};
-//     struct WeakTag {};
-//     using Tag =
-//         typename comms::util::Conditional<
-//             TStrong
-//         >::template Type<
-//             StrongTag,
-//             WeakTag
-//         >;
-
-//     template <typename T1, typename T2>
-//     static constexpr bool isLess(StrongTag)
-//     {
-//         return T1::ImplOptions::MsgId < T2::ImplOptions::MsgId;
-//     }
-
-//     template <typename T1, typename T2>
-//     static constexpr bool isLess(WeakTag)
-//     {
-//         return T1::ImplOptions::MsgId <= T2::ImplOptions::MsgId;
-//     }
-
-//     template <typename T1, typename T2>
-//     static constexpr bool isLess()
-//     {
-//         return isLess<T1, T2>(Tag());
-//     }
-
-//     static_assert(messageHasStaticNumId<TMessage1>(), "Message is expected to provide status numeric ID");
-//     static_assert(messageHasStaticNumId<TMessage2>(), "Message is expected to provide status numeric ID");
-
-// public:
-//     ~AllMessagesSortedCheckHelper() noexcept = default;
-//     static const bool Value = isLess<TMessage1, TMessage2>();
-// };
-
-// template <bool TStrong, typename TMessage1>
-// struct AllMessagesSortedCheckHelper<true, TStrong, TMessage1>
-// {
-//     static_assert(!comms::util::isTuple<TMessage1>(), "TMessage1 mustn't be tuple");
-//     static const bool Value = true;
-// };
-
-// template <bool TStrong>
-// struct AllMessagesSortedCheckHelper<true, TStrong>
-// {
-//     static const bool Value = true;
-// };
-
-// template <bool TStrong, typename... TMessages>
-// struct AllMessagesSortedCheckHelper<true, TStrong, std::tuple<TMessages...> >
-// {
-//     static const bool Value = AllMessagesSortedCheckHelper<true, TStrong, TMessages...>::Value;
-// };
-
 template <typename TAllMessages>
 constexpr bool allMessagesAreStrongSorted()
 {
     return AllMessagesSortedCheckHelperWrap<std::true_type, TAllMessages>::Value;
-    //return AllMessagesSortedCheckHelper<allMessagesHaveStaticNumId<TAllMessages>(), true, TAllMessages>::Value;
 }
 
 template <typename TAllMessages>
 constexpr bool allMessagesAreWeakSorted()
 {
     return AllMessagesSortedCheckHelperWrap<std::false_type, TAllMessages>::Value;
-    //return AllMessagesSortedCheckHelper<allMessagesHaveStaticNumId<TAllMessages>(), false, TAllMessages>::Value;
 }
 
 } // namespace details

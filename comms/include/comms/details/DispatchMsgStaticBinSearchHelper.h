@@ -20,22 +20,59 @@ namespace comms
 namespace details
 {
 
-template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
+enum class DispatchMsgStaticBinSearchHelperType
+{
+    Multiple,
+    Single,
+    None
+};
+
+template <std::size_t TCount>
+using DispatchMsgHelperType =
+    typename comms::util::Conditional<
+        TCount == 0U
+    >::template Type<
+        std::integral_constant<DispatchMsgStaticBinSearchHelperType, DispatchMsgStaticBinSearchHelperType::None>,
+        typename comms::util::Conditional<
+            TCount == 1U
+        >::template Type<
+            std::integral_constant<DispatchMsgStaticBinSearchHelperType, DispatchMsgStaticBinSearchHelperType::Single>,
+            std::integral_constant<DispatchMsgStaticBinSearchHelperType, DispatchMsgStaticBinSearchHelperType::Multiple>
+        >
+    >;
+    
+
+template <DispatchMsgStaticBinSearchHelperType TType>
 class DispatchMsgStrongStaticBinSearchHelper    
 {
-    static_assert(TFrom + TCount <= std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
+    template <std::size_t TFrom, std::size_t TCount>
+    using MidIdx = 
+        std::integral_constant<std::size_t, (TFrom + (TCount / 2))>; 
 
-    static_assert(2 <= TCount, "Invalid invocation");
-    static const std::size_t Mid = TFrom + (TCount / 2);        
-    using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
-    static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
+    template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
+    using MidElem = 
+        typename std::tuple_element<
+            MidIdx<TFrom, TCount>::value, 
+            TAllMessages
+        >::type;
+
+    // static_assert(TFrom + TCount <= std::tuple_size<TAllMessages>::value, 
+    //     "Invalid template params");
+
+    // static_assert(2 <= TCount, "Invalid invocation");
+    // static const std::size_t Mid = TFrom + (TCount / 2);        
+    // using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
+    // static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
 
 public:
     template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId,   
         typename TMsg,
         typename THandler>
-    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -43,75 +80,106 @@ public:
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
 
-        typename TMsg::MsgIdParamType midId = MidElem::doGetId();
+        static constexpr std::size_t Mid = MidIdx<TFrom, TCount>::value;
+        using MidElemType = MidElem<TAllMessages, TFrom, TCount>;
+
+        typename TMsg::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
-            return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::dispatch(
-                    id, msg, handler);
+            static constexpr auto NextCount = Mid - TFrom;
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                    dispatch<TAllMessages, TFrom, NextCount>(
+                        id, msg, handler);
         }
 
         if (midId < id) {
-            return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::dispatch(
-                    id, msg, handler);
+            static constexpr auto NextCount = TCount - (Mid - TFrom);
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                    dispatch<TAllMessages, Mid, NextCount>(
+                        id, msg, handler);
         }
 
-        auto& castedMsg = static_cast<MidElem&>(msg);
+        auto& castedMsg = static_cast<MidElemType&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
 
-    template <typename THandler>
-    static bool dispatchType(typename MidElem::MsgIdParamType id, THandler& handler)
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,    
+        typename TId, 
+        typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler)
     {
-        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        static constexpr std::size_t Mid = MidIdx<TFrom, TCount>::value;
+        using MidElemType = MidElem<TAllMessages, TFrom, TCount>;
+        typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
+            static constexpr auto NextCount = Mid - TFrom;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::
-                    dispatchType(id, handler);
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                    dispatchType<TAllMessages, TFrom, NextCount>(id, handler);
         }
 
         if (midId < id) {
+            static constexpr auto NextCount = TCount - (Mid - TFrom);
             return 
-                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::
-                    dispatchType(id, handler);
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                    dispatchType<TAllMessages, Mid, NextCount>(id, handler);
         }
 
-        handler.template handle<MidElem>();
+        handler.template handle<MidElemType>();
         return true;
     }    
 
-    static std::size_t dispatchTypeCount(typename MidElem::MsgIdParamType id)
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,    
+        typename TId>
+    static std::size_t dispatchTypeCount(TId&& id)
     {
-        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        static constexpr std::size_t Mid = MidIdx<TFrom, TCount>::value;
+        using MidElemType = MidElem<TAllMessages, TFrom, TCount>;
+        typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
+            static constexpr auto NextCount = Mid - TFrom;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::
-                    dispatchTypeCount(id);
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                    dispatchTypeCount<TAllMessages, TFrom, NextCount>(id);
         }
 
         if (midId < id) {
+            static constexpr auto NextCount = TCount - (Mid - TFrom);
             return 
-                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::
-                    dispatchTypeCount(id);
+                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                    dispatchTypeCount<TAllMessages, Mid, NextCount>(id);
         }
 
         return 1U;
     }    
-
 };
 
-template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 1>
+template <>
+class DispatchMsgStrongStaticBinSearchHelper<DispatchMsgStaticBinSearchHelperType::Single>
 {
-    static_assert(TFrom + 1 <= std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
+    // static_assert(TFrom + 1 <= std::tuple_size<TAllMessages>::value, 
+    //     "Invalid template params");
 
+    template <typename TAllMessages, std::size_t TFrom>
     using Elem = typename std::tuple_element<TFrom, TAllMessages>::type;
-    static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
+    // static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
 
 public:
     template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -119,30 +187,44 @@ public:
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
 
-        typename TMsg::MsgIdParamType elemId = Elem::doGetId();
+        using ElemType = Elem<TAllMessages, TFrom>;
+
+        typename TMsg::MsgIdParamType elemId = ElemType::doGetId();
         if (id != elemId) {
             return static_cast<RetType>(handler.handle(msg));
         }
 
-        auto& castedMsg = static_cast<Elem&>(msg);
+        auto& castedMsg = static_cast<ElemType&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
 
-    template <typename THandler>
-    static bool dispatchType(typename Elem::MsgIdParamType id, THandler& handler)
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId,
+        typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler)
     {
-        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        using ElemType = Elem<TAllMessages, TFrom>;
+        typename ElemType::MsgIdParamType elemId = ElemType::doGetId();
         if (id != elemId) {
             return false;
         }
 
-        handler.template handle<Elem>();
+        handler.template handle<ElemType>();
         return true;
     }      
 
-    static std::size_t dispatchTypeCount(typename Elem::MsgIdParamType id)
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId>
+    static std::size_t dispatchTypeCount(TId&& id)
     {
-        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        using ElemType = Elem<TAllMessages, TFrom>;
+        typename ElemType::MsgIdParamType elemId = ElemType::doGetId();
         if (id != elemId) {
             return 0U;
         }
@@ -151,14 +233,18 @@ public:
     }      
 };
 
-template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 0>
+template <>
+class DispatchMsgStrongStaticBinSearchHelper<DispatchMsgStaticBinSearchHelperType::None>
 {
 public:
     template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -170,7 +256,12 @@ public:
         return static_cast<RetType>(handler.handle(msg));
     }
 
-    template <typename TId, typename THandler>
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId,
+        typename THandler>
     static bool dispatchType(TId&& id, THandler& handler)
     {
         static_cast<void>(id);
@@ -178,7 +269,11 @@ public:
         return false;
     }     
 
-    template <typename TId>
+    template <
+        typename TAllMessages, 
+        std::size_t TFrom, 
+        std::size_t TCount,
+        typename TId>
     static std::size_t dispatchTypeCount(TId&& id)
     {
         static_cast<void>(id);
@@ -678,9 +773,11 @@ private:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        static constexpr std::size_t Count = std::tuple_size<TAllMessages>::value;
+        static constexpr auto HelperType = DispatchMsgHelperType<Count>::value;
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(id, msg, handler);
+            DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
+                dispatch<TAllMessages, 0, Count>(id, msg, handler);
     }
 
     template <typename TAllMessages, typename TMsg, typename THandler, typename... TParams>
@@ -695,9 +792,12 @@ private:
             return static_cast<RetType>(handler.handle(msg));
 
         }
+
+        static constexpr std::size_t Count = std::tuple_size<TAllMessages>::value;
+        static constexpr auto HelperType = DispatchMsgHelperType<Count>::value;
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(id, msg, handler);
+            DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
+                dispatch<TAllMessages, 0, Count>(id, msg, handler);
 
     }
 
@@ -745,9 +845,12 @@ private:
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+
+        static constexpr std::size_t Count = std::tuple_size<TAllMessages>::value;
+        static constexpr auto HelperType = DispatchMsgHelperType<Count>::value;
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatchType(static_cast<MsgIdParamType>(id), handler);
+            DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
+                dispatchType<TAllMessages, 0, Count>(static_cast<MsgIdParamType>(id), handler);
     }
 
     template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
@@ -798,9 +901,12 @@ private:
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+
+        static constexpr std::size_t Count = std::tuple_size<TAllMessages>::value;
+        static constexpr auto HelperType = DispatchMsgHelperType<Count>::value;
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatchTypeCount(static_cast<MsgIdParamType>(id));
+            DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
+                dispatchTypeCount<TAllMessages, 0, Count>(static_cast<MsgIdParamType>(id));
     }
 
     template <typename TAllMessages, typename TId, typename... TParams>

@@ -345,10 +345,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using NoStatusTag = comms::details::tag::Tag1<TParams...>;
+    using NoStatusTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using UseStatusTag = comms::details::tag::Tag2<TParams...>;
+    using UseStatusTag = comms::details::tag::Tag2<>;
 
     template <typename TIter, typename... TParams>
     comms::ErrorStatus doReadInternal(
@@ -541,10 +541,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using HasActual = comms::details::tag::Tag1<TParams...>;
+    using HasActual = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoActual = comms::details::tag::Tag2<TParams...>;
+    using NoActual = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     comms::ErrorStatus readImplInternal(
@@ -590,10 +590,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using HasActual = comms::details::tag::Tag1<TParams...>;
+    using HasActual = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoActual = comms::details::tag::Tag2<TParams...>;
+    using NoActual = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     comms::ErrorStatus writeImplInternal(
@@ -637,10 +637,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using HasActual = comms::details::tag::Tag1<TParams...>;
+    using HasActual = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoActual = comms::details::tag::Tag2<TParams...>;
+    using NoActual = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     bool validImplInternal(NoActual<TParams...>) const
@@ -678,10 +678,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using HasActual = comms::details::tag::Tag1<TParams...>;
+    using HasActual = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoActual = comms::details::tag::Tag2<TParams...>;
+    using NoActual = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     std::size_t lengthImplInternal(NoActual<TParams...>) const
@@ -717,10 +717,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using Downcast = comms::details::tag::Tag1<TParams...>;
+    using Downcast = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoDowncast = comms::details::tag::Tag2<TParams...>;
+    using NoDowncast = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     bool refreshInternal(Downcast<TParams...>)
@@ -790,10 +790,10 @@ protected:
 
 private:
     template <typename... TParams>
-    using DowncastTag = comms::details::tag::Tag1<TParams...>;
+    using DowncastTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoDowncastTag = comms::details::tag::Tag2<TParams...>;
+    using NoDowncastTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     typename TBase::MsgIdParamType getIdInternal(NoDowncastTag<TParams...>) const

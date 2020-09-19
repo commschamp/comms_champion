@@ -363,16 +363,16 @@ protected:
 private:
 
     template <typename... TParams>
-    using PolymorphicOpTag = comms::details::tag::Tag1<TParams...>;
+    using PolymorphicOpTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using DirectOpTag = comms::details::tag::Tag2<TParams...>;
+    using DirectOpTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using PointerOpTag = comms::details::tag::Tag3<TParams...>;
+    using PointerOpTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using StaticBinSearchOpTag = comms::details::tag::Tag4<TParams...>;         
+    using StaticBinSearchOpTag = comms::details::tag::Tag4<>;         
 
     template <typename TMsg>
     using IdRetrieveTag =
@@ -384,10 +384,10 @@ private:
         >;
 
     template <typename... TParams>
-    using IdParamAsIsTag = comms::details::tag::Tag5<TParams...>; 
+    using IdParamAsIsTag = comms::details::tag::Tag5<>; 
 
     template <typename... TParams>
-    using IdParamCastTag = comms::details::tag::Tag6<TParams...>;     
+    using IdParamCastTag = comms::details::tag::Tag6<>;     
 
     template <typename TId>
     using IdParamTag =
@@ -399,10 +399,10 @@ private:
         >;
 
     template <typename... TParams>
-    using HasGenericMsgTag = comms::details::tag::Tag7<TParams...>; 
+    using HasGenericMsgTag = comms::details::tag::Tag7<>; 
 
     template <typename... TParams>
-    using NoGenericMsgTag = comms::details::tag::Tag8<TParams...>;     
+    using NoGenericMsgTag = comms::details::tag::Tag8<>;     
 
     template <typename TIter, typename TNextLayerReader, typename... TExtraValues>
     class ReadRedirectionHandler

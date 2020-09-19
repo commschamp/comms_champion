@@ -55,13 +55,13 @@ struct DynMemoryDeleteHandler
 
 private:
     template <typename... TParams>
-    using NoDefaultCastTag = comms::details::tag::Tag1<TParams...>;
+    using NoDefaultCastTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using DefaultCastCheckTag = comms::details::tag::Tag2<TParams...>;
+    using DefaultCastCheckTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using ForcedDefaultCastTag = comms::details::tag::Tag3<TParams...>;
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<>;
 
     template <typename TObj, typename... TParams>
     void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
@@ -110,13 +110,13 @@ struct InPlaceDeleteHandler
 
 private:
     template <typename... TParams>
-    using NoDefaultCastTag = comms::details::tag::Tag1<TParams...>;
+    using NoDefaultCastTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using DefaultCastCheckTag = comms::details::tag::Tag2<TParams...>;
+    using DefaultCastCheckTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using ForcedDefaultCastTag = comms::details::tag::Tag3<TParams...>;
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<>;
 
     template <typename TObj, typename... TParams>
     void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const

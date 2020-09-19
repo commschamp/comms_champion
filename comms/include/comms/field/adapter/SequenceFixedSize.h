@@ -160,22 +160,22 @@ public:
 
 private:
     template <typename... TParams>
-    using HasRawDataTag = comms::details::tag::Tag1<TParams...>;
+    using HasRawDataTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using HasFieldsTag = comms::details::tag::Tag2<TParams...>;
+    using HasFieldsTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using HasFixedLengthElemsTag = comms::details::tag::Tag3<TParams...>;
+    using HasFixedLengthElemsTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using HasVarLengthElemsTag = comms::details::tag::Tag4<TParams...>;    
+    using HasVarLengthElemsTag = comms::details::tag::Tag4<>;    
 
     template <typename... TParams>
-    using HasResizeTag = comms::details::tag::Tag5<TParams...>;
+    using HasResizeTag = comms::details::tag::Tag5<>;
 
     template <typename... TParams>
-    using NoResizeTag = comms::details::tag::Tag6<TParams...>;     
+    using NoResizeTag = comms::details::tag::Tag6<>;     
 
     template <typename... TParams>
     std::size_t recalcLen(HasFieldsTag<TParams...>) const

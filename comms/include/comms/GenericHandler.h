@@ -204,13 +204,13 @@ public:
 
 private:
     template <typename... TParams>
-    using VoidReturnTag = comms::details::tag::Tag1<TParams...>;
+    using VoidReturnTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using ReferenceReturnTag = comms::details::tag::Tag2<TParams...>;
+    using ReferenceReturnTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using ValueReturnTag = comms::details::tag::Tag3<TParams...>;    
+    using ValueReturnTag = comms::details::tag::Tag3<>;    
 
     template <typename... TParams>
     using RetValueShallowCondWrap = 

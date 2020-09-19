@@ -226,16 +226,16 @@ public:
 #endif
 private:
     template <typename... TParams>
-    using SmartPtrTag = comms::details::tag::Tag1<TParams...>;
+    using SmartPtrTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using MsgObjTag = comms::details::tag::Tag2<TParams...>;   
+    using MsgObjTag = comms::details::tag::Tag2<>;   
 
     template <typename... TParams>
-    using PseudoValueTag = comms::details::tag::Tag3<TParams...>;   
+    using PseudoValueTag = comms::details::tag::Tag3<>;   
 
     template <typename... TParams>
-    using NormalValueTag = comms::details::tag::Tag4<TParams...>;          
+    using NormalValueTag = comms::details::tag::Tag4<>;          
 
     template <typename...>
     using ValueTag =

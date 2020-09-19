@@ -524,25 +524,25 @@ public:
 
 private:
     template <typename... TParams>
-    using MsgHasLengthTag = comms::details::tag::Tag1<TParams...>;
+    using MsgHasLengthTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using MsgNoLengthTag = comms::details::tag::Tag2<TParams...>;
+    using MsgNoLengthTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using MsgDirectLengthTag = comms::details::tag::Tag3<TParams...>;    
+    using MsgDirectLengthTag = comms::details::tag::Tag3<>;    
 
     template <typename... TParams>
-    using DirectOpTag = comms::details::tag::Tag4<TParams...>;     
+    using DirectOpTag = comms::details::tag::Tag4<>;     
 
     template <typename... TParams>
-    using InterfaceOpTag = comms::details::tag::Tag5<TParams...>;    
+    using InterfaceOpTag = comms::details::tag::Tag5<>;    
 
     template <typename... TParams>
-    using PointerOpTag = comms::details::tag::Tag6<TParams...>; 
+    using PointerOpTag = comms::details::tag::Tag6<>; 
 
     template <typename... TParams>
-    using OtherOpTag = comms::details::tag::Tag7<TParams...>;              
+    using OtherOpTag = comms::details::tag::Tag7<>;              
 
     template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedInternal(

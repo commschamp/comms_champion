@@ -174,10 +174,10 @@ public:
 
 private:
     template <typename... TParams>
-    using UnsignedTag = comms::details::tag::Tag1<TParams...>;
+    using UnsignedTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using SignedTag = comms::details::tag::Tag2<TParams...>;
+    using SignedTag = comms::details::tag::Tag2<>;
 
     using HasSignTag = 
         typename comms::util::LazyShallowConditional<

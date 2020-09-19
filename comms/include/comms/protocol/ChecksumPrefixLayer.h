@@ -276,10 +276,10 @@ private:
         "The checksum field is expected to be of fixed length");
 
     template <typename... TParams>
-    using VerifyBeforeReadTag = comms::details::tag::Tag1<TParams...>;
+    using VerifyBeforeReadTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using VerifyAfterReadTag = comms::details::tag::Tag2<TParams...>;
+    using VerifyAfterReadTag = comms::details::tag::Tag2<>;
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus verifyRead(

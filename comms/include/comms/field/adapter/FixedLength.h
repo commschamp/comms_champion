@@ -123,16 +123,16 @@ public:
 private:
 
     template <typename... TParams>
-    using JustCastTag = comms::details::tag::Tag1<TParams...>;
+    using JustCastTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using SignExtendTag = comms::details::tag::Tag2<TParams...>;    
+    using SignExtendTag = comms::details::tag::Tag2<>;    
 
     template <typename... TParams>
-    using UnsignedTag = comms::details::tag::Tag3<TParams...>;  
+    using UnsignedTag = comms::details::tag::Tag3<>;  
 
     template <typename... TParams>
-    using SignedTag = comms::details::tag::Tag4<TParams...>;     
+    using SignedTag = comms::details::tag::Tag4<>;     
 
     template <typename...>
     using ConversionTag = 

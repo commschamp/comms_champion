@@ -129,16 +129,16 @@ public:
 
 private:
     template <typename... TParams>
-    using UnsignedTag = comms::details::tag::Tag1<TParams...>;
+    using UnsignedTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using SignedTag = comms::details::tag::Tag2<TParams...>;    
+    using SignedTag = comms::details::tag::Tag2<>;    
 
     template <typename... TParams>
-    using NoSignExtTag = comms::details::tag::Tag3<TParams...>;      
+    using NoSignExtTag = comms::details::tag::Tag3<>;      
 
     template <typename... TParams>
-    using MustSignExtTag = comms::details::tag::Tag4<TParams...>;         
+    using MustSignExtTag = comms::details::tag::Tag4<>;         
 
     template <typename...>
     using HasSignTag = 

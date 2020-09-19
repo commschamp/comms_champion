@@ -75,9 +75,9 @@ public:
 
 private:
     template <typename... TParams>
-    using AlwaysTrueTag = comms::details::tag::Tag1<TParams...>;
+    using AlwaysTrueTag = comms::details::tag::Tag1<>;
     template <typename... TParams>
-    using CompareTag = comms::details::tag::Tag2<TParams...>;
+    using CompareTag = comms::details::tag::Tag2<>;
 
     static bool aboveFrom(VersionType version)
     {

@@ -496,25 +496,25 @@ template <typename ...>
 class DispatchMsgPolymorphicHelper
 {
     template <typename... TParams>
-    using EmptyTag = comms::details::tag::Tag1<TParams...>;
+    using EmptyTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using DispatchInterfaceTag = comms::details::tag::Tag2<TParams...>;
+    using DispatchInterfaceTag = comms::details::tag::Tag2<>;
     
     template <typename... TParams>
-    using DirectTag = comms::details::tag::Tag3<TParams...>;
+    using DirectTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using StrongBinSearchTag = comms::details::tag::Tag4<TParams...>;
+    using StrongBinSearchTag = comms::details::tag::Tag4<>;
 
     template <typename... TParams>
-    using WeakBinSearchTag = comms::details::tag::Tag5<TParams...>;
+    using WeakBinSearchTag = comms::details::tag::Tag5<>;
 
     template <typename... TParams>
-    using IdInterfaceTag = comms::details::tag::Tag6<TParams...>;
+    using IdInterfaceTag = comms::details::tag::Tag6<>;
 
     template <typename... TParams>
-    using NoIdInterfaceTag = comms::details::tag::Tag7<TParams...>;
+    using NoIdInterfaceTag = comms::details::tag::Tag7<>;
 
     template <typename TAllMessages, typename...>
     using DirectStrongTag = 
@@ -1140,16 +1140,16 @@ template <typename...>
 class DispatchMsgTypePolymorphicHelper
 {
     template <typename... TParams>
-    using EmptyTag = comms::details::tag::Tag1<TParams...>;
+    using EmptyTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using DirectTag = comms::details::tag::Tag2<TParams...>;
+    using DirectTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using StrongBinSearchTag = comms::details::tag::Tag3<TParams...>;
+    using StrongBinSearchTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using WeakBinSearchTag = comms::details::tag::Tag4<TParams...>;
+    using WeakBinSearchTag = comms::details::tag::Tag4<>;
 
     template <typename TAllMessages, typename...>
     using DirectStrongTag = 

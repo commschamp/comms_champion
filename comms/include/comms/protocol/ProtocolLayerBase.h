@@ -888,10 +888,10 @@ protected:
 
     /// @cond SKIP_DOC
     template <typename... TParams>
-    using FixedLengthTag = comms::details::tag::Tag1<TParams...>;
+    using FixedLengthTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using VarLengthTag = comms::details::tag::Tag2<TParams...>;
+    using VarLengthTag = comms::details::tag::Tag2<>;
 
     template <typename...>
     using LengthTag = 
@@ -1146,16 +1146,16 @@ protected:
 private:
 
     template <typename... TParams>
-    using NormalReadTag = comms::details::tag::Tag3<TParams...>;
+    using NormalReadTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using SplitReadTag = comms::details::tag::Tag4<TParams...>;
+    using SplitReadTag = comms::details::tag::Tag4<>;
 
     template <typename... TParams>
-    using MessageObjTag = comms::details::tag::Tag5<TParams...>;  
+    using MessageObjTag = comms::details::tag::Tag5<>;  
 
     template <typename... TParams>
-    using SmartPtrTag = comms::details::tag::Tag6<TParams...>;       
+    using SmartPtrTag = comms::details::tag::Tag6<>;       
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(

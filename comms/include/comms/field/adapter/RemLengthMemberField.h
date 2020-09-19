@@ -222,10 +222,10 @@ public:
 
 private:
     template <typename... TParams>
-    using BaseRedirectTag = comms::details::tag::Tag1<TParams...>;
+    using BaseRedirectTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using LocalTag = comms::details::tag::Tag2<TParams...>;
+    using LocalTag = comms::details::tag::Tag2<>;
 
 
     template <std::size_t TFromIdx, typename... TParams>

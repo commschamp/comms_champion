@@ -212,10 +212,10 @@ template <typename TIter, typename TVerBase, bool TVerDependent>
 class VariantReadHelper
 {
     template <typename... TParams>
-    using VersionDependentTag = comms::details::tag::Tag1<TParams...>;
+    using VersionDependentTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoVersionDependencyTag = comms::details::tag::Tag2<TParams...>;
+    using NoVersionDependencyTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     using VersionTag =
@@ -715,10 +715,10 @@ public:
 
 private:
     template <typename... TParams>
-    using VersionDependentTag = comms::details::tag::Tag1<TParams...>;
+    using VersionDependentTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoVersionDependencyTag = comms::details::tag::Tag2<TParams...>;
+    using NoVersionDependencyTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     using VersionTag =

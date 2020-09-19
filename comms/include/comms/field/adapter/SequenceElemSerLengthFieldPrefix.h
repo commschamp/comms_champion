@@ -241,16 +241,16 @@ public:
 private:
 
     template <typename... TParams>
-    using FixedLengthLenFieldTag = comms::details::tag::Tag1<TParams...>;
+    using FixedLengthLenFieldTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using VarLengthLenFieldTag = comms::details::tag::Tag2<TParams...>;
+    using VarLengthLenFieldTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using FixedLengthElemTag = comms::details::tag::Tag3<TParams...>;
+    using FixedLengthElemTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using VarLengthElemTag = comms::details::tag::Tag4<TParams...>;    
+    using VarLengthElemTag = comms::details::tag::Tag4<>;    
 
     template <typename...>
     using LenFieldLengthTag =

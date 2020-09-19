@@ -537,10 +537,10 @@ public:
 
 private:
     template <typename... TParams>
-    using PolymorphicTag = comms::details::tag::Tag1<TParams...>;
+    using PolymorphicTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using StaticBinSearchTag = comms::details::tag::Tag2<TParams...>;
+    using StaticBinSearchTag = comms::details::tag::Tag2<>;
 
     template <typename...>
     using Tag = 

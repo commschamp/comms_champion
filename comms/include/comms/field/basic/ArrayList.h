@@ -350,25 +350,25 @@ public:
 
 private:
     template <typename... TParams>
-    using FieldElemTag = comms::details::tag::Tag1<TParams...>;
+    using FieldElemTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using IntegralElemTag = comms::details::tag::Tag2<TParams...>;
+    using IntegralElemTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using FixedLengthTag = comms::details::tag::Tag3<TParams...>;
+    using FixedLengthTag = comms::details::tag::Tag3<>;
 
     template <typename... TParams>
-    using VarLengthTag = comms::details::tag::Tag4<TParams...>;
+    using VarLengthTag = comms::details::tag::Tag4<>;
 
     template <typename... TParams>
-    using RawDataTag = comms::details::tag::Tag5<TParams...>;
+    using RawDataTag = comms::details::tag::Tag5<>;
 
     template <typename... TParams>
-    using VersionDependentTag = comms::details::tag::Tag6<TParams...>;    
+    using VersionDependentTag = comms::details::tag::Tag6<>;    
 
     template <typename... TParams>
-    using NoVersionDependencyTag = comms::details::tag::Tag7<TParams...>;
+    using NoVersionDependencyTag = comms::details::tag::Tag7<>;
 
     template <typename... TParams>
     using ElemTag = 

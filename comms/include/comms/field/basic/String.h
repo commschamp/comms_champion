@@ -258,10 +258,10 @@ public:
 
 private:
     template<typename... TParams>
-    using AdvancableTag = comms::details::tag::Tag1<TParams...>;
+    using AdvancableTag = comms::details::tag::Tag1<>;
 
     template<typename... TParams>
-    using NotAdvancableTag = comms::details::tag::Tag2<TParams...>;
+    using NotAdvancableTag = comms::details::tag::Tag2<>;
 
     template <typename TIter>
     static void doAdvance(TIter& iter, std::size_t len)

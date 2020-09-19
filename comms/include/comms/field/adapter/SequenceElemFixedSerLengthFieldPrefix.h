@@ -227,10 +227,10 @@ public:
 private:
 
     template <typename... TParams>
-    using FixedLengthLenFieldTag = comms::details::tag::Tag1<TParams...>;
+    using FixedLengthLenFieldTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using VarLengthLenFieldTag = comms::details::tag::Tag2<TParams...>;
+    using VarLengthLenFieldTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
     std::size_t lengthInternal(FixedLengthLenFieldTag<TParams...>) const

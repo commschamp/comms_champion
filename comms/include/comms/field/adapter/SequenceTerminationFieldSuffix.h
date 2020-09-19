@@ -116,10 +116,10 @@ public:
 
 private:
     template <typename... TParams>
-    using RawDataTag = comms::details::tag::Tag1<TParams...>;
+    using RawDataTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using FieldTag = comms::details::tag::Tag2<TParams...>;
+    using FieldTag = comms::details::tag::Tag2<>;
 
     template <typename TIter, typename... TParams>
     comms::ErrorStatus readInternal(TIter& iter, std::size_t len, FieldTag<TParams...>)

@@ -340,16 +340,16 @@ private:
     using LengthTag = typename BaseImpl::template LengthTag<TParams...>;
 
     template <typename... TParams>
-    using MsgHasLengthTag = comms::details::tag::Tag3<TParams...>;  
+    using MsgHasLengthTag = comms::details::tag::Tag3<>;  
 
     template <typename... TParams>
-    using MsgNoLengthTag = comms::details::tag::Tag4<TParams...>;   
+    using MsgNoLengthTag = comms::details::tag::Tag4<>;   
 
     template <typename... TParams>
-    using ValidMsgTypeTag = comms::details::tag::Tag5<TParams...>;     
+    using ValidMsgTypeTag = comms::details::tag::Tag5<>;     
 
     template <typename... TParams>
-    using NoMsgTypeTag = comms::details::tag::Tag6<TParams...>;         
+    using NoMsgTypeTag = comms::details::tag::Tag6<>;         
 
     template<typename TMsg>
     using MsgLengthTag =
@@ -361,10 +361,10 @@ private:
         >;
 
     template <typename... TParams>
-    using PtrToMsgTag = comms::details::tag::Tag7<TParams...>;   
+    using PtrToMsgTag = comms::details::tag::Tag7<>;   
 
     template <typename... TParams>
-    using DirectMsgTag = comms::details::tag::Tag8<TParams...>;             
+    using DirectMsgTag = comms::details::tag::Tag8<>;             
 
     template <typename TMsg>
     using MsgTypeTag =

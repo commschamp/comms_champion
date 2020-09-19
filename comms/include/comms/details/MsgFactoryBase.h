@@ -241,22 +241,22 @@ protected:
 
 private:
     template <typename... TParams>
-    using AllocGenericTag = comms::details::tag::Tag1<TParams...>;
+    using AllocGenericTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using NoAllocTag = comms::details::tag::Tag2<TParams...>;    
+    using NoAllocTag = comms::details::tag::Tag2<>;    
 
     template <typename... TParams>
-    using ForcedTag = comms::details::tag::Tag3<TParams...>;    
+    using ForcedTag = comms::details::tag::Tag3<>;    
 
     template <typename... TParams>
-    using StandardTag = comms::details::tag::Tag4<TParams...>; 
+    using StandardTag = comms::details::tag::Tag4<>; 
 
     template <typename... TParams>
-    using VirtualDestructorTag = comms::details::tag::Tag5<TParams...>; 
+    using VirtualDestructorTag = comms::details::tag::Tag5<>; 
 
     template <typename... TParams>
-    using NonVirtualDestructorTag = comms::details::tag::Tag6<TParams...>;              
+    using NonVirtualDestructorTag = comms::details::tag::Tag6<>;              
 
     template <typename...>
     using DispatchTag = 

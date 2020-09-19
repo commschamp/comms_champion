@@ -275,8 +275,9 @@ public:
             }
             default:
             {
-                static constexpr std::size_t NextFrom = TFrom + SameIdsCount<TAllMessages, TFrom, TCount>::value;
-                static constexpr std::size_t NextCount = TCount - NextFrom;
+                static constexpr std::size_t SkipCount = SameIdsCount<TAllMessages, TFrom, TCount>::value;
+                static constexpr std::size_t NextFrom = TFrom + SkipCount;
+                static constexpr std::size_t NextCount = TCount - SkipCount;
                 static constexpr auto HelperType = DispatchMsgHelperIntType<NextCount>::value;
 
                 return 
@@ -342,9 +343,10 @@ public:
             }
             default:
             {
-                static constexpr std::size_t NextFrom = TFrom + SameIdsCount<TAllMessages, TFrom, TCount>::value;
-                static constexpr std::size_t NextCount = TCount - NextFrom;
-                static constexpr auto HelperType = DispatchMsgHelperIntType<NextCount>::value;            
+                static constexpr std::size_t SkipCount = SameIdsCount<TAllMessages, TFrom, TCount>::value;
+                static constexpr std::size_t NextFrom = TFrom + SkipCount;
+                static constexpr std::size_t NextCount = TCount - SkipCount;
+                static constexpr auto HelperType = DispatchMsgHelperIntType<NextCount>::value;
                 return 
                     DispatchMsgWeakLinearSwitchHelper<HelperType>::template
                         dispatchType<TAllMessages, NextFrom, NextCount>(id, offset, handler);
@@ -363,7 +365,8 @@ public:
     {
         switch(offset) {
             case 0:
-                handler.template handle<FromElem>();
+                using Elem = FromElem<TAllMessages, TFrom>;
+                handler.template handle<Elem>();
                 return true;
             default:
                 static constexpr std::size_t NextCount = TCount - 1U;

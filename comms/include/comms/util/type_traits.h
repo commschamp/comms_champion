@@ -186,6 +186,19 @@ struct IntMaxBinaryOp
 };
 
 template <typename...>
+struct IntMinBinaryOp
+{
+    template <typename TFirst, typename TSecond>
+    using Type = 
+        typename Conditional<
+            (TFirst::value <= TSecond::value)
+        >::template Type<
+            TFirst,
+            TSecond
+        >;
+};
+
+template <typename...>
 struct IntSumBinaryOp
 {
     template <typename TFirst, typename TSecond>

@@ -60,7 +60,7 @@ class DispatchMsgStrongStaticBinSearchHelper // <DispatchMsgStaticBinSearchHelpe
     //     "Invalid template params");
 
     // static_assert(2 <= TCount, "Invalid invocation");
-    // static const std::size_t Mid = TFrom + (TCount / 2);        
+    // static constexpr std::size_t Mid = TFrom + (TCount / 2);        
     // using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
     // static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
 
@@ -86,16 +86,18 @@ public:
         typename TMsg::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
             static constexpr auto NextCount = Mid - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template 
                     dispatch<TAllMessages, TFrom, NextCount>(
                         id, msg, handler);
         }
 
         if (midId < id) {
             static constexpr auto NextCount = TCount - (Mid - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template 
                     dispatch<TAllMessages, Mid, NextCount>(
                         id, msg, handler);
         }
@@ -117,15 +119,17 @@ public:
         typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
             static constexpr auto NextCount = Mid - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
                     dispatchType<TAllMessages, TFrom, NextCount>(id, handler);
         }
 
         if (midId < id) {
             static constexpr auto NextCount = TCount - (Mid - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
                     dispatchType<TAllMessages, Mid, NextCount>(id, handler);
         }
 
@@ -145,15 +149,17 @@ public:
         typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
             static constexpr auto NextCount = Mid - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
                     dispatchTypeCount<TAllMessages, TFrom, NextCount>(id);
         }
 
         if (midId < id) {
             static constexpr auto NextCount = TCount - (Mid - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgStrongStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template
+                DispatchMsgStrongStaticBinSearchHelper<HelperType>::template
                     dispatchTypeCount<TAllMessages, Mid, NextCount>(id);
         }
 
@@ -444,19 +450,21 @@ public:
 
         if (id < midId) {
             static constexpr std::size_t NextCount = StartIdx - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatch<TAllMessages, TFrom, NextCount>(id, offset, msg, handler);
         }
 
         static constexpr std::size_t MidCount = MidRangeCount<TAllMessages, TFrom, TCount>::value;
 
         if (midId < id) {
-            static const std::size_t NewStart = StartIdx + MidCount;
-            static const std::size_t NextCount = TCount - (NewStart - TFrom);
+            static constexpr std::size_t NewStart = StartIdx + MidCount;
+            static constexpr std::size_t NextCount = TCount - (NewStart - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatch<TAllMessages, NewStart, NextCount>(id, offset, msg, handler);
         }
 
@@ -464,8 +472,9 @@ public:
             return static_cast<RetType>(handler.handle(msg));
         }
 
+        static constexpr auto HelperType = DispatchMsgHelperType<MidCount>::value;
         return 
-            DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<MidCount>::value>::template 
+            DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                 dispatchOffset<TAllMessages, StartIdx, MidCount>(offset, msg, handler);
     }
 
@@ -483,18 +492,20 @@ public:
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
 
-        static const std::size_t MidOffset = TCount / 2;
+        static constexpr std::size_t MidOffset = TCount / 2;
 
         if (offset < MidOffset) {
+            static constexpr auto HelperType = DispatchMsgHelperType<MidOffset>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<MidOffset>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchOffset<TAllMessages, TFrom, MidOffset>(offset, msg, handler);
         }
 
         if (MidOffset < offset) {
             static constexpr std::size_t NextCount = TCount - (MidOffset - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchOffset<TAllMessages, MidOffset, NextCount>(offset - MidOffset, msg, handler);
         }
 
@@ -520,8 +531,9 @@ public:
         typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
             static constexpr std::size_t NextCount = StartIdx - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchType<TAllMessages, TFrom, NextCount>(id, offset, handler);
         }
 
@@ -530,8 +542,9 @@ public:
         if (midId < id) {
             static constexpr std::size_t NewStart = StartIdx + MidCount; 
             static constexpr std::size_t NextCount = TCount - (NewStart - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchType<TAllMessages, NewStart, NextCount>(id, offset, handler);
         }
 
@@ -539,8 +552,9 @@ public:
             return false;
         }
 
+        static constexpr auto HelperType = DispatchMsgHelperType<MidCount>::value;
         return 
-            DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<MidCount>::value>::template 
+            DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                 dispatchTypeOffset<TAllMessages, StartIdx, MidCount>(offset, handler);
     }    
 
@@ -551,18 +565,20 @@ public:
         typename THandler>
     static bool dispatchTypeOffset(std::size_t offset, THandler& handler)
     {
-        static const std::size_t MidOffset = TCount / 2;
+        static constexpr std::size_t MidOffset = TCount / 2;
 
         if (offset < MidOffset) {
+            static constexpr auto HelperType = DispatchMsgHelperType<MidOffset>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<MidOffset>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchTypeOffset<TAllMessages, TFrom, MidOffset>(offset, handler);
         }
 
         if (MidOffset < offset) {
             static constexpr std::size_t NextCount = TCount - (MidOffset - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchTypeOffset<TAllMessages, MidOffset, NextCount>(offset - MidOffset, handler);
         }
 
@@ -585,18 +601,20 @@ public:
         typename MidElemType::MsgIdParamType midId = MidElemType::doGetId();
         if (id < midId) {
             static constexpr std::size_t NextCount = StartIdx - TFrom;
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchTypeCount<TAllMessages, TFrom, NextCount>(id);
         }
 
-        static const std::size_t MidCount = MidRangeCount<TAllMessages, TFrom, TCount>::value;
+        static constexpr std::size_t MidCount = MidRangeCount<TAllMessages, TFrom, TCount>::value;
 
         if (midId < id) {
             static constexpr std::size_t NewStart = StartIdx + MidCount; 
             static constexpr std::size_t NextCount = TCount - (NewStart - TFrom);
+            static constexpr auto HelperType = DispatchMsgHelperType<NextCount>::value;
             return 
-                DispatchMsgWeakStaticBinSearchHelper<DispatchMsgHelperType<NextCount>::value>::template 
+                DispatchMsgWeakStaticBinSearchHelper<HelperType>::template 
                     dispatchTypeCount<TAllMessages, NewStart, NextCount>(id);
         }
 

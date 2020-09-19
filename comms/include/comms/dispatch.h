@@ -326,7 +326,7 @@ auto dispatchMsgLinearSwitch(TId&& id, TMsg& msg, THandler& handler) ->
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgLinearSwitchHelper<>::template dispatch<TAllMessages>(
             std::forward<TId>(id),
             msg,
             handler);
@@ -358,7 +358,7 @@ auto dispatchMsgLinearSwitch(TId&& id, std::size_t index, TMsg& msg, THandler& h
 
 
     return 
-        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgLinearSwitchHelper<>::template dispatch<TAllMessages>(
             std::forward<TId>(id),
             index,
             msg,
@@ -390,7 +390,7 @@ auto dispatchMsgLinearSwitch(TMsg& msg, THandler& handler) ->
         "The used message object must provide polymorphic ID retrieval function");
 
     return 
-        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+        details::DispatchMsgLinearSwitchHelper<>::template dispatch<TAllMessages>(
             msg,
             handler);
 }
@@ -416,8 +416,8 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, THandler& handler)
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgLinearSwitchHelper<TAllMessages>::
-            dispatchType(std::forward<TId>(id), handler);
+        details::DispatchMsgLinearSwitchHelper<>::template
+            dispatchType<TAllMessages>(std::forward<TId>(id), handler);
 }
 
 /// @brief Dispatch message id into appropriate @b handle() function in the
@@ -442,8 +442,8 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, std::size_t index, THandler& handler)
         "All messages in the provided tuple must statically define their numeric ID");
 
     return 
-        details::DispatchMsgLinearSwitchHelper<TAllMessages>::
-            dispatchType(std::forward<TId>(id), index, handler);
+        details::DispatchMsgLinearSwitchHelper<>::template
+            dispatchType<TAllMessages>(std::forward<TId>(id), index, handler);
 }
 
 /// @brief Compile time check whether the message object can use its own

@@ -66,6 +66,10 @@ public:
     static constexpr bool HasOrigDataView = false;
     static constexpr bool HasCustomVersionUpdate = false;
 
+    using UnitsType = void;
+    using ScalingRatio = std::ratio<1, 1>;
+    using UnitsRatio = std::ratio<1, 1>;
+
     template <typename TField>
     using AdaptInvalidByDefault = TField;
 

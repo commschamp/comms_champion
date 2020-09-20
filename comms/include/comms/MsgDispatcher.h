@@ -17,6 +17,7 @@
 #include "comms/Message.h"
 #include "comms/details/MsgDispatcherOptionsParser.h"
 #include "comms/traits.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -45,33 +46,6 @@ constexpr bool hasMsgDispatcherTag()
     return HasMsgDispatcherTag<T>::Value;
 }
 
-struct MsgDispatcherNoForcingTag {};
-struct MsgDispatcherHasForcingTag {};
-
-
-template <bool THasForcedDispatch>
-struct MsgDispatcherTagHelper;
-
-template <>
-struct MsgDispatcherTagHelper<false>
-{
-    template <typename TOpt>
-    using Primary = MsgDispatcherNoForcingTag;
-
-    template <typename TOpt>
-    using Secondary = void;
-};
-
-template <>
-struct MsgDispatcherTagHelper<true>
-{
-    template <typename TOpt>
-    using Primary = MsgDispatcherHasForcingTag;
-
-    template <typename TOpt>
-    using Secondary = typename TOpt::ForcedDispatch;
-};
-
 } // namespace details
 
 /// @brief An auxiliary class to force a particular way of dispatching message to its handler
@@ -87,18 +61,17 @@ struct MsgDispatcherTagHelper<true>
 template <typename... TOptions>
 class MsgDispatcher
 {
-    using NoForcingTag = details::MsgDispatcherNoForcingTag;
-    using HasForcingTag = details::MsgDispatcherHasForcingTag;
+    using NoForcingTag = comms::details::tag::Tag1<>;
 
     using ParsedOptionsInternal = details::MsgDispatcherOptionsParser<TOptions...>;
-    using PrimaryDispatchTag =
-        typename details::MsgDispatcherTagHelper<ParsedOptionsInternal::HasForcedDispatch>::
-            template Primary<ParsedOptionsInternal>;
 
-    using SecondaryDispatchTag =
-        typename details::MsgDispatcherTagHelper<ParsedOptionsInternal::HasForcedDispatch>::
-            template Secondary<ParsedOptionsInternal>;
-
+    using Tag = 
+        typename comms::util::Conditional<
+            ParsedOptionsInternal::HasForcedDispatch
+        >::template Type<
+            typename ParsedOptionsInternal::ForcedDispatch,
+            NoForcingTag
+        >;
 
     template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
     static auto dispatchInternal(TMsgId&& id, std::size_t idx, TMsg& msg, THandler& handler, NoForcingTag) ->
@@ -184,38 +157,17 @@ class MsgDispatcher
         return comms::dispatchMsgLinearSwitch<TAllMessages>(msg, handler);
     }
 
-
-    template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
-    static auto dispatchInternal(TMsgId&& id, std::size_t idx, TMsg& msg, THandler& handler, HasForcingTag) ->
-        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, SecondaryDispatchTag()))
-    {
-        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, SecondaryDispatchTag());
-    }
-
-    template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
-    static auto dispatchInternal(TMsgId&& id, TMsg& msg, THandler& handler, HasForcingTag) ->
-        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, SecondaryDispatchTag()))
-    {
-        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, SecondaryDispatchTag());
-    }
-
-    template <typename TAllMessages, typename TMsg, typename THandler>
-    static auto dispatchInternal(TMsg& msg, THandler& handler, HasForcingTag) ->
-        decltype(dispatchInternal<TAllMessages>(msg, handler, SecondaryDispatchTag()))
-    {
-        return dispatchInternal<TAllMessages>(msg, handler, SecondaryDispatchTag());
-    }
-
     template <typename TAllMessages>
     static constexpr bool isDispatchPolymorphicInternal(NoForcingTag)
     {
         return comms::dispatchMsgTypeIsPolymorphic<TAllMessages>();
     }
 
-    template <typename TAllMessages>
-    static constexpr bool isDispatchPolymorphicInternal(HasForcingTag)
+    template <typename TAllMessages, typename TTag>
+    static constexpr bool isDispatchPolymorphicInternal(TTag)
     {
-        return std::is_same<SecondaryDispatchTag, comms::traits::dispatch::Polymorphic>::value;
+        static_assert(!std::is_same<TTag, NoForcingTag>::value, "Invalid tag dispatch");
+        return std::is_same<TTag, comms::traits::dispatch::Polymorphic>::value;
     }
 
     template <typename TAllMessages>
@@ -224,10 +176,11 @@ class MsgDispatcher
         return comms::dispatchMsgTypeIsStaticBinSearch<TAllMessages>();
     }
 
-    template <typename TAllMessages>
-    static constexpr bool isDispatchStaticBinSearchInternal(HasForcingTag)
+    template <typename TAllMessages, typename TTag>
+    static constexpr bool isDispatchStaticBinSearchInternal(TTag)
     {
-        return std::is_same<SecondaryDispatchTag, comms::traits::dispatch::StaticBinSearch>::value;
+        static_assert(!std::is_same<TTag, NoForcingTag>::value, "Invalid tag dispatch");
+        return std::is_same<TTag, comms::traits::dispatch::StaticBinSearch>::value;
     }
 
     template <typename TAllMessages>
@@ -236,10 +189,11 @@ class MsgDispatcher
         return false;
     }
 
-    template <typename TAllMessages>
-    static constexpr bool isDispatchLinearSwitchInternal(HasForcingTag)
+    template <typename TAllMessages, typename TTag>
+    static constexpr bool isDispatchLinearSwitchInternal(TTag)
     {
-        return std::is_same<SecondaryDispatchTag, comms::traits::dispatch::LinearSwitch>::value;
+        static_assert(!std::is_same<TTag, NoForcingTag>::value, "Invalid tag dispatch");
+        return std::is_same<TTag, comms::traits::dispatch::LinearSwitch>::value;
     }
 
 public:
@@ -247,7 +201,7 @@ public:
     using ParsedOptions = ParsedOptionsInternal;
 
     /// @brief Class detection tag
-    using MsgDispatcherTag = void;
+    using MsgDispatcherTag = typename ParsedOptions::ForcedDispatch;
 
     /// @brief Dispatch message to its handler.
     /// @details Uses @ref comms::dispatchMsg(), @ref comms::dispatchMsgPolymorphic(),
@@ -261,10 +215,9 @@ public:
     /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
     static auto dispatch(TMsgId&& id, std::size_t idx, TMsg& msg, THandler& handler) ->
-        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, PrimaryDispatchTag()))
+        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, Tag()))
     {
-
-        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, PrimaryDispatchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, Tag());
     }
 
     /// @brief Dispatch message to its handler.
@@ -277,9 +230,9 @@ public:
     /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
     static auto dispatch(TMsgId&& id, TMsg&& msg, THandler&& handler) ->
-        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, PrimaryDispatchTag()))
+        decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, Tag()))
     {
-        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, PrimaryDispatchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, Tag());
     }
 
     /// @brief Dispatch message to its handler.
@@ -291,13 +244,13 @@ public:
     ///     does @b NOT contain message classes with the same ID value.
     /// @tparam TAllMessages Bundle (std::tuple) of all supported message classes
     /// @param[in] msg Reference to message object.
-    /// @param[in] handler Reference to handler object
+    /// @param[in] handler Reference to handler objectz
     /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsg, typename THandler>
     static auto dispatch(TMsg&& msg, THandler&& handler) ->
-        decltype(dispatchInternal<TAllMessages>(msg, handler, PrimaryDispatchTag()))
+        decltype(dispatchInternal<TAllMessages>(msg, handler, Tag()))
     {
-        return dispatchInternal<TAllMessages>(msg, handler, PrimaryDispatchTag());
+        return dispatchInternal<TAllMessages>(msg, handler, Tag());
     }
 
     /// @brief Compile time inquiry whether polymorphic dispatch tables are
@@ -308,7 +261,7 @@ public:
     template <typename TAllMessages>
     static constexpr bool isDispatchPolymorphic()
     {
-        return isDispatchPolymorphicInternal<TAllMessages>(PrimaryDispatchTag());
+        return isDispatchPolymorphicInternal<TAllMessages>(Tag());
     }
 
     /// @brief Compile time inquiry whether static binary search dispatch is
@@ -319,7 +272,7 @@ public:
     template <typename TAllMessages>
     static constexpr bool isDispatchStaticBinSearch()
     {
-        return isDispatchStaticBinSearchInternal<TAllMessages>(PrimaryDispatchTag());
+        return isDispatchStaticBinSearchInternal<TAllMessages>(Tag());
     }
 
     /// @brief Compile time inquiry whether linear switch dispatch is
@@ -330,16 +283,36 @@ public:
     template <typename TAllMessages>
     static constexpr bool isDispatchLinearSwitch()
     {
-        return isDispatchLinearSwitchInternal<TAllMessages>(PrimaryDispatchTag());
+        return isDispatchLinearSwitchInternal<TAllMessages>(Tag());
     }
 };
+
+namespace details
+{
+
+template <typename T>
+struct IsMsgDispatcher
+{
+    static constexpr bool Value = false;
+};
+
+template <typename... TOptions>
+struct IsMsgDispatcher<MsgDispatcher<TOptions...> >
+{
+    static constexpr bool Value = true;
+};
+
+
+} // namespace details
 
 /// @brief Compile time check whether the provided class is a variant of @ref comms::MsgDispatcher.
 /// @related MsgDispatcher
 template <typename T>
 constexpr bool isMsgDispatcher()
 {
-    return details::hasMsgDispatcherTag<T>();
+    return 
+        details::IsMsgDispatcher<T>::Value || 
+        details::hasMsgDispatcherTag<T>();
 }
 
 } // namespace comms

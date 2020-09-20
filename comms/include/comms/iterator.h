@@ -11,7 +11,7 @@
 /// Provides auxiliary functions for retrieving best type of iterator for read/write operations
 
 #include "comms/details/ReadIteratorHelper.h"
-#include "comms/details/WriteIterator.h"
+#include "comms/details/WriteIteratorHelper.h"
 
 namespace comms
 {
@@ -43,9 +43,9 @@ auto readIteratorFor(TMessage&& msg, TIter&& iter) ->
 /// @param[in] iter Iterator value.
 /// @return The same @b iter value, but casted to appropriate type
 template <typename TMessage, typename TIter>
-auto writeIteratorFor(TIter&& iter) -> decltype(details::WriteIterator<TMessage>::get(std::forward<TIter>(iter)))
+auto writeIteratorFor(TIter&& iter) -> decltype(details::WriteIteratorHelper<>::template get<TMessage>(std::forward<TIter>(iter)))
 {
-    return details::WriteIterator<TMessage>::get(std::forward<TIter>(iter));
+    return details::WriteIteratorHelper<>::template get<TMessage>(std::forward<TIter>(iter));
 }
 
 /// @brief Create and initialise iterator for message write
@@ -55,9 +55,9 @@ auto writeIteratorFor(TIter&& iter) -> decltype(details::WriteIterator<TMessage>
 /// @return The same @b iter value, but casted to appropriate type
 template <typename TMessage, typename TIter>
 auto writeIteratorFor(TMessage&& msg, TIter&& iter) ->
-    decltype(details::WriteIterator<typename std::decay<decltype(msg)>::type>::get(std::forward<TIter>(iter)))
+    decltype(details::WriteIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter)))
 {
-    return details::WriteIterator<typename std::decay<decltype(msg)>::type>::get(std::forward<TIter>(iter));
+    return details::WriteIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter));
 }
 
 } // namespace comms

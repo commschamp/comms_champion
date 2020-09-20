@@ -17,10 +17,10 @@ namespace details
 {
 
 template <typename...>
-class ReadIteratorHelper
+class WriteIteratorHelper
 {
     template <typename... TParams>
-    using HasReadIterTag = comms::details::tag::Tag1<>;
+    using HasWriteIterTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
     using MsgPointerTag = comms::details::tag::Tag2<>;    
@@ -31,9 +31,9 @@ class ReadIteratorHelper
     template <typename TMsg>
     using MsgObjTag = 
         typename comms::util::LazyShallowConditional<
-            TMsg::hasRead()
+            TMsg::hasWrite()
         >::template Type<
-            HasReadIterTag,
+            HasWriteIterTag,
             CastTag
         >;
 
@@ -57,11 +57,11 @@ class ReadIteratorHelper
         >;
 
     template <typename TMsg, typename TIter, typename... TParams>
-    static auto getInternal(TIter&& iter, HasReadIterTag<TParams...>) -> typename TMsg::ReadIterator
+    static auto getInternal(TIter&& iter, HasWriteIterTag<TParams...>) -> typename TMsg::WriteIterator
     {
-        static_assert(std::is_convertible<typename std::decay<decltype(iter)>::type, typename TMsg::ReadIterator>::value,
+        static_assert(std::is_convertible<typename std::decay<decltype(iter)>::type, typename TMsg::WriteIterator>::value,
             "Provided iterator is not convertible to read iterator type used by message interface");
-        return typename TMsg::ReadIterator(std::forward<TIter>(iter));
+        return typename TMsg::WriteIterator(std::forward<TIter>(iter));
     }    
 
     template <typename TMsg, typename TIter, typename... TParams>

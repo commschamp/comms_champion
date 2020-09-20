@@ -16,6 +16,7 @@
 #include "comms/util/detect.h"
 #include "comms/util/type_traits.h"
 #include "comms/Assert.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -26,6 +27,7 @@ namespace util
 namespace details
 {
 
+template <typename...>
 class AssignHelper
 {
 public:
@@ -33,38 +35,47 @@ public:
     static void assign(T& obj, TIter from, TIter to)
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
-
-        using Tag = 
-            typename comms::util::Conditional<
-                comms::util::detect::hasAssignFunc<ObjType>()
-            >::template Type<
-                UseAssignTag,
-                typename comms::util::Conditional<
-                    comms::util::detect::hasPtrSizeConstructor<ObjType>()
-                >::template Type<
-                    UsePtrSizeConstructorTag,
-                    UnknownTag
-                >
-            >;
-
-        static_assert(!std::is_same<Tag, UnknownTag>::value, "Assignment to provided type is not supported");
-
-        assignInternal(obj, from, to, Tag());
+        static_assert(!std::is_same<Tag<ObjType>, UnknownTag<> >::value, "Assignment to provided type is not supported");
+        assignInternal(obj, from, to, Tag<ObjType>());
     }
 
 private:
-    struct UseAssignTag{};
-    struct UsePtrSizeConstructorTag{};
-    struct UnknownTag{};
+    template <typename... TParams>
+    using UseAssignTag = comms::details::tag::Tag1<>;
 
-    template <typename T, typename TIter>
-    static void assignInternal(T& obj, TIter from, TIter to, UseAssignTag)
+    template <typename... TParams>
+    using UsePtrSizeConstructorTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using UnknownTag = comms::details::tag::Tag3<>;   
+
+    template <typename T>
+    using ConstructorTag = 
+        typename comms::util::LazyShallowConditional<
+            comms::util::detect::hasPtrSizeConstructor<T>()
+        >::template Type<
+            UsePtrSizeConstructorTag,
+            UnknownTag
+        >;
+
+    template <typename T>
+    using Tag =
+        typename comms::util::LazyShallowConditional<
+            comms::util::detect::hasAssignFunc<T>()
+        >::template Type<
+            UseAssignTag,
+            ConstructorTag,
+            T
+        >;    
+
+    template <typename T, typename TIter, typename... TParams>
+    static void assignInternal(T& obj, TIter from, TIter to, UseAssignTag<TParams...>)
     {
         obj.assign(from, to);
     }
 
-    template <typename T, typename TIter>
-    static void assignInternal(T& obj, TIter from, TIter to, UsePtrSizeConstructorTag)
+    template <typename T, typename TIter, typename... TParams>
+    static void assignInternal(T& obj, TIter from, TIter to, UsePtrSizeConstructorTag<TParams...>)
     {
         using IterType = typename std::decay<TIter>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;

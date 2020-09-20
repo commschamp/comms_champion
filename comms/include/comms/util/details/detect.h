@@ -59,7 +59,7 @@ namespace details
 template <typename T>
 class HasClearFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -75,7 +75,7 @@ public:
 template <typename T>
 class HasReserveFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -91,7 +91,7 @@ public:
 template <typename T>
 class HasResizeFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -107,7 +107,7 @@ public:
 template <typename T>
 class HasRemoveSuffixFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -123,7 +123,7 @@ public:
 template <typename T>
 class HasAssignFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -139,7 +139,7 @@ public:
 template <typename T>
 class HasPtrSizeConstructor
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>

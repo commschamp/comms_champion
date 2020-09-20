@@ -14,6 +14,7 @@
 #include <iterator>
 
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -84,15 +85,19 @@ typename std::decay<T>::type signExtCommon(T value, std::size_t size)
 template <typename T, std::size_t TSize, typename TByteType>
 class SignExt
 {
-    struct FullSize {};
-    struct PartialSize {};
+    template <typename... TParams>
+    using FullSize = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using PartialSize = comms::details::tag::Tag2<>;    
+
 public:
     using ValueType = typename std::decay<T>::type;
 
     static ValueType value(T val)
     {
         using Tag = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 sizeof(ValueType) == TSize
             >::template Type<
                 FullSize,
@@ -104,12 +109,14 @@ public:
 
 private:
 
-    static ValueType valueInternal(T val, FullSize)
+    template <typename... TParams>
+    static ValueType valueInternal(T val, FullSize<TParams...>)
     {
         return val;
     }
 
-    static ValueType valueInternal(T val, PartialSize)
+    template <typename... TParams>
+    static ValueType valueInternal(T val, PartialSize<TParams...>)
     {
         using UnsignedValueType = typename std::make_unsigned<ValueType>::type;
         static_assert(std::is_integral<ValueType>::value, "T must be integer type");

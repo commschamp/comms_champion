@@ -53,7 +53,7 @@ using ProcessMsgIdType =
     typename ProcessMsgIdRetrieveHelper<comms::isMessage<ProcessMsgDecayType<T> >(), hasElementType<ProcessMsgDecayType<T> >()>::
         template Type<ProcessMsgDecayType<T> >;
 
-\
+
 template <bool TIsMessage, bool TIsMsgPtr>
 struct ProcessMsgCastToMsgObjHelper;
 
@@ -78,18 +78,24 @@ struct ProcessMsgCastToMsgObjHelper<false, true>
 };
 
 template <typename T>
-struct ProcessMsgCastParamPrepareHelper
-{
-    using DecayedType = ProcessMsgDecayType<T>;
-    static const bool IsMessage = comms::isMessage<DecayedType>();
-    static const bool IsMsgPtr = hasElementType<DecayedType>();
-};
+using ProcessMsgCastParamIsMessage = 
+    std::integral_constant<
+        bool,
+        isMessage<ProcessMsgDecayType<T> >()
+    >;
+
+template <typename T>
+using ProcessMsgCastParamIsMsgPtr = 
+    std::integral_constant<
+        bool,
+        hasElementType<ProcessMsgDecayType<T> >()
+    >;    
 
 template <typename T>
 auto processMsgCastToMsgObj(T& msg) ->
-    decltype(ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMessage, ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMsgPtr>::cast(msg))
+    decltype(ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamIsMessage<T>::value, ProcessMsgCastParamIsMsgPtr<T>::value>::cast(msg))
 {
-    return ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMessage, ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMsgPtr>::cast(msg);
+    return ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamIsMessage<T>::value, ProcessMsgCastParamIsMsgPtr<T>::value>::cast(msg);
 }
 
 } // namespace details

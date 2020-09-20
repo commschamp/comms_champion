@@ -27,6 +27,7 @@
 #include "comms/field/basic/String.h"
 #include "comms/field/details/AdaptBasicField.h"
 #include "comms/field/details/OptionsParser.h"
+#include "comms/details/tag.h"
 #include "tag.h"
 
 namespace comms
@@ -231,7 +232,7 @@ public:
     {
         auto es = BaseImpl::read(iter, len);
         using TagTmp = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 ParsedOptions::HasSequenceFixedSize
             >::template Type<
                 AdjustmentNeededTag,
@@ -259,7 +260,7 @@ public:
     {
         BaseImpl::readNoStatus(iter);
         using TagTmp = 
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 ParsedOptions::HasSequenceFixedSize
             >::template Type<
                 AdjustmentNeededTag,
@@ -422,16 +423,25 @@ protected:
     using BaseImpl::writeData;
 
 private:
-    struct NoAdjustmentTag {};
-    struct AdjustmentNeededTag {};
-    struct HasResizeTag {};
-    struct HasRemoveSuffixTag {};
+    template <typename... TParams>
+    using NoAdjustmentTag = comms::details::tag::Tag1<>;
 
-    void adjustValue(NoAdjustmentTag)
+    template <typename... TParams>
+    using AdjustmentNeededTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using HasResizeTag = comms::details::tag::Tag3<>;
+
+    template <typename... TParams>
+    using HasRemoveSuffixTag = comms::details::tag::Tag4<>;    
+
+    template <typename... TParams>
+    void adjustValue(NoAdjustmentTag<TParams...>)
     {
     }
 
-    void adjustValue(AdjustmentNeededTag)
+    template <typename... TParams>
+    void adjustValue(AdjustmentNeededTag<TParams...>)
     {
         std::size_t count = 0;
         for (auto iter = BaseImpl::value().begin(); iter != BaseImpl::value().end(); ++iter) {
@@ -450,11 +460,11 @@ private:
             typename comms::util::Conditional<
                 comms::util::detect::hasResizeFunc<ValueType>()
             >::template Type<
-                HasResizeTag,
+                HasResizeTag<>,
                 typename comms::util::Conditional<
                     comms::util::detect::hasRemoveSuffixFunc<ValueType>()
                 >::template Type<
-                    HasRemoveSuffixTag,
+                    HasRemoveSuffixTag<>,
                     void
                 >
             >;
@@ -465,12 +475,14 @@ private:
         doResize(count, TagTmp());
     }
 
-    void doResize(std::size_t count, HasResizeTag)
+    template <typename... TParams>
+    void doResize(std::size_t count, HasResizeTag<TParams...>)
     {
         BaseImpl::value().resize(count);
     }
 
-    void doResize(std::size_t count, HasRemoveSuffixTag)
+    template <typename... TParams>
+    void doResize(std::size_t count, HasRemoveSuffixTag<TParams...>)
     {
         BaseImpl::value().remove_suffix(BaseImpl::value().size() - count);
     }

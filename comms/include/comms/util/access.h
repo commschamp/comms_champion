@@ -441,96 +441,71 @@ T readFromPointerToSigned(std::size_t size, TIter& iter)
     return static_cast<T>(static_cast<ValueType>(value));
 }
 
-template <typename TEndian, bool TIsPointer, bool TIsUnsignedConst>
-struct ReadRandomAccessHelper;
-
-template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true, false>
+template <typename...>
+class ReadHelper
 {
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
+    template <typename... TParams>
+    using PointerToSignedTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using OtherTag = comms::details::tag::Tag2<>;
+
+    template <typename TIter>
+    using PointerCheckTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_const<AccessByteType<TIter> >::value &&
+            std::is_unsigned<AccessByteType<TIter> >::value
+        >::template Type<
+            OtherTag,
+            PointerToSignedTag
+        >;
+
+    template <typename TIter>
+    using Tag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_pointer<TIter>::value
+        >::template Type<
+            PointerCheckTag,
+            OtherTag,
+            TIter
+        >;
+
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static T readInternal(std::size_t size, TIter& iter, PointerToSignedTag<TParams...>)
     {
         return readFromPointerToSigned<TEndian, T>(size, iter);
     }
-};
 
-template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true, true>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static T readInternal(std::size_t size, TIter& iter, OtherTag<TParams...>)
     {
         return details::read<TEndian, T>(size, iter);
     }
-};
 
-template <typename TEndian, bool TIsUnsignedConst>
-struct ReadRandomAccessHelper<TEndian, false, TIsUnsignedConst>
-{
-    template <typename T, typename TIter>
+public:
+    template <typename TEndian, typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
     {
-        return details::read<TEndian, T>(size, iter);
+        using ValueType = typename std::decay<T>::type;
+        using AccessOptimisedValueType = details::AccessOptimisedValueType<ValueType>;
+        return
+            static_cast<ValueType>(
+                readInternal<TEndian, AccessOptimisedValueType>(size, iter, Tag<TIter>()));
     }
-};
 
-template <typename TEndian, bool TIsRandomAccess>
-struct ReadHelper;
-
-template <typename TEndian>
-struct ReadHelper<TEndian, false>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
-    {
-        return details::read<TEndian, T>(size, iter);
-    }
-};
-
-template <typename TEndian>
-struct ReadHelper<TEndian, true>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
-    {
-        using ByteType = AccessByteType<TIter>;
-        static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
-        static const bool IsPointer =
-            std::is_pointer<TIter>::value;
-
-        static const bool IsUnsignedConstData =
-            std::is_const<ByteType>::value &&
-            std::is_unsigned<ByteType>::value;
-        return ReadRandomAccessHelper<TEndian, IsPointer, IsUnsignedConstData>::template read<T>(size, iter);
-    }
-};
-
-template <template <typename, bool> class THelper>
-struct Reader
-{
     template <typename TEndian, typename T, std::size_t TSize, typename TIter>
     static T read(TIter& iter)
     {
         using ValueType = typename std::decay<T>::type;
-        using AccessOptimisedValueType = details::AccessOptimisedValueType<ValueType>;
         using ByteType = details::AccessByteType<TIter>;
         static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
-
         static_assert(TSize <= sizeof(ValueType), "Precondition failure");
-        static const bool IsRandomAccess =
-            std::is_same<
-                typename std::iterator_traits<TIter>::iterator_category,
-                std::random_access_iterator_tag
-            >::value;
-        auto retval =
-            static_cast<ValueType>(
-                THelper<TEndian, IsRandomAccess>::template read<AccessOptimisedValueType>(TSize, iter));
-
+        auto retval = read<TEndian, ValueType>(TSize, iter);
         if (std::is_signed<ValueType>::value) {
             retval = details::SignExt<>::template value<TSize, ByteType>(retval);
         }
         return static_cast<T>(retval);
-    }
+    }    
 };
 
 }  // namespace details
@@ -592,7 +567,7 @@ void writeBig(T value, TIter& iter)
 template <typename T, std::size_t TSize, typename TIter>
 T readBig(TIter& iter)
 {
-    return details::Reader<details::ReadHelper>::template read<traits::endian::Big, T, TSize>(iter);
+    return details::ReadHelper<>::template read<traits::endian::Big, T, TSize>(iter);
 }
 
 /// @brief Read integral value from the input area using big
@@ -667,7 +642,7 @@ void writeLittle(T value, TIter& iter)
 template <typename T, std::size_t TSize, typename TIter>
 T readLittle(TIter& iter)
 {
-    return details::Reader<details::ReadHelper>::template read<traits::endian::Little, T, TSize>(iter);
+    return details::ReadHelper<>::template read<traits::endian::Little, T, TSize>(iter);
 }
 
 /// @brief Read integral value from the input area using little

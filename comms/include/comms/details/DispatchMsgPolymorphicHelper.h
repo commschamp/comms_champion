@@ -243,7 +243,8 @@ public:
 template <typename TAllMessages, std::size_t TMaxSize>
 class PolymorphicDirectDispatchRegSizeDetect
 {
-    using MsgType = typename std::tuple_element<TMaxSize - 1, TAllMessages>::type;
+    using MsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TMaxSize - 1>;
     static_assert(comms::isMessageBase<MsgType>(), "Must be actual message");
     static_assert(messageHasStaticNumId<MsgType>(), "Message must define static numeric ID");
     static_assert(MsgType::hasMsgIdType(), "Message interface class must define its id type");
@@ -437,11 +438,9 @@ template <typename TAllMessages, std::size_t TCount>
 class DispatchMsgPolymorphicIsDirectSuitable
 {
     using LastMsg = 
-        typename std::tuple_element<
-            std::tuple_size<TAllMessages>::value - 1,
-            TAllMessages
-        >::type;
-
+        typename comms::util::TupleElement<TAllMessages>::template Type<
+            std::tuple_size<TAllMessages>::value - 1
+        >;
 
     static const std::size_t MaxId = 
         DispatchMsgPolymorphicLastIdRetriever<LastMsg, comms::isMessageBase<LastMsg>()>::Value;
@@ -992,7 +991,8 @@ template <typename TAllMessages, typename THandler>
 class DispatchMsgTypeDirectPolymorphicHelper    
 {
 public:
-    using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+    using FirstMsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<0>;
     static_assert(FirstMsgType::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
     static bool dispatch(MsgIdParamType id, THandler& handler)
@@ -1032,7 +1032,8 @@ template <typename TAllMessages, typename THandler>
 class DispatchMsgTypeBinSearchPolymorphicHelperBase
 {
 protected:
-    using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+    using FirstMsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<0>;
     static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
     static_assert(FirstMsgType::hasMsgIdType(), "Message interface class must define its id type");
@@ -1222,7 +1223,8 @@ private:
     template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
     static bool dispatchInternal(TId&& id, THandler& handler, DirectTag<TParams...>) 
     {
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
@@ -1245,7 +1247,8 @@ private:
     template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
     static bool dispatchInternal(TId&& id, THandler& handler, StrongBinSearchTag<TParams...>) 
     {
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
@@ -1274,7 +1277,8 @@ private:
     template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
     static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, WeakBinSearchTag<TParams...>) 
     {
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");

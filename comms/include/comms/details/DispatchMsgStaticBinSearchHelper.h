@@ -31,17 +31,14 @@ class DispatchMsgStrongStaticBinSearchHelper // <DispatchMsgTypeEnum::Multiple>
 
     template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
     using MidElem = 
-        typename std::tuple_element<
-            MidIdx<TFrom, TCount>::value, 
-            TAllMessages
-        >::type;
+        typename comms::util::TupleElement<TAllMessages>::template Type<
+            MidIdx<TFrom, TCount>::value
+        >;
 
     // static_assert(TFrom + TCount <= std::tuple_size<TAllMessages>::value, 
     //     "Invalid template params");
 
     // static_assert(2 <= TCount, "Invalid invocation");
-    // static constexpr std::size_t Mid = TFrom + (TCount / 2);        
-    // using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
     // static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
 
 public:
@@ -154,7 +151,8 @@ class DispatchMsgStrongStaticBinSearchHelper<DispatchMsgTypeEnum::Single>
     //     "Invalid template params");
 
     template <typename TAllMessages, std::size_t TFrom>
-    using Elem = typename std::tuple_element<TFrom, TAllMessages>::type;
+    using Elem = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TFrom>;
     // static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
 
 public:
@@ -271,10 +269,12 @@ template <bool TFirst>
 class DispatchMsgWeakStartIdxFinder //<false>
 {
     template <typename TAllMessages, std::size_t TIdx>
-    using CurrMsgType = typename std::tuple_element<TIdx, TAllMessages>::type;
+    using CurrMsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TIdx>;
 
     template <typename TAllMessages, std::size_t TIdx>
-    using PrevMsgType = typename std::tuple_element<TIdx - 1, TAllMessages>::type;
+    using PrevMsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TIdx - 1>;
 
 public:
     template <typename TAllMessages, std::size_t TIdx>
@@ -299,14 +299,14 @@ template <bool THasElems>
 class DispatchMsgWeakCountFinder //<true>
 {
     template <typename TAllMessages, std::size_t TIdx>
-    using OrigMsgType = typename std::tuple_element<TIdx, TAllMessages>::type;
+    using OrigMsgType = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TIdx>;
 
     template <typename TAllMessages, std::size_t TIdx, std::size_t TCount>
     using CurrMsgType = 
-        typename std::tuple_element<
-            std::tuple_size<TAllMessages>::value - TCount, 
-            TAllMessages
-        >::type;
+        typename comms::util::TupleElement<TAllMessages>::template Type<
+            std::tuple_size<TAllMessages>::value - TCount
+        >;
 
 public:
     template <typename TAllMessages, std::size_t TOrigIdx, std::size_t TRem>
@@ -348,10 +348,9 @@ class DispatchMsgWeakStaticBinSearchHelper // <DispatchMsgTypeEnum::Multiple>
 
     template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
     using MidElem = 
-        typename std::tuple_element<
-            MidIdx<TFrom, TCount>::value, 
-            TAllMessages
-        >::type;    
+        typename comms::util::TupleElement<TAllMessages>::template Type<
+            MidIdx<TFrom, TCount>::value
+        >;
 
     // static_assert(Mid < std::tuple_size<TAllMessages>::value, 
     //     "Invalid template params");
@@ -608,11 +607,11 @@ class DispatchMsgWeakStaticBinSearchHelper<DispatchMsgTypeEnum::Single>
     // static_assert(TFrom + 1 <= std::tuple_size<TAllMessages>::value, 
     //     "Invalid template params");
 
-    // using Elem = typename std::tuple_element<TFrom, TAllMessages>::type;
     // static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
 
     template <typename TAllMessages, std::size_t TFrom>
-    using Elem = typename std::tuple_element<TFrom, TAllMessages>::type;
+    using Elem = 
+        typename comms::util::TupleElement<TAllMessages>::template Type<TFrom>;
 
 public:
     template <
@@ -1006,7 +1005,8 @@ private:
     template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
     static bool dispatchTypeInternal(TId&& id, THandler& handler, StrongTag<TParams...>)
     {
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
@@ -1041,7 +1041,8 @@ private:
         static_assert(allMessagesAreWeakSorted<TAllMessages>(),
                 "The message types in the provided tuple must be sorted by their IDs");
 
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
@@ -1064,7 +1065,8 @@ private:
     template <typename TAllMessages, typename TId, typename... TParams>
     static std::size_t dispatchTypeCountInternal(TId&& id, StrongTag<TParams...>)
     {
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
@@ -1083,7 +1085,8 @@ private:
         static_assert(allMessagesAreWeakSorted<TAllMessages>(),
                 "The message types in the provided tuple must be sorted by their IDs");
 
-        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        using FirstMsgType = 
+            typename comms::util::TupleElement<TAllMessages>::template Type<0>;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");

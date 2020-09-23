@@ -13,6 +13,7 @@
 #include "comms/Field.h"
 #include "comms/util/access.h"
 #include "comms/util/type_traits.h"
+#include "comms/util/Tuple.h"
 #include "comms/options.h"
 #include "comms/Assert.h"
 #include "comms/details/tag.h"
@@ -128,7 +129,8 @@ public:
     static_assert(TIdx < std::tuple_size<TransportFields>::value,
                   "Index provided to comms::option::def::VersionInExtraTransportFields exceeds size of the tuple");
 
-    using VersionType = typename std::tuple_element<TIdx, TransportFields>::type::ValueType;
+    using VersionType = 
+        typename comms::util::TupleElement<TransportFields>::template Type<TIdx>::ValueType;
 
     VersionType& version()
     {

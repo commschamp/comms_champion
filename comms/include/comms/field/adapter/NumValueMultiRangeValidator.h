@@ -68,8 +68,8 @@ private:
             static_cast<void>(val);
             static_assert(comms::util::isTuple<TRange>(), "TRange must be a tuple");
             static_assert(std::tuple_size<TRange>::value == 2, "Tuple with 2 elements is expected");
-            using MinVal = typename std::tuple_element<0, TRange>::type;
-            using MaxVal = typename std::tuple_element<1, TRange>::type;
+            using MinVal = typename comms::util::TupleElement<TRange>::template Type<0>;
+            using MaxVal = typename comms::util::TupleElement<TRange>::template Type<1>;
             static_assert(MinVal::value <= MaxVal::value, "Invalid range");
             return
                 val  ||

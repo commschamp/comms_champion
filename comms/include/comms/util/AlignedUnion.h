@@ -18,7 +18,8 @@ namespace util
 {
 
 /// @cond SKIP_DOC
-#if COMMS_IS_MSVC_2017_OR_BELOW
+//#if COMMS_IS_MSVC_2017_OR_BELOW
+#if 1 // TODO: CLEAN
 
 template <typename TType, typename... TTypes>
 class AlignedUnion

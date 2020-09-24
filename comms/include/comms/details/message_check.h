@@ -43,8 +43,8 @@ struct MessageStaticNumIdCheckHelper
     }
 };    
 
-#if COMMS_IS_MSVC_2017_OR_BELOW    
-
+//#if COMMS_IS_MSVC_2017_OR_BELOW    
+#if 1 // TODO: CLEAN
 template <typename... TMessages>
 using AllMessagesHaveStaticNumIdBoolType = 
     std::integral_constant<

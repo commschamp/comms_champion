@@ -216,7 +216,7 @@ protected:
             "This function is expected to be called for message objects with virtual destructor");
         static_assert(
             (!ParsedOptionsInternal::HasInPlaceAllocation) ||
-                    comms::util::IsInTuple<TObj, AllMessagesInternal>::Value,
+                    comms::util::IsInTuple<AllMessagesInternal>::template Type<TObj>::value,
             "TObj must be in provided tuple of supported messages");
 
         return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
@@ -233,7 +233,7 @@ protected:
 
         static_assert(
             (!ParsedOptionsInternal::HasInPlaceAllocation) ||
-                    comms::util::IsInTuple<TObj, AllMessagesInternal>::Value,
+                    comms::util::IsInTuple<AllMessagesInternal>::template Type<TObj>::value,
             "TObj must be in provided tuple of supported messages");
 
         return alloc_.template alloc<TObj>(id, idx, std::forward<TArgs>(args)...);

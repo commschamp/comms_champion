@@ -427,7 +427,7 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllTypes>::Value, ""
+        static_assert(comms::util::IsInTuple<TAllTypes>::template Type<TObj>::value, 
             "TObj must be in provided tuple of supported types");
 
         static_assert(
@@ -547,7 +547,7 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllocMessages>::Value, ""
+        static_assert(comms::util::IsInTuple<TAllocMessages>::template Type<TObj>::value, ""
             "TObj must be in provided tuple of supported types");
 
         static_assert(sizeof(TObj) <= sizeof(place_), "Object is too big");

@@ -52,64 +52,92 @@ constexpr bool isTuple()
 
 //----------------------------------------
 
+namespace details
+{
+
+template <bool THasElems, typename...>
+struct IsInTupleHelper // <true>
+{
+    template <typename TType, typename TFirst, typename... TRest>
+    using Type = 
+        std::integral_constant<
+            bool,
+            std::is_same<TType, TFirst>::value || 
+               IsInTupleHelper<(sizeof...(TRest) != 0U)>::template Type<TType, TRest...>::value
+        >;
+};
+
+template <typename... TParams>
+struct IsInTupleHelper<false, TParams...>
+{
+    template <typename TType, typename...>
+    using Type = std::false_type;
+};
+
+} // namespace details
+
 /// @brief Check whether TType type is included in the tuple TTuple
-/// @tparam TType Type to check
+/// @details Usage:
+///     @code
+///     static constexpr bool InTuple = 
+///         comms::util::IsInTuple<Tuple>::template Type<Type>::value;
+///     @endcode
 /// @tparam TTuple Tuple
 /// @pre @code IsTuple<TTuple>::Value == true @endcode
-template <typename TType, typename TTuple>
-class IsInTuple
-{
-    static_assert(IsTuple<TTuple>::Value, "TTuple must be std::tuple");
-public:
-
-    /// @brief By default the value is false, will be set to true if TType
-    ///     is found in TTuple.
-    static constexpr bool Value = false;
-};
+template <typename TTuple>
+struct IsInTuple;
 
 /// @cond SKIP_DOC
 
-#if COMMS_IS_MSVC_2017_OR_BELOW
-
-template <typename TType, typename TFirst, typename... TRest>
-class IsInTuple<TType, std::tuple<TFirst, TRest...> >
+template <typename... TTypes>
+struct IsInTuple<std::tuple<TTypes...> >
 {
-public:
-    static constexpr bool Value =
-        std::is_same<TType, TFirst>::value ||
-        IsInTuple<TType, std::tuple<TRest...> >::Value;
+    template <typename TType>
+    using Type = 
+        typename details::IsInTupleHelper<(sizeof...(TTypes) != 0U)>::template Type<TType, TTypes...>;
 };
 
-template <typename TType>
-class IsInTuple<TType, std::tuple<> >
-{
-public:
-    static constexpr bool Value = false;
-};
+// #if COMMS_IS_MSVC_2017_OR_BELOW
 
-#else // #if COMMS_IS_MSVC_2017_OR_BELOW
+// template <typename TType, typename TFirst, typename... TRest>
+// class IsInTuple<TType, std::tuple<TFirst, TRest...> >
+// {
+// public:
+//     static constexpr bool Value =
+//         std::is_same<TType, TFirst>::value ||
+//         IsInTuple<TType, std::tuple<TRest...> >::Value;
+// };
 
-template <typename TType, typename... TRest>
-class IsInTuple<TType, std::tuple<TRest...> >
-{
-    template <typename...>
-    struct SameTypeCheck
-    {
-        template <typename T>
-        using Type = std::integral_constant<bool, std::is_same<TType, T>::value>;
-    };
+// template <typename TType>
+// class IsInTuple<TType, std::tuple<> >
+// {
+// public:
+//     static constexpr bool Value = false;
+// };
 
-public:
-    static constexpr bool Value = 
-        comms::util::Accumulate<>::template Type<
-            SameTypeCheck,
-            comms::util::LogicalOrBinaryOp,
-            std::false_type,
-            TRest...
-        >::value;
-};
+// #else // #if COMMS_IS_MSVC_2017_OR_BELOW
 
-#endif // #if COMMS_IS_MSVC_2017_OR_BELOW
+// template <typename TType, typename... TRest>
+// class IsInTuple<TType, std::tuple<TRest...> >
+// {
+//     template <typename...>
+//     struct SameTypeCheck
+//     {
+//         template <typename T>
+//         using Type = std::integral_constant<bool, std::is_same<TType, T>::value>;
+//     };
+
+// public:
+//     static constexpr bool Value = 
+//         comms::util::Accumulate<>::template Type<
+//             SameTypeCheck,
+//             comms::util::LogicalOrBinaryOp,
+//             std::false_type,
+//             TRest...
+//         >::value;
+// };
+
+// #endif // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 /// @endcond
 

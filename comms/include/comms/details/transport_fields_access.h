@@ -10,16 +10,15 @@
 #include <tuple>
 #include <type_traits>
 
-#include "comms/util/Tuple.h"
 #include "macro_common.h"
 #include "gen_enum.h"
 #include "base_detection.h"
 
 #ifdef COMMS_MUST_DEFINE_BASE
 #define COMMS_ACCESS_TRANSPORT_FIELD_FUNC(T_, t_, n_) \
-    typename comms::util::TupleElement<typename Base::T_>::template Type<COMMS_CONCATENATE(TransportFieldIdx_, n_)>& COMMS_CONCATENATE(transportField_, n_)()
+    typename std::tuple_element<COMMS_CONCATENATE(TransportFieldIdx_, n_), typename Base::T_>::type& COMMS_CONCATENATE(transportField_, n_)()
 #define COMMS_ACCESS_TRANSPORT_FIELD_CONST_FUNC(T_, t_, n_) \
-    const typename comms::util::TupleElement<typename Base::T_>::template Type<COMMS_CONCATENATE(TransportFieldIdx_, n_)>& COMMS_CONCATENATE(transportField_, n_)() const
+    const typename std::tuple_element<COMMS_CONCATENATE(TransportFieldIdx_, n_), typename Base::T_>::type& COMMS_CONCATENATE(transportField_, n_)() const
 #define COMMS_MSG_TRANSPORT_FIELDS_ACCESS_FUNC \
     typename Base::TransportFields& transportFields()
 #define COMMS_MSG_TRANSPORT_FIELDS_ACCESS_CONST_FUNC \

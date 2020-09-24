@@ -655,12 +655,12 @@ public:
     }
 
     template <std::size_t TIdx, typename... TArgs>
-    typename comms::util::TupleElement<Members>::template Type<TIdx>& initField(TArgs&&... args)
+    typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
     {
         static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         checkDestruct();
 
-        using FieldType = typename comms::util::TupleElement<Members>::template Type<TIdx>;
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
         new (&storage_) FieldType(std::forward<TArgs>(args)...);
         memIdx_ = TIdx;
         updateVersionInternal(VersionTag<>());
@@ -668,22 +668,22 @@ public:
     }
 
     template <std::size_t TIdx>
-    typename comms::util::TupleElement<Members>::template Type<TIdx>& accessField()
+    typename std::tuple_element<TIdx, Members>::type& accessField()
     {
         static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
-        using FieldType = typename comms::util::TupleElement<Members>::template Type<TIdx>;
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
         return reinterpret_cast<FieldType&>(storage_);
     }
 
     template <std::size_t TIdx>
-    const typename comms::util::TupleElement<Members>::template Type<TIdx>& accessField() const
+    const typename std::tuple_element<TIdx, Members>::type& accessField() const
     {
         static_assert(isIdxValid(TIdx), "Something is wrong");
         COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
-        using FieldType = typename comms::util::TupleElement<Members>::template Type<TIdx>;
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
         return reinterpret_cast<const FieldType&>(storage_);
     }
 

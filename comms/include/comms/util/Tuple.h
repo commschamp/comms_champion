@@ -52,47 +52,6 @@ constexpr bool isTuple()
 
 //----------------------------------------
 
-namespace details
-{
-
-template <bool THasElems, typename...>
-struct TupleElementHelper
-{
-    template <int TIdx, typename TFirst, typename... TRest>
-    using Type = 
-        typename comms::util::Conditional<
-            TIdx == 0
-        >::template Type<
-            TFirst,
-            typename TupleElementHelper<(0U < sizeof...(TRest))>::template Type<TIdx - 1, TRest...>
-        >;
-};
-
-template <typename... TParams>
-struct TupleElementHelper<false, TParams...>
-{
-    template <int Idx, typename...>
-    struct Type
-    {
-        static_assert(Idx < 0, "Index exceeds size of tuple");
-    };
-};    
-
-} // namespace details
-
-template <typename TTuple>
-struct TupleElement;
-
-template <typename... TTypes>
-struct TupleElement<std::tuple<TTypes...> >
-{
-    template <std::size_t TIdx>
-    using Type = 
-        typename details::TupleElementHelper<(0U < sizeof...(TTypes))>::template Type<(int)TIdx, TTypes...>;
-};
-
-//----------------------------------------
-
 /// @brief Check whether TType type is included in the tuple TTuple
 /// @tparam TType Type to check
 /// @tparam TTuple Tuple
@@ -347,7 +306,7 @@ struct TupleForEachTypeHelper
         static constexpr std::size_t NextRem = TRem - 1U;
         static constexpr bool NextHasElems = (NextRem != 0U);
 
-        using ElemType = typename TupleElement<Tuple>::template Type<Idx>;
+        using ElemType = typename std::tuple_element<Idx, Tuple>::type;
 #if COMMS_IS_MSVC
         // VS compiler
         func.operator()<ElemType>();
@@ -648,7 +607,7 @@ public:
 #else // #if COMMS_IS_MSVC
             func.template operator()
 #endif // #if COMMS_IS_MSVC
-            <typename TupleElement<Tuple>::template Type<TOff> >(value),
+            <typename std::tuple_element<TOff, Tuple>::type>(value),
             std::forward<TFunc>(func));
     }
 
@@ -764,7 +723,7 @@ struct TupleSelectedTypeHelper<false>
         static_assert(TCount == 1, "Internal error: Bad parameters");
         static_cast<void>(idx);
         COMMS_ASSERT(idx == TFromIdx);
-        using ElemType = typename TupleElement<TTuple>::template Type<TFromIdx>;
+        using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
 #if COMMS_IS_MSVC
         // VS compiler
         func.operator()<TFromIdx, ElemType>();
@@ -948,7 +907,7 @@ public:
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
-        using ElemType = typename TupleElement<Tuple>::template Type<std::tuple_size<Tuple>::value - TRem>;
+        using ElemType = typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type;
         return
 #if COMMS_IS_MSVC
             // VS compiler

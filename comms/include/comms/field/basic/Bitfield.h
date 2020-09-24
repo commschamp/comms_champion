@@ -389,7 +389,7 @@ public:
             TIdx < std::tuple_size<ValueType>::value,
             "Index exceeds number of fields");
 
-        using FieldType = typename comms::util::TupleElement<ValueType>::template Type<TIdx>;
+        using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
         return comms::util::FieldBitLengthIntType<>::template Type<FieldType>::value;
     }
 

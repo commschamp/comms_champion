@@ -10,7 +10,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include "comms/util/Tuple.h"
 #include "macro_common.h"
 #include "gen_enum.h"
 #include "base_detection.h"
@@ -19,9 +18,9 @@
 #define COMMS_FIELD_VALUE_ACCESS_FUNC typename Base::ValueType& value()
 #define COMMS_FIELD_VALUE_ACCESS_CONST_FUNC const typename Base::ValueType& value() const
 #define COMMS_ACCESS_MEMBER_FIELD_FUNC(T_, t_, n_) \
-    typename comms::util::TupleElement<typename Base::T_>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(field_, n_)()
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::T_>::type& COMMS_CONCATENATE(field_, n_)()
 #define COMMS_ACCESS_MEMBER_FIELD_CONST_FUNC(T_, t_, n_) \
-    const typename comms::util::TupleElement<typename Base::T_>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(field_, n_)() const
+    const typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::T_>::type& COMMS_CONCATENATE(field_, n_)() const
 #define COMMS_MSG_FIELDS_ACCESS_FUNC \
     typename Base::AllFields& fields()
 #define COMMS_MSG_FIELDS_ACCESS_CONST_FUNC \
@@ -197,10 +196,10 @@
 // ----------------------------------------------
 
 #define COMMS_FIELD_ACC_FUNC_NOTEMPLATE(n_) \
-    typename comms::util::TupleElement<ValueType>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(field_, n_)() {\
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), ValueType>::type& COMMS_CONCATENATE(field_, n_)() {\
         return std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(value()); \
     } \
-    const typename comms::util::TupleElement<ValueType>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(field_, n_)() const {\
+    const typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), ValueType>::type& COMMS_CONCATENATE(field_, n_)() const {\
         return std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(value()); \
     }
 
@@ -356,8 +355,7 @@
 // ----------------------------------------------
 
 #define COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
-    using COMMS_CONCATENATE(P_, n_) = \
-        typename comms::util::TupleElement<T_>::template Type<COMMS_CONCATENATE(pref_, n_)>;
+    using COMMS_CONCATENATE(P_, n_) = typename std::tuple_element<COMMS_CONCATENATE(pref_, n_), T_>::type;
 
 #define COMMS_FIELD_TYPEDEF_1(T_, P_, pref_, n_) COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_)
 #define COMMS_FIELD_TYPEDEF_2(T_, P_, pref_, n_, ...) \

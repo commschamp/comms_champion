@@ -14,7 +14,6 @@
 #include "comms/options.h"
 #include "basic/Variant.h"
 #include "details/AdaptBasicField.h"
-#include "comms/util/Tuple.h"
 #include "comms/details/macro_common.h"
 #include "comms/details/variant_access.h"
 #include "tag.h"
@@ -341,7 +340,7 @@ public:
     /// @param[in] args Arguments for the constructed field.
     /// @return Reference to the constructed field.
     template <std::size_t TIdx, typename... TArgs>
-    typename comms::util::TupleElement<Members>::template Type<TIdx>& initField(TArgs&&... args)
+    typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
     {
         return BaseImpl::template initField<TIdx>(std::forward<TArgs>(args)...);
     }
@@ -352,7 +351,7 @@ public:
     /// @return Reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    typename comms::util::TupleElement<Members>::template Type<TIdx>& accessField()
+    typename std::tuple_element<TIdx, Members>::type& accessField()
     {
         return BaseImpl::template accessField<TIdx>();
     }
@@ -363,7 +362,7 @@ public:
     /// @return Const reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    const typename comms::util::TupleElement<Members>::template Type<TIdx>& accessField() const
+    const typename std::tuple_element<TIdx, Members>::type& accessField() const
     {
         return BaseImpl::template accessField<TIdx>();
     }

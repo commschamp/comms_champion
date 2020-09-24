@@ -15,7 +15,6 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/tag.h"
 #include "comms/util/type_traits.h"
-#include "comms/util/Tuple.h"
 #include "comms/details/tag.h"
 
 namespace comms
@@ -35,7 +34,7 @@ public:
     using ValueType = typename BaseImpl::ValueType;
 
     static_assert(TLenFieldIdx < std::tuple_size<ValueType>::value, "Bad index");
-    using LengthFieldType = typename comms::util::TupleElement<ValueType>::template Type<TLenFieldIdx>;
+    using LengthFieldType = typename std::tuple_element<TLenFieldIdx, ValueType>::type;
     using VersionType = typename BaseImpl::VersionType;
 
     RemLengthMemberField()

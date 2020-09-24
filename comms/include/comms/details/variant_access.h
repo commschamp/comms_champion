@@ -10,7 +10,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include "comms/util/Tuple.h"
 #include "macro_common.h"
 #include "gen_enum.h"
 #include "base_detection.h"
@@ -19,11 +18,11 @@
 #define COMMS_AS_VARIANT_FUNC Base& asVariant()
 #define COMMS_AS_VARIANT_CONST_FUNC const Base& asVariant() const
 #define COMMS_VARIANT_INIT_FIELD_FUNC(v_, n_) \
-    typename comms::util::TupleElement<typename Base::Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(initField_, n_)(TArgs&&... args)
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(initField_, n_)(TArgs&&... args)
 #define COMMS_VARIANT_ACCESS_FIELD_FUNC(v_, n_) \
-    typename comms::util::TupleElement<typename Base::Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(accessField_, n_)()
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(accessField_, n_)()
 #define COMMS_VARIANT_ACCESS_FIELD_CONST_FUNC(v_, n_) \
-    const typename comms::util::TupleElement<typename Base::Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(accessField_, n_)() const
+    const typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(accessField_, n_)() const
 
 #else // #ifdef COMMS_MUST_DEFINE_BASE
 #define COMMS_AS_VARIANT_FUNC FUNC_AUTO_REF_RETURN(asVariant, decltype(comms::field::toFieldBase(*this)))
@@ -200,13 +199,13 @@
 
 #define COMMS_VARIANT_MEM_ACC_FUNC_NOTEMPLATE(n_) \
     template <typename... TArgs> \
-    typename comms::util::TupleElement<Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(initField_, n_)(TArgs&&... args) {\
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), Members>::type& COMMS_CONCATENATE(initField_, n_)(TArgs&&... args) {\
         return initField<COMMS_CONCATENATE(FieldIdx_, n_)>(std::forward<TArgs>(args)...); \
     } \
-    typename comms::util::TupleElement<Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(accessField_, n_)() { \
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), Members>::type& COMMS_CONCATENATE(accessField_, n_)() { \
         return accessField<COMMS_CONCATENATE(FieldIdx_, n_)>(); \
     } \
-    const typename comms::util::TupleElement<Members>::template Type<COMMS_CONCATENATE(FieldIdx_, n_)>& COMMS_CONCATENATE(accessField_, n_)() const { \
+    const typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), Members>::type& COMMS_CONCATENATE(accessField_, n_)() const { \
         return accessField<COMMS_CONCATENATE(FieldIdx_, n_)>(); \
     }
 

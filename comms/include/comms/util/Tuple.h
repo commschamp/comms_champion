@@ -14,7 +14,6 @@
 #include "comms/CompileControl.h"
 #include "comms/util/type_traits.h"
 #include "comms/Assert.h"
-#include "AlignedUnion.h"
 
 namespace comms
 {
@@ -97,51 +96,50 @@ struct IsInTuple<std::tuple<TTypes...> >
         typename details::IsInTupleHelper<(sizeof...(TTypes) != 0U)>::template Type<TType, TTypes...>;
 };
 
-// #if COMMS_IS_MSVC_2017_OR_BELOW
-
-// template <typename TType, typename TFirst, typename... TRest>
-// class IsInTuple<TType, std::tuple<TFirst, TRest...> >
-// {
-// public:
-//     static constexpr bool Value =
-//         std::is_same<TType, TFirst>::value ||
-//         IsInTuple<TType, std::tuple<TRest...> >::Value;
-// };
-
-// template <typename TType>
-// class IsInTuple<TType, std::tuple<> >
-// {
-// public:
-//     static constexpr bool Value = false;
-// };
-
-// #else // #if COMMS_IS_MSVC_2017_OR_BELOW
-
-// template <typename TType, typename... TRest>
-// class IsInTuple<TType, std::tuple<TRest...> >
-// {
-//     template <typename...>
-//     struct SameTypeCheck
-//     {
-//         template <typename T>
-//         using Type = std::integral_constant<bool, std::is_same<TType, T>::value>;
-//     };
-
-// public:
-//     static constexpr bool Value = 
-//         comms::util::Accumulate<>::template Type<
-//             SameTypeCheck,
-//             comms::util::LogicalOrBinaryOp,
-//             std::false_type,
-//             TRest...
-//         >::value;
-// };
-
-// #endif // #if COMMS_IS_MSVC_2017_OR_BELOW
-
 /// @endcond
 
 //----------------------------------------
+
+namespace details
+{
+
+template <bool THasElems, typename...>
+class TupleAsAlignedUnionHelper // <true>
+{
+    template <typename TElem>
+    using ElemAlignmentType = std::integral_constant<std::size_t, alignof(TElem)>;
+
+    template <typename TElem>
+    using ElemSizeType = std::integral_constant<std::size_t, sizeof(TElem)>;    
+
+public:
+    template <typename TElem, typename... TRest>
+    using AlignmentType = 
+        comms::util::IntMaxBinaryOp<>::template Type<
+            ElemAlignmentType<TElem>,
+            typename TupleAsAlignedUnionHelper<(0U < sizeof...(TRest))>::template AlignmentType<TRest...>
+        >;
+
+    template <typename TElem, typename... TRest>
+    using SizeType = 
+        comms::util::IntMaxBinaryOp<>::template Type<
+            ElemSizeType<TElem>,
+            typename TupleAsAlignedUnionHelper<(0U < sizeof...(TRest))>::template SizeType<TRest...>
+        >;        
+};
+
+template <typename... TParams>
+class TupleAsAlignedUnionHelper<false, TParams...>
+{
+public:
+    template <typename...>
+    using AlignmentType = std::integral_constant<std::size_t, 0U>;
+
+    template <typename...>
+    using SizeType = std::integral_constant<std::size_t, 0U>;    
+};
+
+} // namespace details
 
 /// @brief Calculated "aligned union" storage type for all the types in
 ///     provided tuple.
@@ -162,9 +160,19 @@ struct TupleAsAlignedUnion
 
 /// @cond SKIP_DOC
 template <typename... TTypes>
-struct TupleAsAlignedUnion<std::tuple<TTypes...> >
+class TupleAsAlignedUnion<std::tuple<TTypes...> >
 {
-    using Type = typename AlignedUnion<TTypes...>::Type;
+    using AlignmentType = 
+        typename details::TupleAsAlignedUnionHelper<(0U < sizeof...(TTypes))>::template AlignmentType<TTypes...>;
+
+    using SizeType = 
+        typename details::TupleAsAlignedUnionHelper<(0U < sizeof...(TTypes))>::template SizeType<TTypes...>;
+public:
+    using Type = 
+        typename std::aligned_storage<
+            SizeType::value,
+            AlignmentType::value
+        >::type;
 };
 /// @endcond
 

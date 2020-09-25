@@ -140,7 +140,7 @@ function (cc_pull_sources)
     
     execute_process (
         COMMAND 
-            ${GIT_EXECUTABLE} clone -b ${CC_PULL_TAG} --depth 1 ${CC_PULL_REPO} ${CC_PULL_SRC_DIR}
+            ${GIT_EXECUTABLE} clone -b ${CC_PULL_TAG} ${CC_PULL_REPO} ${CC_PULL_SRC_DIR}
         RESULT_VARIABLE git_result
     )
 

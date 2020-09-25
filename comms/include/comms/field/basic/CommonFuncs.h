@@ -165,8 +165,6 @@ struct CommonFuncs
         return comms::util::tupleAccumulate(fields, false, makeVersionUpdater(version));
     }
 
-//#if COMMS_IS_MSVC_2017_OR_BELOW    
-#if 1 // TODO: CLEAN
     template <typename... TFields>
     using IsAnyFieldVersionDependentBoolType = 
         typename comms::util::Conditional<
@@ -262,114 +260,6 @@ struct CommonFuncs
             std::true_type,
             std::false_type
         >;                
-
-#else // #if COMMS_IS_MSVC_2017_OR_BELOW
-    template <typename... TFields>
-    using IsAnyFieldVersionDependentBoolType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldCheckVersionDependent,
-            comms::util::LogicalOrBinaryOp,
-            std::false_type,
-            TFields...
-        >; 
-
-    template <typename... TFields>
-    using FieldSelectMaxLengthIntType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldMaxLengthIntType,
-            comms::util::IntMaxBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;  
-
-    template <typename... TFields>
-    using FieldSumMaxLengthIntType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldMaxLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;   
-
-    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
-    using FieldSumMaxLengthFromUntilIntType = 
-        typename comms::util::AccumulateFromUntil<>::template Type<
-            TFrom, 
-            TUntil,
-            comms::util::FieldMaxLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;          
-
-    template <typename... TFields>
-    using FieldSumMinLengthIntType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldMinLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;   
-
-
-    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
-    using FieldSumMinLengthFromUntilIntType = 
-        typename comms::util::AccumulateFromUntil<>::template Type<
-            TFrom, 
-            TUntil,
-            comms::util::FieldMinLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;  
-
-    template <typename... TFields>
-    using FieldSumTotalBitLengthIntType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldBitLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;  
-
-    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
-    using FieldSumTotalBitLengthFromUntilIntType = 
-        typename comms::util::AccumulateFromUntil<>::template Type<
-            TFrom,
-            TUntil,
-            comms::util::FieldBitLengthIntType,
-            comms::util::IntSumBinaryOp,
-            std::integral_constant<std::size_t, 0U>,
-            TFields...
-        >;          
-
-    template <typename... TFields>
-    using AnyFieldHasNonDefaultRefreshBoolType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldCheckNonDefaultRefresh,
-            comms::util::LogicalOrBinaryOp,
-            std::false_type,
-            TFields...
-        >; 
-
-    template <typename... TFields>
-    using AllFieldsHaveReadNoStatusBoolType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldCheckReadNoStatus,
-            comms::util::LogicalAndBinaryOp,
-            std::true_type,
-            TFields...
-        >; 
-
-    template <typename... TFields>
-    using AllFieldsHaveWriteNoStatusBoolType = 
-        typename comms::util::Accumulate<>::template Type<
-            comms::util::FieldCheckWriteNoStatus,
-            comms::util::LogicalAndBinaryOp,
-            std::true_type,
-            TFields...
-        >;         
-#endif // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 private:
 

@@ -43,27 +43,12 @@ struct MessageStaticNumIdCheckHelper
     }
 };    
 
-//#if COMMS_IS_MSVC_2017_OR_BELOW    
-#if 1 // TODO: CLEAN
 template <typename... TMessages>
 using AllMessagesHaveStaticNumIdBoolType = 
     std::integral_constant<
         bool, 
         comms::util::tupleTypeAccumulate<std::tuple<TMessages...> >(true, MessageStaticNumIdCheckHelper<>())
     >;
-
-#else // #if COMMS_IS_MSVC_2017_OR_BELOW    
-
-template <typename... TMessages>
-using AllMessagesHaveStaticNumIdBoolType = 
-    typename comms::util::Accumulate<>::template Type<
-        comms::util::MessageCheckHasStaticId,
-        comms::util::LogicalAndBinaryOp,
-        std::true_type,
-        TMessages...
-    >;
-
-#endif // #if COMMS_IS_MSVC_2017_OR_BELOW    
 
 template <typename TAllMessages>
 struct AllMessagesHaveStaticNumIdCheckHelper;

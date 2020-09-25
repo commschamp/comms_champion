@@ -59,10 +59,11 @@ struct IsInTupleHelper // <true>
 {
     template <typename TType, typename TFirst, typename... TRest>
     using Type = 
-        std::integral_constant<
-            bool,
-            std::is_same<TType, TFirst>::value || 
-               IsInTupleHelper<(sizeof...(TRest) != 0U)>::template Type<TType, TRest...>::value
+        typename comms::util::Conditional<
+            std::is_same<TType, TFirst>::value
+        >::template Type<
+            std::true_type,
+            typename IsInTupleHelper<(sizeof...(TRest) != 0U)>::template Type<TType, TRest...>
         >;
 };
 

@@ -582,7 +582,7 @@ public:
             typename std::decay<decltype(handler)>::type>
     {
 
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             "Message types must be sorted by their ID");
 
         static_assert(comms::isMessage<TMsgBase>(), 
@@ -609,7 +609,7 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             "Message types must be sorted by their ID");
 
         static_assert(comms::isMessage<TMsgBase>(), 
@@ -632,7 +632,7 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             "Message types must be sorted by their ID");
                     
         static_assert(comms::isMessage<TMsgBase>(), 
@@ -739,9 +739,6 @@ private:
         static_cast<void>(offset);
         static_assert(std::is_base_of<typename TMsgBase::Handler, THandler>::value,
             "Incompatible handlers");
-
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
-                "The message types in the provided tuple must be sorted by their IDs");
 
         using RetType = MessageInterfaceDispatchRetType<THandler>;
         return static_cast<RetType>(msg.dispatch(handler));
@@ -1185,7 +1182,7 @@ public:
     template <typename TAllMessages, typename TId, typename THandler>
     static bool dispatch(TId&& id, THandler& handler) 
     {
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             "Message types must be sorted by their ID");
 
         return dispatchInternal<TAllMessages>(std::forward<TId>(id), handler, Tag<TAllMessages>());
@@ -1194,7 +1191,7 @@ public:
     template <typename TAllMessages, typename TId, typename THandler>
     static bool dispatch(TId&& id, std::size_t offset, THandler& handler) 
     {
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             "Message types must be sorted by their ID");
 
         return dispatchInternal<TAllMessages>(std::forward<TId>(id), offset, handler, Tag<TAllMessages>());

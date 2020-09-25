@@ -306,7 +306,7 @@ public:
     /// @brief Set bit value
     void setBitValue(unsigned bitNum, bool val)
     {
-        auto mask = static_cast<ValueType>(1U) << bitNum;
+        auto mask = static_cast<ValueType>(static_cast<ValueType>(1U) << bitNum);
         if (val) {
             setBits(mask);
         }

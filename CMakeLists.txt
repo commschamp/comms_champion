@@ -75,7 +75,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
         if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0")
             list (APPEND extra_flags_list
-                "-Wmisleading-indentation" "-Wduplicated-cond" "-Wnull-dereference"
+                "-Wmisleading-indentation" "-Wduplicated-cond" 
             )
         endif()               
 

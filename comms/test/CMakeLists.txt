@@ -20,6 +20,11 @@ function (test_func test_suite_name)
     endif ()    
 
     cc_cxxtest_add_test (NAME ${name} SRC ${tests} ${valgrand_args})
+
+    target_compile_options(${name} PRIVATE
+        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast>
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast>
+    )     
 endfunction ()
 
 #################################################################

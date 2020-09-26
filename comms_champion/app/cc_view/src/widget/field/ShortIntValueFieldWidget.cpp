@@ -42,7 +42,9 @@ ShortIntValueFieldWidget::ShortIntValueFieldWidget(
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
 
-    m_ui.m_valueSpinBox->setRange((int)m_wrapper->minValue(), (int)m_wrapper->maxValue());
+    m_ui.m_valueSpinBox->setRange(
+        static_cast<int>(m_wrapper->minValue()), 
+        static_cast<int>(m_wrapper->maxValue()));
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
             this, SLOT(valueUpdated(int)));

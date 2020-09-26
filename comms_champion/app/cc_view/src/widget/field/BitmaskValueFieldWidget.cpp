@@ -103,7 +103,7 @@ void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
     m_checkboxes.clear();
 
-    auto count = std::min((unsigned)bitNamesList.size(), m_wrapper->bitIdxLimit());
+    auto count = std::min(static_cast<unsigned>(bitNamesList.size()), m_wrapper->bitIdxLimit());
     m_checkboxes.resize(m_wrapper->bitIdxLimit());
 
     for (unsigned idx = 0; idx < count; ++idx) {

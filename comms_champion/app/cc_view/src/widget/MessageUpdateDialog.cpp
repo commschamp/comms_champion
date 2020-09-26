@@ -125,7 +125,7 @@ void fillDurationComboBox(QComboBox& box)
     };
 
     static_assert(
-        std::extent<decltype(Strings)>::value == (std::size_t)Duration::NumOfDurations,
+        std::extent<decltype(Strings)>::value == static_cast<std::size_t>(Duration::NumOfDurations),
         "Incorrect mapping of strings.");
 
     for (auto s : Strings) {

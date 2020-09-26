@@ -60,7 +60,7 @@ QString FieldWrapper::getSerialisedString() const
     auto seq = getSerialisedValue();
     QString str;
     for (auto& byte : seq) {
-        str.append(QString("%1").arg((unsigned)byte, 2, 16, QChar('0')));
+        str.append(QString("%1").arg(static_cast<unsigned>(byte), 2, 16, QChar('0')));
     }
     return str;
 }

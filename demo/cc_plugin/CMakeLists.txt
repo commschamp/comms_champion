@@ -40,6 +40,11 @@ function (cc_plugin_demo)
     
     add_library (${name} MODULE ${src} ${moc})
     target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
+
+    target_compile_options(${name} PRIVATE
+        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast>
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast>
+    )      
     
     install (
         TARGETS ${name}

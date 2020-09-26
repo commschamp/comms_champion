@@ -553,7 +553,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
         msgMgr.stop();
         msgMgr.clear();
-        emit sigActivityStateChanged((int)ActivityState::Inactive);
+        emit sigActivityStateChanged(static_cast<int>(ActivityState::Inactive));
     }
 
     if (needsReload) {
@@ -572,7 +572,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         for (auto& ptr : pluginsToUnload) {
             pluginMgr.unloadAppliedPlugin(*ptr);
         }
-        emit sigActivityStateChanged((int)ActivityState::Clear);
+        emit sigActivityStateChanged(static_cast<int>(ActivityState::Clear));
     }
 
     typedef Plugin::ListOfFilters ListOfFilters;
@@ -637,7 +637,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     msgMgr.setProtocol(std::move(applyInfo.m_protocol));
 
     msgMgr.start();
-    emit sigActivityStateChanged((int)ActivityState::Active);
+    emit sigActivityStateChanged(static_cast<int>(ActivityState::Active));
 
     for (auto& action : applyInfo.m_actions) {
         emit sigAddMainToolbarAction(std::move(action));

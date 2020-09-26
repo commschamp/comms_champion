@@ -219,7 +219,7 @@ void ArrayListFieldWidget::removeField()
     refreshImpl();
 
     assert(m_elements.size() == m_wrapper->size());
-    assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
+    assert(m_elements.size() == static_cast<unsigned>(m_ui.m_membersLayout->count()));
 
     emitFieldUpdated();
 }
@@ -290,7 +290,7 @@ void ArrayListFieldWidget::addMissingFields()
     }
 
     assert(m_elements.size() == m_wrapper->size());
-    assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
+    assert(m_elements.size() == static_cast<unsigned>(m_ui.m_membersLayout->count()));
 }
 
 void ArrayListFieldWidget::updatePrefixField()
@@ -304,7 +304,7 @@ void ArrayListFieldWidget::updatePrefixField()
     m_ui.m_prefixValueSpinBox->setValue(info.first);
     QString serText;
     for (auto byte : info.second) {
-        serText.append(QString("%1").arg((unsigned)byte, 2, 16, QChar('0')));
+        serText.append(QString("%1").arg(static_cast<unsigned>(byte), 2, 16, QChar('0')));
     }
     m_ui.m_prefixSerValueLineEdit->setText(serText);
     m_ui.m_prefixFieldWidget->show();

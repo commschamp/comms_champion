@@ -67,7 +67,7 @@ void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
     }
 
     m_ui.m_membersLayout->addWidget(memberFieldWidget);
-    assert((std::size_t)m_ui.m_membersLayout->count() == ((m_members.size() * 2) - 1));
+    assert(static_cast<std::size_t>(m_ui.m_membersLayout->count()) == ((m_members.size() * 2) - 1));
 
     refreshInternal();
 
@@ -95,7 +95,7 @@ void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     property::field::Bitfield bitfieldProps(props);
     auto& membersProps = bitfieldProps.members();
-    auto count = std::min((std::size_t)membersProps.size(), m_members.size());
+    auto count = std::min(static_cast<std::size_t>(membersProps.size()), m_members.size());
     for (auto idx = 0U; idx < count; ++idx) {
         auto* memberFieldWidget = m_members[idx];
         assert(memberFieldWidget != nullptr);

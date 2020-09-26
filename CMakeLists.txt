@@ -53,6 +53,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
         "-Wcast-align" "-Wunused" "-Wconversion" "-Wsign-conversion"
+        "-Wold-style-cast" "-Wdouble-promotion"
     )
 
     if (CMAKE_COMPILER_IS_GNUCC)
@@ -65,6 +66,18 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
                 "-Wno-pragmas" "-Wno-type-limits"
             )
         endif()
+
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
+            list (APPEND extra_flags_list
+                "-Wno-pragmas" "-Wno-type-limits"
+            )
+        endif()  
+
+        if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0")
+            list (APPEND extra_flags_list
+                "-Wmisleading-indentation" "-Wduplicated-cond" "-Wnull-dereference"
+            )
+        endif()               
 
     endif ()
 

@@ -31,7 +31,7 @@ target_include_directories(comms INTERFACE
 )
 
 target_compile_options(comms INTERFACE
-  $<$<CXX_COMPILER_ID:MSVC>:/wd4503 -D_SCL_SECURE_NO_WARNINGS>
+  $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>
 )
 
 install(TARGETS comms EXPORT commsExport)

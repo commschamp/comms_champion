@@ -22,9 +22,12 @@ endif ()
 add_library(comms INTERFACE)
 add_library (cc::comms ALIAS comms)
 
+target_include_directories(comms SYSTEM INTERFACE
+  $<INSTALL_INTERFACE:include>
+)
+
 target_include_directories(comms INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
 )
 
 target_compile_options(comms INTERFACE

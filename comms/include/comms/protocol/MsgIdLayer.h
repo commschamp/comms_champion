@@ -432,7 +432,9 @@ private:
         RetType handle(TMessage& msg)
         {
             static_cast<void>(msg);
-            COMMS_ASSERT(!"Should not happen");
+            static constexpr bool Should_not_happen = false;
+            static_cast<void>(Should_not_happen);
+            COMMS_ASSERT(Should_not_happen);
             return comms::ErrorStatus::InvalidMsgId;
         }        
 
@@ -555,7 +557,9 @@ private:
         RetType handle(const TMessage& msg)
         {
             static_cast<void>(msg);
-            COMMS_ASSERT(!"Should not happen");
+            static constexpr bool Should_not_happen = false;
+            static_cast<void>(Should_not_happen);
+            COMMS_ASSERT(Should_not_happen);
             return comms::ErrorStatus::InvalidMsgId;
         }   
 

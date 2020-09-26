@@ -52,6 +52,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
         "-Wmissing-include-dirs"
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
+        "-Wcast-align" "-Wunused" "-Wconversion" "-Wsign-conversion"
     )
 
     if (CMAKE_COMPILER_IS_GNUCC)

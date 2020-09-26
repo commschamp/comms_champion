@@ -155,10 +155,11 @@ public:
         static const auto Mask =
             (static_cast<TSerializedType>(1) << FieldBitLength) - 1;
 
-        static const auto ClearMask = ~(Mask << pos_);
+        static const auto ClearMask = static_cast<TSerializedType>(~(Mask << pos_));
 
         auto valueMask =
-            (static_cast<TSerializedType>(fieldSerValue) & Mask) << pos_;
+            static_cast<TSerializedType>(
+                (static_cast<TSerializedType>(fieldSerValue) & Mask) << pos_);
 
         value_ &= ClearMask;
         value_ |= valueMask;
@@ -203,10 +204,11 @@ public:
         static const auto Mask =
             (static_cast<TSerializedType>(1) << FieldBitLength) - 1;
 
-        static const auto ClearMask = ~(Mask << pos_);
+        static const auto ClearMask = static_cast<TSerializedType>(~(Mask << pos_));
 
         auto valueMask =
-            (static_cast<TSerializedType>(fieldSerValue) & Mask) << pos_;
+            static_cast<TSerializedType>(
+                (static_cast<TSerializedType>(fieldSerValue) & Mask) << pos_);
 
         value_ &= ClearMask;
         value_ |= valueMask;

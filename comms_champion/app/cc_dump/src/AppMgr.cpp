@@ -47,7 +47,9 @@ AppMgr::AppMgr()
         [this](cc::MessagePtr msg)
         {
             if (!msg) {
-                assert(!"Application message wasn't provided");
+                static constexpr bool Application_message_was_not_provided = false;
+                static_cast<void>(Application_message_was_not_provided);
+                assert(Application_message_was_not_provided);
                 return;
             }
 
@@ -75,7 +77,7 @@ AppMgr::AppMgr()
                 return;
             }
 
-            QTimer::singleShot(m_config.m_lastWait, qApp, SLOT(quit()));
+            QTimer::singleShot(static_cast<int>(m_config.m_lastWait), qApp, SLOT(quit()));
         });
 
     connect(
@@ -149,7 +151,7 @@ bool AppMgr::start(const Config& config)
         }
     }
     else if (0 < m_config.m_lastWait) {
-        QTimer::singleShot(m_config.m_lastWait, qApp, SLOT(quit()));
+        QTimer::singleShot(static_cast<int>(m_config.m_lastWait), qApp, SLOT(quit()));
     }
 
     m_flushTimer.start(FlushInterval);
@@ -182,7 +184,9 @@ bool AppMgr::applyPlugins(const ListOfPluginInfos& plugins)
     for (auto& info : plugins) {
         cc::Plugin* plugin = m_pluginMgr.loadPlugin(*info);
         if (plugin == nullptr) {
-            assert(!"Failed to load plugin");
+            static constexpr bool Failed_to_load_plugin = false;
+            static_cast<void>(Failed_to_load_plugin);
+            assert(Failed_to_load_plugin);
             continue;
         }
 

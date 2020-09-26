@@ -293,14 +293,14 @@ public:
     /// @param[in] mask Mask of bits to clear.
     void clearBits(ValueType mask)
     {
-        value() &= (~mask);
+        value() &= static_cast<ValueType>(~mask);
     }
 
     /// @brief Get bit value
     bool getBitValue(unsigned bitNum) const
     {
         return hasAllBitsSet(
-            static_cast<ValueType>(1U) << bitNum);
+            static_cast<ValueType>(static_cast<ValueType>(1U) << bitNum));
     }
 
     /// @brief Set bit value

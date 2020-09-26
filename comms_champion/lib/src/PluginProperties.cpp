@@ -90,7 +90,9 @@ PluginProperties& PluginProperties::setCustomProperty(
 {
     do {
         if (name.startsWith(PropPrefix)) {
-            assert(!"Custom property cannot start with cc.PluginProp_");
+            static constexpr bool Wrong_property_name = false;
+            static_cast<void>(Wrong_property_name);
+            assert(Wrong_property_name); // Custom property cannot start with cc.PluginProp_           
             break;
         }
 
@@ -127,7 +129,9 @@ PluginProperties::ConfigWidgetCreateFunc PluginProperties::getConfigWidgetCreate
 QVariant PluginProperties::getCustomProperty(const QString& name) const
 {
     if (name.startsWith(PropPrefix)) {
-        assert(!"Custom property cannot start with cc.PluginProp_");
+        static constexpr bool Wrong_property_name = false;
+        static_cast<void>(Wrong_property_name);
+        assert(Wrong_property_name); // Custom property cannot start with cc.PluginProp_
         return QVariant();
     }
 

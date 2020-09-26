@@ -70,7 +70,7 @@ void RawHexDataDialog::valueChanged()
     auto str = m_ui.m_rawDataText->toPlainText();
 
     std::vector<QChar> invalidChars;
-    invalidChars.reserve(str.size());
+    invalidChars.reserve(static_cast<std::size_t>(str.size()));
     std::copy_if(
         str.begin(), str.end(), std::back_inserter(invalidChars),
         [](QChar ch) -> bool
@@ -106,7 +106,7 @@ void RawHexDataDialog::accept()
 
     DataInfo dataInfo;
     dataInfo.m_timestamp = DataInfo::TimestampClock::now();
-    dataInfo.m_data.reserve(str.size() / 2);
+    dataInfo.m_data.reserve(static_cast<std::size_t>(str.size() / 2));
 
     QString numStr;
     auto addValueFunc =
@@ -144,7 +144,9 @@ void RawHexDataDialog::accept()
     if (!m_ui.m_convertCheckBox->isChecked()) {
         auto msg = m_protocol->createInvalidMessage(dataInfo.m_data);
         if (!msg) {
-            assert(!"Invalid message was not created by the protocol");
+            static constexpr bool Invalid_message_was_not_created_by_the_protocol = false;
+            static_cast<void>(Invalid_message_was_not_created_by_the_protocol);
+            assert(Invalid_message_was_not_created_by_the_protocol);               
             Base::accept();
             return;
         }

@@ -138,7 +138,9 @@ protected:
 
         col.push_back(ElementType());
         if (!m_wrapFieldFunc) {
-            assert(!"The callback is expected to be set");
+            static constexpr bool Callback_is_not_set = false;
+            static_cast<void>(Callback_is_not_set);
+            assert(Callback_is_not_set);       
             mems.clear();
             return;
         }
@@ -177,13 +179,15 @@ protected:
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
         static_cast<void>(value);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 
     virtual unsigned sizeImpl() const override
     {
-        return Base::field().value().size();
+        return static_cast<unsigned>(Base::field().value().size());
     }
 
     virtual bool hasFixedSizeImpl() const override
@@ -212,7 +216,9 @@ protected:
     virtual void refreshMembersImpl() override
     {
         if (!m_wrapFieldFunc) {
-            assert(!"Expected to have callback");
+            static constexpr bool Callback_is_not_set = false;
+            static_cast<void>(Callback_is_not_set);
+            assert(Callback_is_not_set);  
         }
 
         auto& storage = Base::field().value();
@@ -293,7 +299,9 @@ private:
                       "Prefix field is too big");
 
         LengthField lenField;
-        lenField.value() = Base::field().length() - LengthField::maxLength();
+        lenField.value() = 
+            static_cast<typename LengthField::ValueType>(
+                Base::field().length() - LengthField::maxLength());
         return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
     }
 
@@ -303,16 +311,17 @@ private:
 
         auto fullLen = Base::field().length();
         LengthField lenFieldTmp;
-        lenFieldTmp.value() = fullLen;
+        lenFieldTmp.value() = static_cast<typename LengthField::ValueType>(fullLen);
         auto tmpLen = lenFieldTmp.length();
         LengthField lenField;
-        lenField.value() = (fullLen - tmpLen);
+        lenField.value() = static_cast<typename LengthField::ValueType>(fullLen - tmpLen);
         if (lenField.length() == tmpLen) {
             assert(static_cast<int>(lenField.value()) <= std::numeric_limits<int>::max());
             return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
         }
 
-        lenField.value() = fullLen - lenField.length();
+        lenField.value() = 
+            static_cast<typename LengthField::ValueType>(fullLen - lenField.length());
         assert(static_cast<int>(lenField.value()) <= std::numeric_limits<int>::max());
         return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
     }
@@ -331,7 +340,9 @@ private:
 
     void adjustFixedSizeInternal(HasVarSizeTag)
     {
-        assert(!"Should not be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
     }
 
     void adjustFixedSizeInternal(HasFixedSizeTag)

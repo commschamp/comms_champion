@@ -101,7 +101,7 @@ public:
 
             COMMS_ASSERT(bytesCount < MaxLength);
             auto byte = comms::util::readData<std::uint8_t>(iter, Endian());
-            auto byteValue = byte & VarLengthValueBitsMask;
+            auto byteValue = static_cast<std::uint8_t>(byte & VarLengthValueBitsMask);
             addByteToSerialisedValue(
                 byteValue, bytesCount, val, typename BaseImpl::Endian());
 
@@ -123,7 +123,7 @@ public:
         }
 
         auto adjustedValue = signExtUnsignedSerialised(val, bytesCount, HasSignTag());
-        BaseImpl::value() = BaseImpl::fromSerialised(adjustedValue);
+        BaseImpl::value() = BaseImpl::fromSerialised(static_cast<BaseSerialisedType>(adjustedValue));
         return comms::ErrorStatus::Success;
     }
 
@@ -196,12 +196,10 @@ private:
             static_cast<UnsignedSerialisedType>(toSerialised(BaseImpl::value()));
         std::size_t len = 0U;
         while (0 < serValue) {
-            serValue >>= VarLengthShift;
+            serValue = static_cast<decltype(serValue)>(serValue >> VarLengthShift);
             ++len;
         }
 
-        //COMMS_ASSERT(len <= maxLength());
-        //return std::max(std::size_t(minLength()), std::min(len, maxLength()));
         return std::max(std::size_t(minLength()), len);
     }
 
@@ -225,7 +223,8 @@ private:
         while (serValue != static_cast<decltype(serValue)>(-1)) {
             auto unsignedSerValue = static_cast<UnsignedSerialisedType>(serValue);
             lastByte = static_cast<decltype(lastByte)>(unsignedSerValue & VarLengthValueBitsMask);
-            unsignedSerValue >>= VarLengthShift;
+            unsignedSerValue = 
+                static_cast<decltype(unsignedSerValue)>(unsignedSerValue >> VarLengthShift);
             ++len;
 
             unsignedSerValue |= SignExtMask;
@@ -250,7 +249,7 @@ private:
         while (serValue != static_cast<decltype(serValue)>(0)) {
             auto unsignedSerValue = static_cast<UnsignedSerialisedType>(serValue);
             lastByte = static_cast<decltype(lastByte)>(unsignedSerValue & VarLengthValueBitsMask);
-            unsignedSerValue >>= VarLengthShift;
+            unsignedSerValue = static_cast<decltype(unsignedSerValue)>(unsignedSerValue >> VarLengthShift);
             ++len;
 
             serValue = static_cast<decltype(serValue)>(unsignedSerValue);
@@ -289,7 +288,7 @@ private:
 
         while (!isLastByte()) {
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             ++bytesCount;
 
             if (!isLastByte()) {
@@ -297,7 +296,8 @@ private:
             }
 
             unsignedValToWrite |= 
-                (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+                static_cast<decltype(unsignedValToWrite)>(
+                    (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte)));
         }           
 
         auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
@@ -326,14 +326,15 @@ private:
 
         while (!isLastByte()) {
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             
             if (0 < bytesCount) {
                 byte |= VarLengthContinueBit;
             }
 
             unsignedValToWrite |= 
-                (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+                static_cast<UnsignedSerialisedType>(
+                    (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte)));
 
             ++bytesCount;
         }           
@@ -376,7 +377,7 @@ private:
         while (!isLastByte()) {
             auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             ++bytesCount;
             unsignedVal |= SignExtMask;
             val = static_cast<decltype(val)>(unsignedVal);
@@ -422,7 +423,7 @@ private:
         while (!isLastByte()) {
             auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             ++bytesCount;
             val = static_cast<decltype(val)>(unsignedVal);
 
@@ -467,7 +468,7 @@ private:
         while (!isLastByte()) {
             auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             unsignedVal |= SignExtMask;
             val = static_cast<decltype(val)>(unsignedVal);
 
@@ -513,7 +514,7 @@ private:
         while (!isLastByte()) {
             auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
             auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
-            unsignedVal >>= VarLengthShift;
+            unsignedVal = static_cast<decltype(unsignedVal)>(unsignedVal >> VarLengthShift);
             val = static_cast<decltype(val)>(unsignedVal);
 
             if (0U < bytesCount) {
@@ -576,8 +577,8 @@ private:
     {
         static_cast<void>(byteCount);
         COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
-        val <<= VarLengthShift;
-        val |= static_cast<UnsignedSerialisedType>(byte);
+        val = static_cast<UnsignedSerialisedType>(val << VarLengthShift);
+        val = static_cast<UnsignedSerialisedType>(val | byte);
     }
 
     static void addByteToSerialisedValue(
@@ -589,7 +590,7 @@ private:
         COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
         auto shift =
             byteCount * VarLengthShift;
-        val = (static_cast<UnsignedSerialisedType>(byte) << shift) | val;
+        val = static_cast<UnsignedSerialisedType>((static_cast<UnsignedSerialisedType>(byte) << shift) | val);
     }
 
 

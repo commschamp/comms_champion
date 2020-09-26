@@ -91,7 +91,9 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
             break;
         }
 
-        assert(!"The handling of long long types is not implemented yet");
+        static constexpr bool The_handling_of_long_long_types_is_not_implemented_yet = false;
+        static_cast<void>(The_handling_of_long_long_types_is_not_implemented_yet);
+        assert(The_handling_of_long_long_types_is_not_implemented_yet);  
         return;
     } while (false);
 

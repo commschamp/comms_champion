@@ -197,7 +197,9 @@ public:
     virtual void handle(field_wrapper::FieldWrapper& wrapper) override
     {
         static_cast<void>(wrapper);
-        assert(!"Unexpected wrapper");
+        static constexpr bool Unexpected_wrapper = false;
+        static_cast<void>(Unexpected_wrapper);
+        assert(Unexpected_wrapper);
     }
 
     FieldWidgetPtr getWidget()

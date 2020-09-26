@@ -53,7 +53,7 @@ struct ExtraInfoMessageData : public comms::field::String<TFieldBase>
             return true;
         }
 
-        auto doc = QJsonDocument::fromJson(QByteArray(val.c_str(), val.size()));
+        auto doc = QJsonDocument::fromJson(QByteArray(val.c_str(), static_cast<int>(val.size())));
         return doc.isObject();
     }
 };
@@ -105,19 +105,25 @@ protected:
 
     virtual QString idAsStringImpl() const override
     {
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called);         
         return QString();
     }
 
     virtual void resetImpl() override
     {
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
     }
 
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 

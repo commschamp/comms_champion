@@ -107,7 +107,7 @@ void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     m_checkboxes.resize(m_wrapper->bitIdxLimit());
 
     for (unsigned idx = 0; idx < count; ++idx) {
-        auto& nameVar = bitNamesList[idx];
+        auto& nameVar = bitNamesList[static_cast<int>(idx)];
         if ((!nameVar.isValid()) || (!nameVar.canConvert<QString>())) {
             continue;
         }
@@ -135,7 +135,9 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
         auto* checkbox = sender();
         auto iter = std::find(m_checkboxes.begin(), m_checkboxes.end(), checkbox);
         if (iter == m_checkboxes.end()) {
-            assert(!"Should not happen");
+            static constexpr bool Should_not_happen = false;
+            static_cast<void>(Should_not_happen);
+            assert(Should_not_happen);    
             return;
         }
         auto idx = static_cast<unsigned>(std::distance(m_checkboxes.begin(), iter));

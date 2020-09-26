@@ -57,7 +57,9 @@ const int NumOfStopBitValues =
 QSerialPort::Parity mapParityFromIdx(int idx)
 {
     if ((idx < 0) || (NumOfParityValues <= idx)) {
-        assert(!"Invalid index");
+        static constexpr bool Invalid_index = false;
+        static_cast<void>(Invalid_index);
+        assert(Invalid_index); 
         return ParityMap[0];
     }
 
@@ -68,7 +70,9 @@ int mapParityToIdx(QSerialPort::Parity value)
 {
     auto iter = std::find(std::begin(ParityMap), std::end(ParityMap), value);
     if (iter == std::end(ParityMap)) {
-        assert(!"Invalid value");
+        static constexpr bool Invalid_value = false;
+        static_cast<void>(Invalid_value);
+        assert(Invalid_value); 
         return 0;
     }
 
@@ -78,7 +82,9 @@ int mapParityToIdx(QSerialPort::Parity value)
 QSerialPort::StopBits mapStopBitsFromIdx(int idx)
 {
     if ((idx < 0) || (NumOfStopBitValues <= idx)) {
-        assert(!"Invalid index");
+        static constexpr bool Invalid_index = false;
+        static_cast<void>(Invalid_index);
+        assert(Invalid_index); 
         return StopBitMap[0];
     }
 
@@ -89,7 +95,9 @@ int mapStopBitToIdx(QSerialPort::StopBits value)
 {
     auto iter = std::find(std::begin(StopBitMap), std::end(StopBitMap), value);
     if (iter == std::end(StopBitMap)) {
-        assert(!"Invalid value");
+        static constexpr bool Invalid_value = false;
+        static_cast<void>(Invalid_value);
+        assert(Invalid_value); 
         return 0;
     }
 

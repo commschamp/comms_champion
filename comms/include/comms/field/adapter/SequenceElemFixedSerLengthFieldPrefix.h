@@ -248,7 +248,9 @@ private:
         std::size_t prefixLen = 0U;
         if (!BaseImpl::value().empty()) {
             LenField lenField;
-            lenField.value() = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
+            lenField.value() = 
+                static_cast<typename LenField::ValueType>(
+                    std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength)));
             prefixLen = lenField.length();
         }
 
@@ -288,7 +290,7 @@ private:
     {
         auto elemLength = BaseImpl::minElementLength();
         LenField lenField;
-        lenField.value() = elemLength;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
         auto es = lenField.write(iter, len);
         if (es != ErrorStatus::Success) {
             return es;

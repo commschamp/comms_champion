@@ -84,7 +84,9 @@ private:
 
         auto diff = std::distance(from, to);
         if (diff < 0) {
-            COMMS_ASSERT(!"Invalid iterators used for assignment");
+            static constexpr bool Invalid_iterators_used_for_assignment = false;
+            static_cast<void>(Invalid_iterators_used_for_assignment);
+            COMMS_ASSERT(Invalid_iterators_used_for_assignment);
             return;
         }
 

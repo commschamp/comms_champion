@@ -818,7 +818,9 @@ protected:
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         static const typename TBase::MsgIdType MsgId = typename TBase::MsgIdType();
-        COMMS_ASSERT(!"The message id is not supposed to be retrieved");
+        static constexpr bool The_message_id_is_not_supposed_to_be_retrieved = false;
+        static_cast<void>(The_message_id_is_not_supposed_to_be_retrieved);
+        COMMS_ASSERT(The_message_id_is_not_supposed_to_be_retrieved);
         return MsgId;
     }
 };

@@ -87,7 +87,7 @@ protected:
     {
         assert(isEditEnabled());
         do {
-            if ((value.size() & 0x1U) == 0) {
+            if ((static_cast<std::size_t>(value.size()) & 0x1U) == 0) {
                wrapper.setSerialisedString(value);
                break;
             }

@@ -636,7 +636,9 @@ public:
     void currentFieldExec(TFunc&& func)
     {
         if (!currentFieldValid()) {
-            COMMS_ASSERT(!"Invalid field execution");
+            static constexpr bool Invalid_field_execution = false;
+            static_cast<void>(Invalid_field_execution);
+            COMMS_ASSERT(Invalid_field_execution);
             return;
         }
 
@@ -647,7 +649,9 @@ public:
     void currentFieldExec(TFunc&& func) const
     {
         if (!currentFieldValid()) {
-            COMMS_ASSERT(!"Invalid field execution");
+            static constexpr bool Invalid_field_execution = false;
+            static_cast<void>(Invalid_field_execution);
+            COMMS_ASSERT(Invalid_field_execution);
             return;
         }
 

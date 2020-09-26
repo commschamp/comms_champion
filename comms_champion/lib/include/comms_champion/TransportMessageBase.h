@@ -83,21 +83,27 @@ protected:
     /// @brief Overriding virtual comms_champion::Message::idAsStringImpl()
     virtual QString idAsStringImpl() const override
     {
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return QString();
     }
 
     /// @brief Overriding virtual comms_champion::Message::resetImpl()
     virtual void resetImpl() override
     {
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
     }
 
     /// @brief Overriding virtual comms_champion::Message::assignImpl()
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 };

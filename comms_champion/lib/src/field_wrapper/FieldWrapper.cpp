@@ -69,7 +69,7 @@ bool FieldWrapper::setSerialisedString(const QString& str)
 {
     assert((str.size() & 0x1) == 0U);
     SerialisedSeq seq;
-    seq.reserve(str.size() / 2);
+    seq.reserve(static_cast<std::size_t>(str.size() / 2));
     QString byteStr;
     for (auto ch : str) {
         byteStr.append(ch);

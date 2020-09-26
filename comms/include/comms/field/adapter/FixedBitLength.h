@@ -161,7 +161,8 @@ private:
     static SerialisedType adjustToSerialised(BaseSerialisedType val, SignedTag<TParams...>)
     {
         auto valueTmp =
-            static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
+            static_cast<UnsignedSerialisedType>(
+                static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask);
 
         return signExtUnsignedSerialised(valueTmp);
     }
@@ -175,7 +176,9 @@ private:
     template <typename... TParams>
     static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignedTag<TParams...>)
     {
-        auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
+        auto valueTmp = 
+            static_cast<UnsignedSerialisedType>(
+                static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask);
         return
             static_cast<BaseSerialisedType>(
                 signExtUnsignedSerialised(valueTmp));

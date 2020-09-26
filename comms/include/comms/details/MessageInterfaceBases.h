@@ -240,7 +240,9 @@ protected:
     ~MessageInterfaceLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const
     {
-        COMMS_ASSERT(!"Not overridden");
+        static constexpr bool Not_overriden = false;
+        static_cast<void>(Not_overriden);
+        COMMS_ASSERT(Not_overriden);
         return 0;
     }
 };
@@ -283,7 +285,9 @@ protected:
     virtual DispatchRetType dispatchImpl(Handler& handler)
     {
         static_cast<void>(handler);
-        COMMS_ASSERT(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        COMMS_ASSERT(Must_not_be_called);
         using Tag =
             typename comms::util::Conditional<
                 std::is_void<DispatchRetType>::value

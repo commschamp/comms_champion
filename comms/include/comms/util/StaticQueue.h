@@ -519,7 +519,9 @@ protected:
             return arrayOne().second;
         }
 
-        COMMS_ASSERT(!"Invalid iterator is used");
+        static constexpr bool Invalid_iterator_is_used = false;
+        static_cast<void>(Invalid_iterator_is_used);
+        COMMS_ASSERT(Invalid_iterator_is_used);
         return invalidIter();
     }
 
@@ -561,7 +563,9 @@ protected:
             return end();
         }
 
-        COMMS_ASSERT(!"Invalid iterator is used");
+        static constexpr bool Invalid_iterator_is_used = false;
+        static_cast<void>(Invalid_iterator_is_used);
+        COMMS_ASSERT(Invalid_iterator_is_used);
         return end();
     }
 

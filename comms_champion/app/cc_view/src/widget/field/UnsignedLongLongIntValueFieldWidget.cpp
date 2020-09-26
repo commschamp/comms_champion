@@ -137,13 +137,13 @@ UnsignedLongLongIntValueFieldWidget::adjustDisplayedToReal(DisplayedType val)
     if (0 < m_decimals) {
         uVal = static_cast<decltype(uVal)>(val * std::pow(10, m_decimals));
     }
-    return static_cast<UnderlyingType>(uVal - m_offset);
+    return static_cast<UnderlyingType>(uVal - static_cast<std::size_t>(m_offset));
 }
 
 UnsignedLongLongIntValueFieldWidget::DisplayedType
 UnsignedLongLongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
 {
-    auto dVal = static_cast<DisplayedType>(val + m_offset);
+    auto dVal = static_cast<DisplayedType>(val + static_cast<std::size_t>(m_offset));
     if (0 < m_decimals) {
         dVal /= std::pow(10, m_decimals);
     }

@@ -99,7 +99,7 @@ void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     for (auto idx = 0U; idx < count; ++idx) {
         auto* memberFieldWidget = m_members[idx];
         assert(memberFieldWidget != nullptr);
-        memberFieldWidget->updateProperties(membersProps[idx]);
+        memberFieldWidget->updateProperties(membersProps[static_cast<int>(idx)]);
     }
 }
 

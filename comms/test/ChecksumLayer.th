@@ -110,7 +110,7 @@ private:
             TField,
             unsigned,
             comms::option::FixedLength<TSize>,
-            comms::option::NumValueSerOffset<TOffset>
+            comms::option::NumValueSerOffset<static_cast<std::intmax_t>(TOffset)>
         >;
 
     template <typename TField>

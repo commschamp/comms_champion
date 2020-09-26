@@ -147,15 +147,15 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     auto& elementsProps = arrayListProps.elements();
 
     m_elemProperties.clear();
-    m_elemProperties.reserve(elementsProps.size());
+    m_elemProperties.reserve(static_cast<std::size_t>(elementsProps.size()));
     m_elemProperties.assign(elementsProps.begin(), elementsProps.end());
 
     if (m_elemProperties.empty()) {
         return;
     }
 
-    unsigned idx = 0;
-    for (auto elemIdx = 0U; elemIdx < m_elements.size(); ++elemIdx) {
+    std::size_t idx = 0;
+    for (std::size_t elemIdx = 0U; elemIdx < m_elements.size(); ++elemIdx) {
         auto* elem = m_elements[elemIdx];
         if (m_appendIndexToElementName) {
             elem->setNameSuffix(QString(" %1").arg(elemIdx));
@@ -206,7 +206,9 @@ void ArrayListFieldWidget::removeField()
     auto* sigSender = sender();
     auto iter = std::find(m_elements.begin(), m_elements.end(), sigSender);
     if (iter == m_elements.end()) {
-        assert(!"Something is not right");
+        static constexpr bool Something_is_not_right = false;
+        static_cast<void>(Something_is_not_right);
+        assert(Something_is_not_right);  
         return;
     }
 
@@ -275,7 +277,9 @@ void ArrayListFieldWidget::updateUi()
 void ArrayListFieldWidget::addMissingFields()
 {
     if (!m_createMissingDataFieldsCallback) {
-        assert(!"Callback should exist");
+        static constexpr bool Callback_should_exist = false;
+        static_cast<void>(Callback_should_exist);
+        assert(Callback_should_exist);          
         return;
     }
 

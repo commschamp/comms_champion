@@ -20,7 +20,8 @@
     GCC_DIAG_PRAGMA(push) \
     GCC_DIAG_PRAGMA(ignored "-Wpedantic") \
     GCC_DIAG_PRAGMA(ignored "-Wctor-dtor-privacy")\
-    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast")
+    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast") \
+    GCC_DIAG_PRAGMA(ignored "-Wconversion")
 
 #define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 

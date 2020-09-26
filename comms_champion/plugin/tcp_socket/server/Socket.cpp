@@ -66,7 +66,9 @@ Socket::~Socket() noexcept
 bool Socket::socketConnectImpl()
 {
     if (m_server.isListening()) {
-        assert(!"Already listening");
+        static constexpr bool Already_listening = false;
+        static_cast<void>(Already_listening);
+        assert(Already_listening); 
         static const QString AlreadyListeningError(
             tr("Previous run of TCP/IP Server socket wasn't terminated properly."));
         reportError(AlreadyListeningError);
@@ -100,7 +102,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
         assert(socket != nullptr);
         socket->write(
             reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-            dataPtr->m_data.size());
+            static_cast<qint64>(dataPtr->m_data.size()));
 
         QString to =
             socket->peerAddress().toString() + ':' +
@@ -144,7 +146,9 @@ void Socket::connectionTerminated()
     auto* socket = sender();
     auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
     if (iter == m_sockets.end()) {
-        assert(!"Must have found socket");
+        static constexpr bool Must_have_found_socket = false;
+        static_cast<void>(Must_have_found_socket);
+        assert(Must_have_found_socket);          
         return;
     }
 
@@ -160,11 +164,11 @@ void Socket::readFromSocket()
     dataPtr->m_timestamp = DataInfo::TimestampClock::now();
 
     auto dataSize = socket->bytesAvailable();
-    dataPtr->m_data.resize(dataSize);
+    dataPtr->m_data.resize(static_cast<std::size_t>(dataSize));
     auto result =
         socket->read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
     if (result != dataSize) {
-        dataPtr->m_data.resize(result);
+        dataPtr->m_data.resize(static_cast<std::size_t>(result));
     }
 
     QString from =

@@ -94,7 +94,9 @@ Protocol::UpdateStatus Protocol::updateMessage(Message& msg)
 
     auto infoMsg = createExtraInfoMessageImpl();
     if (!infoMsg) {
-        assert(!"Extra Info message wan't created");
+        static constexpr bool Info_must_be_created = false;
+        static_cast<void>(Info_must_be_created);
+        assert(Info_must_be_created);        
         return UpdateStatus::NoChange;
     }
 
@@ -102,7 +104,7 @@ Protocol::UpdateStatus Protocol::updateMessage(Message& msg)
     QJsonDocument doc(jsonObj);
     auto jsonByteArray = doc.toJson();
     MsgDataSeq dataSeq;
-    dataSeq.reserve(jsonByteArray.size());
+    dataSeq.reserve(static_cast<std::size_t>(jsonByteArray.size()));
     std::copy_n(jsonByteArray.constData(), jsonByteArray.size(), std::back_inserter(dataSeq));
     if (!infoMsg->decodeData(dataSeq)) {
         setExtraInfoMsgToMessageProperties(MessagePtr(), msg);

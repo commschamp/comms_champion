@@ -310,7 +310,7 @@ private:
         LenField lenField;
         auto origElemLength = BaseImpl::elementLength(elem);
         auto elemLength = std::min(origElemLength, std::size_t(MaxAllowedElemLength));
-        lenField.value() = elemLength;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
         return lenField.length() + origElemLength;
     }
 

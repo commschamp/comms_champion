@@ -66,7 +66,9 @@ Socket::~Socket() noexcept
 bool Socket::socketConnectImpl()
 {
     if (m_server.isListening()) {
-        assert(!"Already listening");
+        static constexpr bool Already_listening = false;
+        static_cast<void>(Already_listening);
+        assert(Already_listening); 
         static const QString AlreadyListeningError(
             tr("Previous run of TCP/IP Server socket wasn't terminated properly."));
         reportError(AlreadyListeningError);
@@ -114,10 +116,10 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
         assert(connectedPair.second);
         connectedPair.first->write(
             reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-            dataPtr->m_data.size());
+            static_cast<qint64>(dataPtr->m_data.size()));
         connectedPair.second->write(
             reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-            dataPtr->m_data.size());
+            static_cast<qint64>(dataPtr->m_data.size()));
 
         toList.append(
             connectedPair.first->peerAddress().toString() + ':' +
@@ -176,7 +178,9 @@ void Socket::clientConnectionTerminated()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     if (socket == nullptr) {
-        assert(!"Signal from unkown object");
+        static constexpr bool Signal_from_unknown_object = false;
+        static_cast<void>(Signal_from_unknown_object);
+        assert(Signal_from_unknown_object);         
         return;
     }
 
@@ -233,7 +237,9 @@ void Socket::connectionSocketConnected()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     if (socket == nullptr) {
-        assert(!"Signal from unkown object");
+        static constexpr bool Signal_from_unknown_object = false;
+        static_cast<void>(Signal_from_unknown_object);
+        assert(Signal_from_unknown_object);  
         return;
     }
 
@@ -255,7 +261,9 @@ void Socket::connectionSocketDisconnected()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     if (socket == nullptr) {
-        assert(!"Signal from unkown object");
+        static constexpr bool Signal_from_unknown_object = false;
+        static_cast<void>(Signal_from_unknown_object);
+        assert(Signal_from_unknown_object);  
         return;
     }
 
@@ -345,16 +353,16 @@ void Socket::performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSoc
     dataPtr->m_timestamp = DataInfo::TimestampClock::now();
 
     auto dataSize = readFromSocket.bytesAvailable();
-    dataPtr->m_data.resize(dataSize);
+    dataPtr->m_data.resize(static_cast<std::size_t>(dataSize));
     auto result =
         readFromSocket.read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
     if (result != dataSize) {
-        dataPtr->m_data.resize(result);
+        dataPtr->m_data.resize(static_cast<std::size_t>(result));
     }
 
     writeToSocket.write(
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-        dataPtr->m_data.size());
+        static_cast<qint64>(dataPtr->m_data.size()));
 
     QString from =
         readFromSocket.peerAddress().toString() + ':' +

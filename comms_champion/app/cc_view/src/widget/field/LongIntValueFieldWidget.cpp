@@ -97,7 +97,7 @@ void LongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         static_cast<decltype(m_offset)>(actProps.displayOffset());
 
     bool needRefresh = false;
-    if (std::numeric_limits<double>::epsilon() < std::abs(m_offset - offset)) {
+    if (std::numeric_limits<double>::epsilon() < std::fabs(m_offset - offset)) {
         m_offset = offset;
         needRefresh = true;
     }
@@ -150,7 +150,7 @@ LongIntValueFieldWidget::adjustDisplayedToReal(double val)
 
 double LongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
 {
-    return static_cast<double>(val + m_offset);
+    return static_cast<double>(val) + m_offset;
 }
 
 bool LongIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)

@@ -114,11 +114,13 @@ public:
         clear();
         for (auto iter = from; iter != to; ++iter) {
             if (capacity() <= size()) {
-                COMMS_ASSERT(!"Not all elements are copied");
+                static constexpr bool Not_all_elements_are_copied = false;
+                static_cast<void>(Not_all_elements_are_copied);
+                COMMS_ASSERT(Not_all_elements_are_copied);
                 return;
             }
 
-            new (cellPtr(size())) T(*iter);
+            new (cellPtr(size())) T(*(reinterpret_cast<const T*>(&*iter)));
             ++size_;
         }
     }

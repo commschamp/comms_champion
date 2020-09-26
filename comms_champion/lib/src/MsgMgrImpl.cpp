@@ -71,7 +71,9 @@ MsgMgrImpl::~MsgMgrImpl() noexcept = default;
 void MsgMgrImpl::start()
 {
     if (m_running) {
-        assert(!"Already running");
+        static constexpr bool Already_running = false;
+        static_cast<void>(Already_running);
+        assert(Already_running);         
         return;
     }
 
@@ -89,7 +91,9 @@ void MsgMgrImpl::start()
 void MsgMgrImpl::stop()
 {
     if (!m_running) {
-        assert(!"Already stopped.");
+        static constexpr bool Already_stopped = false;
+        static_cast<void>(Already_stopped);
+        assert(Already_stopped);   
         return;
     }
 
@@ -107,7 +111,9 @@ void MsgMgrImpl::stop()
 void MsgMgrImpl::clear()
 {
     if (m_running) {
-        assert(!"Still running");
+        static constexpr bool Still_running = false;
+        static_cast<void>(Still_running);
+        assert(Still_running); ;
         stop();
     }
 
@@ -148,7 +154,9 @@ void MsgMgrImpl::deleteMsg(MessagePtr msg)
         });
 
     if (iter == m_allMsgs.end()) {
-        assert(!"Deleting non existing message.");
+        static constexpr bool Deleting_non_existing_message = false;
+        static_cast<void>(Deleting_non_existing_message);
+        assert(Deleting_non_existing_message);         
         return;
     }
 
@@ -224,12 +232,16 @@ void MsgMgrImpl::addMsgs(const MessagesList& msgs, bool reportAdded)
 
     for (auto& m : msgs) {
         if (!m) {
-            assert(!"Invalid message in the list");
+            static constexpr bool Invalid_message_in_the_list = false;
+            static_cast<void>(Invalid_message_in_the_list);
+            assert(Invalid_message_in_the_list);
             continue;
         }
 
         if (property::message::Type().getFrom(*m) == MsgType::Invalid) {
-            assert(!"Invalid type of the message");
+            static constexpr bool Invalid_type_of_message = false;
+            static_cast<void>(Invalid_type_of_message);
+            assert(Invalid_type_of_message);            
             continue;
         }
 
@@ -298,7 +310,7 @@ void MsgMgrImpl::addFilter(FilterPtr filter)
 
             QList<DataInfoPtr> data;
             data.append(std::move(dataPtr));
-            for (auto iter = m_filters.rbegin() + revIdx; iter != m_filters.rend(); ++iter) {
+            for (auto iter = m_filters.rbegin() + static_cast<std::intmax_t>(revIdx); iter != m_filters.rend(); ++iter) {
 
                 if (!data.isEmpty()) {
                     break;

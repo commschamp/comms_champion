@@ -47,7 +47,9 @@ DefaultMessageWidget::DefaultMessageWidget(
 void DefaultMessageWidget::addExtraTransportFieldWidget(FieldWidget* field)
 {
     if (field == nullptr) {
-        assert(!"Field object should be provided");
+        static constexpr bool Field_object_should_be_provided = false;
+        static_cast<void>(Field_object_should_be_provided);
+        assert(Field_object_should_be_provided);
         return;
     }
 
@@ -56,7 +58,7 @@ void DefaultMessageWidget::addExtraTransportFieldWidget(FieldWidget* field)
         return;
     }
 
-    auto& propsMapVar = props.at(m_curExtraTransportFieldIdx);
+    auto& propsMapVar = props.at(static_cast<int>(m_curExtraTransportFieldIdx));
     if (propsMapVar.isValid() && propsMapVar.canConvert<QVariantMap>()) {
         auto propsMap = propsMapVar.value<QVariantMap>();
         field->updateProperties(propsMap);
@@ -74,13 +76,15 @@ void DefaultMessageWidget::addExtraTransportFieldWidget(FieldWidget* field)
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
 {
     if (field == nullptr) {
-        assert(!"Field object should be provided");
+        static constexpr bool Field_object_should_be_provided = false;
+        static_cast<void>(Field_object_should_be_provided);
+        assert(Field_object_should_be_provided);
         return;
     }
 
     auto& props = m_msg.fieldsProperties();
     if (m_curFieldIdx < static_cast<decltype(m_curFieldIdx)>(props.size())) {
-        auto& propsMapVar = props.at(m_curFieldIdx);
+        auto& propsMapVar = props.at(static_cast<int>(m_curFieldIdx));
         if (propsMapVar.isValid() && propsMapVar.canConvert<QVariantMap>()) {
             auto propsMap = propsMapVar.value<QVariantMap>();
             field->updateProperties(propsMap);

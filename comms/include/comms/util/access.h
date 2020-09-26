@@ -73,9 +73,9 @@ typename std::decay<T>::type signExtCommon(T value, std::size_t size)
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
 
     ValueType mask =
-        (static_cast<ValueType>(1) << ((size * BinDigits) - 1));
+        static_cast<ValueType>(static_cast<ValueType>(1) << ((size * BinDigits) - 1));
     if (value & mask) {
-        return value | (~((mask << 1) - 1));
+        return static_cast<ValueType>(value | (~((mask << 1) - 1)));
     }
     return value;
 }
@@ -347,7 +347,7 @@ T readBigUnsigned(std::size_t size, TIter& iter)
     std::size_t remainingSize = size;
     while (remainingSize > 0) {
         auto byte = *iter;
-        value <<= BinDigits;
+        value = static_cast<ValueType>(value << BinDigits);
         value |= static_cast<decltype(value)>(static_cast<UnsignedByteType>(byte));
         ++iter;
         --remainingSize;

@@ -120,7 +120,7 @@ void FieldWidget::setSerialisedInputMask(
     auto maskMaxWidth = static_cast<std::size_t>(maxWidth);
     assert(maskMinWidth <= maskMaxWidth);
     QString mask;
-    mask.reserve(maskMaxWidth);
+    mask.reserve(static_cast<int>(maskMaxWidth));
     std::fill_n(std::back_inserter(mask), maskMinWidth, 'H');
     std::fill_n(std::back_inserter(mask), maskMaxWidth - maskMinWidth, 'h');
     line.setInputMask(mask);

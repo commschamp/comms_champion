@@ -68,7 +68,9 @@ bool Socket::socketConnectImpl()
 {
     if ((m_socket.state() == QTcpSocket::ConnectedState) ||
         (m_socket.state() == QTcpSocket::ConnectingState)) {
-        assert(!"Already connected or trying to connect.");
+        static constexpr bool Already_connected = false;
+        static_cast<void>(Already_connected);
+        assert(Already_connected); 
         static const QString AlreadyConnectedError(
             tr("TCP/IP Client is already connected or trying to connect."));
         reportError(AlreadyConnectedError);
@@ -100,7 +102,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
     assert(dataPtr);
     m_socket.write(
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-        dataPtr->m_data.size());
+        static_cast<qint64>(dataPtr->m_data.size()));
 
     QString from =
         m_socket.localAddress().toString() + ':' +
@@ -133,11 +135,11 @@ void Socket::readFromSocket()
     dataPtr->m_timestamp = DataInfo::TimestampClock::now();
 
     auto dataSize = socket->bytesAvailable();
-    dataPtr->m_data.resize(dataSize);
+    dataPtr->m_data.resize(static_cast<std::size_t>(dataSize));
     auto result =
         socket->read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
     if (result != dataSize) {
-        dataPtr->m_data.resize(result);
+        dataPtr->m_data.resize(static_cast<std::size_t>(result));
     }
 
     QString from =

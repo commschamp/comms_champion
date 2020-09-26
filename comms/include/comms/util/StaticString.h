@@ -251,13 +251,17 @@ protected:
 
     void push_back(TChar ch)
     {
-        COMMS_ASSERT((size() < capacity()) || (!"The string is full."));
+        static constexpr bool The_string_is_full = false;
+        static_cast<void>(The_string_is_full);
+        COMMS_ASSERT((size() < capacity()) || The_string_is_full);
         vec_.insert(end(), ch);
     }
 
     void pop_back()
     {
-        COMMS_ASSERT((!empty()) || (!"The string is empty."));
+        static constexpr bool The_string_is_empty = false;
+        static_cast<void>(The_string_is_empty);        
+        COMMS_ASSERT((!empty()) || The_string_is_empty);
         vec_.erase(end() - 1, end());
     }
 
@@ -487,7 +491,7 @@ protected:
         pos = std::min(pos, size() - 1);
         auto startIdx = static_cast<int>(std::min(pos, size() - count));
         for (auto idx = startIdx; 0 <= idx; --idx) {
-            auto thisStrBeg = &vec_[idx];
+            auto thisStrBeg = &vec_[static_cast<std::size_t>(idx)];
             auto thisStrEnd = thisStrBeg + count;
             if (std::equal(thisStrBeg, thisStrEnd, str)) {
                 return static_cast<std::size_t>(idx);

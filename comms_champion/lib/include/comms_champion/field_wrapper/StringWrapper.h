@@ -88,7 +88,7 @@ protected:
     virtual QString getValueImpl() const override
     {
         auto& strField = Base::field();
-        return QString::fromUtf8(strField.value().c_str(), strField.value().size());
+        return QString::fromUtf8(strField.value().c_str(), static_cast<int>(strField.value().size()));
     }
 
     virtual void setValueImpl(const QString& val) override
@@ -99,7 +99,9 @@ protected:
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
         static_cast<void>(value);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 

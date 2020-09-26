@@ -184,7 +184,9 @@ void MainWindowWidget::addMainToolbarAction(ActionPtr action)
     auto iter = std::find(m_customActions.begin(), m_customActions.end(), action);
     if (iter != m_customActions.end())
     {
-        assert(!"Adding action second time");
+        static constexpr bool Adding_action_second_time = false;
+        static_cast<void>(Adding_action_second_time);
+        assert(Adding_action_second_time);
         return;
     }
 

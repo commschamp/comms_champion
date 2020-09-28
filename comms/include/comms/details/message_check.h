@@ -101,7 +101,7 @@ class AllMessagesSortedCheckHelper<true>
     template <typename TMsg1, typename TMsg2, typename... TRest>
     using StrongType = 
         typename comms::util::LazyDeepConditional<
-            TMsg2::ImplOptions::MsgId <= TMsg1::ImplOptions::MsgId
+            (TMsg2::ImplOptions::MsgId <= TMsg1::ImplOptions::MsgId)
         >::template Type<
             comms::util::FalseType,
             AllMessagesSortedCheckHelperInvoke,
@@ -111,7 +111,7 @@ class AllMessagesSortedCheckHelper<true>
     template <typename TMsg1, typename TMsg2, typename... TRest>
     using WeakType = 
         typename comms::util::LazyDeepConditional<
-            TMsg2::ImplOptions::MsgId < TMsg1::ImplOptions::MsgId
+            (TMsg2::ImplOptions::MsgId < TMsg1::ImplOptions::MsgId)
         >::template Type<
             comms::util::FalseType,
             AllMessagesSortedCheckHelperInvoke,
@@ -121,7 +121,7 @@ class AllMessagesSortedCheckHelper<true>
     template <typename TStrong, typename TMsg1, typename TMsg2, typename... TRest>
     using InnerType = 
         typename comms::util::LazyShallowConditional<
-            TStrong::value
+            (TStrong::value)
         >::template Type<
             StrongType,
             WeakType,
@@ -135,7 +135,7 @@ public:
     template <typename TStrong, typename TMsg1, typename TMsg2, typename... TRest>
     using Type = 
         typename comms::util::LazyShallowConditional<
-            MessageStaticNumIdBoolType<TMsg1>::value && MessageStaticNumIdBoolType<TMsg2>::value
+            (MessageStaticNumIdBoolType<TMsg1>::value && MessageStaticNumIdBoolType<TMsg2>::value)
         >::template Type<
             InnerType,
             InnerFalse,

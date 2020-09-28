@@ -225,7 +225,7 @@ macro (cc_define_external_project_targets inst_dir)
 
     add_library(comms INTERFACE)
     add_library(cc::comms ALIAS comms)
-    target_include_directories(comms SYSTEM INTERFACE ${CC_INCLUDE_DIRS})
+    target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
 
     target_compile_options(comms INTERFACE
       $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>

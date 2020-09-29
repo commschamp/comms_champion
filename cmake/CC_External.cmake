@@ -54,6 +54,7 @@
 #         [QT_DIR <path_to_qt>]
 #         [NO_TOOLS]
 #         [UPDATE_DISCONNECTED]
+#         [NO_SYSTEM_HEADERS]
 #         [NO_DEFAULT_CMAKE_ARGS]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
@@ -69,6 +70,7 @@
 #   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
 # - UPDATE_DISCONNECTED - Pass "UPDATE_DISCONNECTED 1" to ExternalProject_Add()
+# - NO_SYSTEM_HEADERS - Don't treat comms library as system headers
 # - NO_DEFAULT_CMAKE_ARGS - Exclude passing the extra cmake arguments that copy the 
 #       following values from the invoking project:
 #         * CMAKE_C_COMPILER
@@ -214,7 +216,7 @@ endfunction ()
 
 macro (cc_define_external_project_targets inst_dir)
     set (_prefix CC_EXT_TGT)
-    set (_options NO_COMMS_CHAMPION NO_TOOLS)
+    set (_options NO_COMMS_CHAMPION NO_TOOLS NO_SYSTEM_HEADERS)
     set (_oneValueArgs QT_DIR)
     set (_mutiValueArgs)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -225,7 +227,12 @@ macro (cc_define_external_project_targets inst_dir)
 
     add_library(comms INTERFACE)
     add_library(cc::comms ALIAS comms)
-    target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
+
+    set (sys_prefix SYSTEM)
+    if (CC_EXT_TGT_NO_SYSTEM_HEADERS)
+        set (sys_prefix)
+    endif ()    
+    target_include_directories(comms ${sys_prefix} INTERFACE ${CC_INCLUDE_DIRS})
 
     target_compile_options(comms INTERFACE
       $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>
@@ -300,7 +307,7 @@ endmacro ()
 
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
-    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED NO_DEFAULT_CMAKE_ARGS)
+    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED NO_DEFAULT_CMAKE_ARGS NO_SYSTEM_HEADERS)
     set (_oneValueArgs SRC_DIR BUILD_DIR INSTALL_DIR REPO TAG QT_DIR TGT)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -356,6 +363,13 @@ function (cc_build_as_external_project)
         )
     endif ()
 
+    set (sys_headers_param "ON")
+    set (define_target_sys_headers_param)
+    if (CC_EXTERNAL_PROJ_NO_SYSTEM_HEADERS)
+        set (sys_headers_param "OFF")
+        set (define_target_sys_headers_param NO_SYSTEM_HEADERS)
+    endif ()
+
     include(ExternalProject)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
@@ -370,6 +384,7 @@ function (cc_build_as_external_project)
             ${extra_cmake_args}
             ${exteral_proj_qt_dir_param} ${comms_lib_only_param}
             -DCMAKE_INSTALL_PREFIX=${CC_EXTERNAL_PROJ_INSTALL_DIR}
+            -DCC_EXPORT_AS_SYSTEM_HEADERS=${sys_headers_param}
             ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
     )    
 
@@ -387,6 +402,7 @@ function (cc_build_as_external_project)
         ${CC_EXTERNAL_PROJ_INSTALL_DIR} 
         ${define_targets_qt_dir_param}
         ${define_targets_no_tools_param}
+        ${define_target_sys_headers_param}
     )
 
     if (TARGET comms)

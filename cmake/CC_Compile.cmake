@@ -4,6 +4,7 @@
 #     cc_compile(
 #         [WARN_AS_ERR]
 #         [STATIC_RUNTIME]
+#         [USE_CCACHE]
 #     )
 #
 # - WARN_AS_ERR - Treat warnings as errors.

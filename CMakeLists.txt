@@ -117,6 +117,7 @@ write_basic_package_version_file(
     
 set (LIB_COMMS_CMAKE_FILES
     ${PROJECT_SOURCE_DIR}/cmake/CC_Compile.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_External.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_CxxtestFuncs.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake

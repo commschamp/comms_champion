@@ -129,7 +129,6 @@ set (LIB_COMMS_CMAKE_FILES
 ) 
 
 set (COMMS_CHAMPION_CMAKE_FILES
-    ${LIB_COMMS_CMAKE_FILES}
     ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake

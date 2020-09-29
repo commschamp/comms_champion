@@ -41,7 +41,7 @@ target_compile_options(comms INTERFACE
 
 install(TARGETS comms EXPORT commsExport)
 install(EXPORT commsExport NAMESPACE cc::
-  DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
+    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
 )
 
 install (

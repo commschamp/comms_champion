@@ -10,7 +10,6 @@ option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
 option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when no CMAKE_CXX_STANDARD is defined" OFF)
 option (CC_NO_CCACHE "Disable use of ccache on UNIX systems")
-option (CC_EXPORT_AS_SYSTEM_HEADERS "Export COMMS library target to be included as system headers." ON)
 
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if

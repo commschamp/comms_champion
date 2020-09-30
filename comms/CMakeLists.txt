@@ -22,16 +22,8 @@ endif ()
 add_library(comms INTERFACE)
 add_library (cc::comms ALIAS comms)
 
-set (sys_prefix)
-if (CC_EXPORT_AS_SYSTEM_HEADERS)
-    set (sys_prefix SYSTEM)
-endif ()
-
-target_include_directories(comms ${sys_prefix} INTERFACE
-  $<INSTALL_INTERFACE:include>
-)
-
 target_include_directories(comms INTERFACE
+  $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 

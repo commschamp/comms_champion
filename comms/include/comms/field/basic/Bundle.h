@@ -102,78 +102,86 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return CommonFuncs::FieldSumMinLengthIntType<TMembers...>::value;
+        using LenType = CommonFuncs::FieldSumMinLengthIntType<TMembers...>;
+        return LenType::value;
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t minLengthFrom()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMinLengthFromUntilIntType<
                 TFromIdx, 
                 std::tuple_size<ValueType>::value, 
                 TMembers...
-            >::value;
+            >;
+        return LenType::value;
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t minLengthUntil()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMinLengthFromUntilIntType<
                 0, 
                 TUntilIdx, 
                 TMembers...
-            >::value;
+            >;         
+        return LenType::value;
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t minLengthFromUntil()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMinLengthFromUntilIntType<
                 TFromIdx, 
                 TUntilIdx, 
                 TMembers...
-            >::value;
+            >;        
+        return LenType::value;
     }
 
     static constexpr std::size_t maxLength()
     {
-        return CommonFuncs::FieldSumMaxLengthIntType<TMembers...>::value;
+        using LenType = CommonFuncs::FieldSumMaxLengthIntType<TMembers...>;
+        return LenType::value;
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t maxLengthFrom()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMaxLengthFromUntilIntType<
                 TFromIdx,
                 std::tuple_size<ValueType>::value,
                 TMembers...
-            >::value;
+            >;                
+        return LenType::value;
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t maxLengthUntil()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMaxLengthFromUntilIntType<
                 0,
                 TUntilIdx,
                 TMembers...
-            >::value;
+            >;        
+        return LenType::value;
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t maxLengthFromUntil()
     {
-        return 
+        using LenType = 
             CommonFuncs::FieldSumMaxLengthFromUntilIntType<
                 TFromIdx,
                 TUntilIdx,
                 TMembers...
-            >::value;
+            >;        
+        return LenType::value;
     }
 
     constexpr bool valid() const

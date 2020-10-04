@@ -126,71 +126,55 @@ public:
     static constexpr std::size_t doMinLengthFrom()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
-                TFromIdx, 
-                std::tuple_size<AllFields>::value,
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthUntil()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
-                0U,
-                TUntilIdx, 
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());        
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthFromUntil()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMinLengthFromUntilIntType<
-                TFromIdx,
-                TUntilIdx, 
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());           
     }
 
     static constexpr std::size_t doMaxLength()
     {
-        return comms::field::basic::CommonFuncs::FieldSumMaxLengthIntType<TAllFields...>::value;
+        return 
+            comms::util::tupleTypeAccumulate<AllFields>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());  
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMaxLengthFrom()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
-                TFromIdx, 
-                std::tuple_size<AllFields>::value,
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>()); 
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthUntil()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
-                0U,
-                TUntilIdx, 
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthFromUntil()
     {
         return 
-            comms::field::basic::CommonFuncs::FieldSumMaxLengthFromUntilIntType<
-                TFromIdx,
-                TUntilIdx, 
-                TAllFields...
-            >::value;
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());
     }
 
     bool doRefresh()

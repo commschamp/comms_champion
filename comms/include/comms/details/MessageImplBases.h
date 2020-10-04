@@ -117,7 +117,9 @@ public:
 
     static constexpr std::size_t doMinLength()
     {
-        return comms::field::basic::CommonFuncs::FieldSumMinLengthIntType<TAllFields...>::value;
+        return 
+            comms::util::tupleTypeAccumulate<AllFields>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx>

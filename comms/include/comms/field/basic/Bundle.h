@@ -102,8 +102,9 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        using LenType = CommonFuncs::FieldSumMinLengthIntType<TMembers...>;
-        return LenType::value;
+        return 
+            comms::util::tupleTypeAccumulate<Members>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx>

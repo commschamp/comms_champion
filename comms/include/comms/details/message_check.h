@@ -71,101 +71,82 @@ constexpr bool messageHasStaticNumId()
     return MessageStaticNumIdBoolType<TMessage>::value;
 }
 
-template <bool THasElems>
-class AllMessagesSortedCheckHelper;
-
-template <typename...>
-struct AllMessagesSortedCheckHelperInvoke
-{
-    template <typename TStrong, typename... TRest>
-    using Type = 
-        typename AllMessagesSortedCheckHelper<
-            (1U < sizeof...(TRest))
-        >::template Type<
-            TStrong,
-            TRest...
-        >;
-};
-
-template <bool THasElems>
-class AllMessagesSortedCheckHelper
+template <bool TMoreThanOne, typename...>
+class AllMessagesStrongSortedCheckHelper // <false>
 {
 public:    
-    template <typename TStrong, typename... TRest>
-    using Type = AllMessagesHaveStaticNumIdBoolType<TRest...>;
+    template <typename...>
+    using Type = std::true_type;
 };
 
-template <>
-class AllMessagesSortedCheckHelper<true>
+template <typename... TParams>
+class AllMessagesStrongSortedCheckHelper<true, TParams...>
 {
+public:
     template <typename TMsg1, typename TMsg2, typename... TRest>
-    using StrongType = 
-        typename comms::util::LazyDeepConditional<
-            (TMsg2::ImplOptions::MsgId <= TMsg1::ImplOptions::MsgId)
-        >::template Type<
-            comms::util::FalseType,
-            AllMessagesSortedCheckHelperInvoke,
-            std::true_type, TMsg2, TRest...
-        >;
-
-    template <typename TMsg1, typename TMsg2, typename... TRest>
-    using WeakType = 
-        typename comms::util::LazyDeepConditional<
-            (TMsg2::ImplOptions::MsgId < TMsg1::ImplOptions::MsgId)
-        >::template Type<
-            comms::util::FalseType,
-            AllMessagesSortedCheckHelperInvoke,
-            std::false_type, TMsg2, TRest...
-        >;
-
-    template <typename TStrong, typename TMsg1, typename TMsg2, typename... TRest>
-    using InnerType = 
-        typename comms::util::LazyShallowConditional<
-            (TStrong::value)
-        >::template Type<
-            StrongType,
-            WeakType,
-            TMsg1, TMsg2, TRest...
-        >;   
-
-    template <typename TStrong, typename TMsg1, typename TMsg2, typename... TRest>
-    using InnerFalse = std::false_type;
-
-public:    
-    template <typename TStrong, typename TMsg1, typename TMsg2, typename... TRest>
     using Type = 
-        typename comms::util::LazyShallowConditional<
-            (MessageStaticNumIdBoolType<TMsg1>::value && MessageStaticNumIdBoolType<TMsg2>::value)
+        typename comms::util::Conditional<
+            (TMsg1::ImplOptions::MsgId < TMsg2::ImplOptions::MsgId)
         >::template Type<
-            InnerType,
-            InnerFalse,
-            TStrong, TMsg1, TMsg2, TRest...
+            typename AllMessagesStrongSortedCheckHelper<(0U < sizeof...(TRest))>::template Type<TMsg2, TRest...>,
+            std::false_type
         >;
 };
 
-template <typename TStrong, typename TAllMessages>
-struct AllMessagesSortedCheckHelperWrap;
-
-template <typename TStrong, typename... TAllMessages>
-struct AllMessagesSortedCheckHelperWrap<TStrong, std::tuple<TAllMessages...> >
+template <bool TMoreThanOne, typename...>
+class AllMessagesWeakSortedCheckHelper // <false>
 {
-    using ValueType = 
-        typename AllMessagesSortedCheckHelper<(1U < sizeof...(TAllMessages))>::
-            template Type<TStrong, TAllMessages...>;
+public:    
+    template <typename... TRest>
+    using Type = std::true_type;
+};
 
-    static constexpr bool Value = ValueType::value;
+template <typename... TParams>
+class AllMessagesWeakSortedCheckHelper<true, TParams...>
+{
+public:
+    template <typename TMsg1, typename TMsg2, typename... TRest>
+    using Type = 
+        typename comms::util::Conditional<
+            (TMsg1::ImplOptions::MsgId <= TMsg2::ImplOptions::MsgId)
+        >::template Type<
+            typename AllMessagesWeakSortedCheckHelper<(0U < sizeof...(TRest))>::template Type<TMsg2, TRest...>,
+            std::false_type
+        >;
+};
+
+template <typename TAllMessages>
+struct AllMessagesStrongSortedCheckHelperWrap;
+
+template <typename... TAllMessages>
+struct AllMessagesStrongSortedCheckHelperWrap<std::tuple<TAllMessages...> >
+{
+    static constexpr bool Value = 
+        AllMessagesHaveStaticNumIdBoolType<TAllMessages...>::value &&
+        AllMessagesStrongSortedCheckHelper<(1U < sizeof...(TAllMessages))>::template Type<TAllMessages...>::value;
+};
+
+template <typename TAllMessages>
+struct AllMessagesWeakSortedCheckHelperWrap;
+
+template <typename... TAllMessages>
+struct AllMessagesWeakSortedCheckHelperWrap<std::tuple<TAllMessages...> >
+{
+    static constexpr bool Value = 
+        AllMessagesHaveStaticNumIdBoolType<TAllMessages...>::value &&
+        AllMessagesWeakSortedCheckHelper<(1U < sizeof...(TAllMessages))>::template Type<TAllMessages...>::value;
 };
 
 template <typename TAllMessages>
 constexpr bool allMessagesAreStrongSorted()
 {
-    return AllMessagesSortedCheckHelperWrap<std::true_type, TAllMessages>::Value;
+    return AllMessagesStrongSortedCheckHelperWrap<TAllMessages>::Value;
 }
 
 template <typename TAllMessages>
 constexpr bool allMessagesAreWeakSorted()
 {
-    return AllMessagesSortedCheckHelperWrap<std::false_type, TAllMessages>::Value;
+    return AllMessagesWeakSortedCheckHelperWrap<TAllMessages>::Value;
 }
 
 } // namespace details

@@ -15,6 +15,7 @@
 #include "comms/field/IntValue.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/ChecksumLayerOptionsParser.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -146,6 +147,14 @@ public:
             return checksumEs;
         }
 
+        using VerifyTag = 
+            typename comms::util::LazyShallowConditional<
+                ParsedOptions::HasVerifyBeforeRead
+            >::template Type<
+                VerifyBeforeReadTag,
+                VerifyAfterReadTag
+            >;        
+
         std::size_t fieldLen = static_cast<std::size_t>(std::distance(beforeFieldReadIter, iter));
         return
             readInternal(
@@ -266,16 +275,11 @@ private:
     static_assert(Field::minLength() == Field::maxLength(),
         "The checksum field is expected to be of fixed length");
 
-    struct VerifyBeforeReadTag {};
-    struct VerifyAfterReadTag {};
+    template <typename... TParams>
+    using VerifyBeforeReadTag = comms::details::tag::Tag1<>;
 
-    using VerifyTag = typename
-        std::conditional<
-            ParsedOptions::HasVerifyBeforeRead,
-            VerifyBeforeReadTag,
-            VerifyAfterReadTag
-        >::type;
-
+    template <typename... TParams>
+    using VerifyAfterReadTag = comms::details::tag::Tag2<>;
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus verifyRead(
@@ -335,7 +339,7 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        VerifyBeforeReadTag,
+        VerifyBeforeReadTag<>,
         TExtraValues... extraValues)
     {
         return
@@ -355,7 +359,7 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        VerifyAfterReadTag,
+        VerifyAfterReadTag<>,
         TExtraValues... extraValues)
     {
         return

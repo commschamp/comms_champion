@@ -13,7 +13,9 @@
 #include <tuple>
 #include <type_traits>
 
-#include "util/Tuple.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -188,35 +190,52 @@ public:
     {
         // Nothing to do
         static_cast<void>(msg);
+
         using Tag =
-            typename std::conditional<
-                std::is_void<TRetType>::value,
+            typename comms::util::LazyShallowConditional<
+                std::is_void<TRetType>::value
+            >::template Type<
                 VoidReturnTag,
-                typename std::conditional<
-                    std::is_lvalue_reference<TRetType>::value,
-                    ReferenceReturnTag,
-                    ValueReturnTag
-                >::type
-            >::type;
+                RetValueShallowCondWrap
+            >;
+
         return defaultHandle(Tag());
     }
 
 private:
-    struct VoidReturnTag {};
-    struct ReferenceReturnTag {};
-    struct ValueReturnTag {};
+    template <typename... TParams>
+    using VoidReturnTag = comms::details::tag::Tag1<>;
 
-    void defaultHandle(VoidReturnTag)
+    template <typename... TParams>
+    using ReferenceReturnTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using ValueReturnTag = comms::details::tag::Tag3<>;    
+
+    template <typename... TParams>
+    using RetValueShallowCondWrap = 
+        typename comms::util::LazyShallowConditional<
+            std::is_lvalue_reference<TRetType>::value
+        >::template Type<
+            ReferenceReturnTag,
+            ValueReturnTag,
+            TParams...
+        >;     
+
+    template <typename... TParams>
+    void defaultHandle(VoidReturnTag<TParams...>)
     {
     }
 
-    TRetType defaultHandle(ReferenceReturnTag)
+    template <typename... TParams>
+    TRetType defaultHandle(ReferenceReturnTag<TParams...>)
     {
         static typename std::decay<TRetType>::type Value;
         return Value;
     }
 
-    TRetType defaultHandle(ValueReturnTag)
+    template <typename... TParams>
+    TRetType defaultHandle(ValueReturnTag<TParams...>)
     {
         return typename std::decay<TRetType>::type();
     }

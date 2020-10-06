@@ -81,7 +81,7 @@ comms::ErrorStatus processSingle(
             continue;
         }
 
-        consumed += std::distance(begIter, iter);
+        consumed += static_cast<decltype(consumed)>(std::distance(begIter, iter));
         return es;
     }
 
@@ -258,7 +258,7 @@ std::size_t processAllWithDispatch(
 
         MsgPtr msg;
         auto es = processSingleWithDispatch(iter, len - consumed, std::forward<TFrame>(frame), msg, handler);
-        consumed += std::distance(begIter, iter);
+        consumed += static_cast<decltype(consumed)>(std::distance(begIter, iter));
         if (es == comms::ErrorStatus::NotEnoughData) {
             break;
         }
@@ -307,7 +307,7 @@ std::size_t processAllWithDispatchViaDispatcher(
 
         MsgPtr msg;
         auto es = processSingleWithDispatchViaDispatcher<TDispatcher>(iter, len - consumed, std::forward<TFrame>(frame), msg, handler);
-        consumed += std::distance(begIter, iter);
+        consumed += static_cast<decltype(consumed)>(std::distance(begIter, iter));
         if (es == comms::ErrorStatus::NotEnoughData) {
             break;
         }

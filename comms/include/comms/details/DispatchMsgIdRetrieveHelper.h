@@ -13,8 +13,10 @@
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/details/message_check.h"
 #include "comms/CompileControl.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -22,37 +24,51 @@ namespace comms
 namespace details
 {
 
-template <typename TMessage>
+template <typename...>
 class DispatchMsgIdRetrieveHelper
 {
 public:
-    static_assert(TMessage::hasMsgIdType(), "Message interface class must define its id type");
-    using MsgIdParamType = typename TMessage::MsgIdParamType;
-    using MsgIdType = typename TMessage::MsgIdType;
 
-    static MsgIdParamType doGetId()
+    template <typename TMessage>
+    static typename TMessage::MsgIdParamType doGetId()
     {
-        using Tag = 
-            typename std::conditional<
-                messageHasStaticNumId<TMessage>(),
-                HasStaticIdTag,
-                typename std::conditional<
-                    comms::isMessage<TMessage>() && TMessage::hasGetId(),
-                    HasDynamicIdTag,
-                    NoIdTag
-                >::type
-            >::type;
+        static_assert(TMessage::hasMsgIdType(), "Message interface class must define its id type");
+        static_assert(!std::is_same<Tag<TMessage>, NoIdTag<> >::value, "Must be able to retrieve ID");
 
-        static_assert(!std::is_same<Tag, NoIdTag>::value, "Must be able to retrieve ID");
-        return doGetIdInternal(Tag());
+        return doGetIdInternal<TMessage>(Tag<TMessage>());
     }
 
 private:
-    struct HasStaticIdTag {};
-    struct HasDynamicIdTag {};
-    struct NoIdTag {};
-    
-    static MsgIdParamType doGetIdInternal(HasStaticIdTag)
+    template <typename... TParams>
+    using HasStaticIdTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using HasDynamicIdTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using NoIdTag = comms::details::tag::Tag3<>;
+
+    template <typename TMessage, typename...>
+    using DynamicCheckTag = 
+        typename comms::util::LazyShallowConditional<
+            comms::isMessage<TMessage>() && TMessage::hasGetId()
+        >::template Type<
+            HasDynamicIdTag,
+            NoIdTag
+        >;
+
+    template <typename TMessage>
+    using Tag = 
+        typename comms::util::LazyShallowConditional<
+            messageHasStaticNumId<TMessage>()
+        >::template Type<
+            HasStaticIdTag,
+            DynamicCheckTag,
+            TMessage
+        >; 
+
+    template <typename TMessage, typename... TParams>
+    static typename TMessage::MsgIdParamType doGetIdInternal(HasStaticIdTag<TParams...>)
     {
         static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
         static_assert(messageHasStaticNumId<TMessage>(), "Message must define static numeric ID");
@@ -60,20 +76,21 @@ private:
         return TMessage::doGetId();
     }      
 
-    static MsgIdParamType doGetIdInternal(HasDynamicIdTag)
+    template <typename TMessage, typename... TParams>
+    static typename TMessage::MsgIdParamType doGetIdInternal(HasDynamicIdTag<TParams...>)
     {
         static_assert(comms::isMessage<TMessage>(), "Must be actual message");
         static_assert(TMessage::hasGetId(), "Message interface must be able to return id polymorphically");
 
-        static const MsgIdType Id = TMessage().getId();
+        static const typename TMessage::MsgIdType Id = TMessage().getId();
         return Id;
     }        
 };
 
 template <typename TMessage>
-auto dispatchMsgGetMsgId() -> decltype(DispatchMsgIdRetrieveHelper<TMessage>::doGetId())
+auto dispatchMsgGetMsgId() -> decltype(DispatchMsgIdRetrieveHelper<>::template doGetId<TMessage>())
 {
-    return DispatchMsgIdRetrieveHelper<TMessage>::doGetId();
+    return DispatchMsgIdRetrieveHelper<>::template doGetId<TMessage>();
 }
 
 } // namespace details

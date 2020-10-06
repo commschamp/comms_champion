@@ -9,6 +9,7 @@ option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
 option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when no CMAKE_CXX_STANDARD is defined" OFF)
+option (CC_NO_CCACHE "Disable use of ccache on UNIX systems")
 
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
@@ -29,6 +30,9 @@ if (NOT CC_EXTERNALS_DIR)
 endif ()
 
 set (CMAKE_SCRIPTS_DIR "${PROJECT_SOURCE_DIR}/cmake")
+
+################################################
+
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
@@ -45,65 +49,27 @@ while (TRUE)
     break()
 endwhile ()
 
-if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
-    set (extra_flags_list
-        "-Wall" "-Wextra" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
-        "-Wmissing-include-dirs"
-        "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
-        "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
-    )
-
-    if (CMAKE_COMPILER_IS_GNUCC)
-        list (APPEND extra_flags_list
-            "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
-        )
-
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
-            list (APPEND extra_flags_list
-                "-Wno-pragmas" "-Wno-type-limits"
-            )
-        endif()
-
-    endif ()
-
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        list (APPEND extra_flags_list "-Wno-dangling-field -Wno-unused-command-line-argument")
-    endif ()
-    
-    if (NOT CC_NO_WARN_AS_ERR)
-        list (APPEND extra_flags_list "-Werror")
-    endif ()
-    
-    string(REPLACE ";" " " extra_flags "${extra_flags_list}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}")
-    
-    if (CC_STATIC_RUNTIME)
-        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-    endif ()
-elseif (MSVC)
-
-    if (NOT CC_NO_WARN_AS_ERR)
-        add_definitions("/WX")
-    endif ()
-
-    if (CC_STATIC_RUNTIME)
-        foreach(flag_var 
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            if(${flag_var} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-            endif()
-        endforeach()
-    endif ()
+################################################
+# Compiler options
+set (warn_opt)
+if (NOT CC_NO_WARN_AS_ERR)
+    set (warn_opt WARN_AS_ERR)
 endif ()
 
+set (static_runtime_opt)
+if (CC_STATIC_RUNTIME)
+    set (static_runtime_opt STATIC_RUNTIME)
+endif ()
+
+set (ccache_opt)
 if ((UNIX) AND (NOT CC_NO_CCACHE))
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-    endif(CCACHE_FOUND)
-endif ()    
+    set (ccache_opt USE_CCACHE)
+endif ()
+
+include (${CMAKE_SCRIPTS_DIR}/CC_Compile.cmake)
+cc_compile(${warn_opt} ${static_runtime_opt} ${ccache_opt})
+
+################################################
 
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
 
@@ -149,9 +115,12 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion)
     
 set (LIB_COMMS_CMAKE_FILES
+    ${PROJECT_SOURCE_DIR}/cmake/CC_Compile.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_External.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_CxxtestFuncs.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_Prefetch.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_RunWithValgrindScript.cmake
     ${PROJECT_SOURCE_DIR}/cmake/LibCommsConfig.cmake
     ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
@@ -159,7 +128,6 @@ set (LIB_COMMS_CMAKE_FILES
 ) 
 
 set (COMMS_CHAMPION_CMAKE_FILES
-    ${LIB_COMMS_CMAKE_FILES}
     ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake

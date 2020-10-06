@@ -125,7 +125,7 @@ void fillDurationComboBox(QComboBox& box)
     };
 
     static_assert(
-        std::extent<decltype(Strings)>::value == (std::size_t)Duration::NumOfDurations,
+        std::extent<decltype(Strings)>::value == static_cast<std::size_t>(Duration::NumOfDurations),
         "Incorrect mapping of strings.");
 
     for (auto s : Strings) {
@@ -149,18 +149,23 @@ long long unsigned durationToMs(int value, Duration dur)
 {
 
     if (Duration::NumOfDurations <= dur) {
-        assert(!"Incorrert duration");
+        static constexpr bool Incorrect_duration = false;
+        static_cast<void>(Incorrect_duration);
+        assert(Incorrect_duration);
         return static_cast<long long unsigned>(value);
     }
 
-    return static_cast<long long unsigned>(DurationMul[static_cast<std::size_t>(dur)] * value);
+    auto castValue = static_cast<long long unsigned>(value);
+    return static_cast<long long unsigned>(DurationMul[static_cast<std::size_t>(dur)] * castValue);
 }
 
 int msToDurationUnits(long long unsigned value, Duration dur)
 {
 
     if (Duration::NumOfDurations <= dur) {
-        assert(!"Incorrert duration");
+        static constexpr bool Incorrect_duration = false;
+        static_cast<void>(Incorrect_duration);
+        assert(Incorrect_duration);
         return static_cast<int>(value);
     }
 
@@ -513,7 +518,7 @@ void MessageUpdateDialog::accept()
             QJsonDocument::fromJson(
                 QByteArray(
                     reinterpret_cast<const char*>(&extraData[0]),
-                    extraData.size()));
+                    static_cast<int>(extraData.size())));
         property::message::ExtraInfo().setTo(doc.object().toVariantMap(), *msg);
     } while (false);
     m_msg = std::move(msg);

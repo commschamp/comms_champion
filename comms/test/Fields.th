@@ -2539,6 +2539,13 @@ void FieldsTestSuite::test57()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
+    using Scaling = comms::units::details::ScalingRatioOf<Field>;
+    static_assert(std::is_same<Scaling, std::ratio<1, 10> >::value, "Wrong scaling");
+    static_assert(std::is_same<Field::ParsedOptions::UnitsRatio, std::milli >::value, "Wrong scaling");
+
+    using FullRatio = comms::units::details::FullUnitsRatioOf<Field, std::milli>;
+    static_assert(std::is_same<Scaling, FullRatio>::value, "Wrong ratio");
+
     static const std::uint32_t InitVal = 600000;
     Field field;
     field.value() = InitVal;
@@ -3655,9 +3662,6 @@ void FieldsTestSuite::test71()
 
 void FieldsTestSuite::test72()
 {
-    static_assert(!comms::field::basic::details::stringHasPushBack<comms::util::StringView>(),
-            "StringView doesn't have push_back");
-
     typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::uint8_t

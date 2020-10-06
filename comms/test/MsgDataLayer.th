@@ -243,11 +243,13 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
 {
     typedef TMessage Message;
 
-    typedef typename std::conditional<
-            std::is_base_of<BeMessageBase, Message>::value,
+    using ProtStack =
+        typename comms::util::Conditional<
+            std::is_base_of<BeMessageBase, Message>::value
+        >::template Type<
             ProtocolStack<BeMessageBase>,
             ProtocolStack<LeMessageBase>
-        >::type ProtStack;
+        >;
 
     ProtStack stack;
 #ifndef CC_COMPILER_GCC47
@@ -318,11 +320,13 @@ TMessage MsgDataLayerTestSuite::internalReadWriteToVectorTest(
 {
     typedef TMessage Message;
 
-    typedef typename std::conditional<
-            std::is_base_of<BackInsertBeMessageBase, Message>::value,
+    using ProtStack =
+        typename comms::util::Conditional<
+            std::is_base_of<BackInsertBeMessageBase, Message>::value
+        >::template Type<
             ProtocolStack<BackInsertBeMessageBase>,
             ProtocolStack<BackInsertLeMessageBase>
-        >::type ProtStack;
+        >;
 
     ProtStack stack;
     static_cast<void>(stack);
@@ -355,11 +359,13 @@ void MsgDataLayerTestSuite::internalWriteReadTest(
 {
     typedef TMessage Message;
 
-    typedef typename std::conditional<
-            std::is_base_of<BeMessageBase, Message>::value,
+    using ProtStack = 
+        typename comms::util::Conditional<
+            std::is_base_of<BeMessageBase, Message>::value
+        >::template Type<
             ProtocolStack<BeMessageBase>,
             ProtocolStack<LeMessageBase>
-        >::type ProtStack;
+        >;
 
     ProtStack stack;
     static_cast<void>(stack);

@@ -23,8 +23,8 @@ add_library(comms INTERFACE)
 add_library (cc::comms ALIAS comms)
 
 target_include_directories(comms INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 target_compile_options(comms INTERFACE
@@ -33,7 +33,7 @@ target_compile_options(comms INTERFACE
 
 install(TARGETS comms EXPORT commsExport)
 install(EXPORT commsExport NAMESPACE cc::
-  DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
+    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
 )
 
 install (

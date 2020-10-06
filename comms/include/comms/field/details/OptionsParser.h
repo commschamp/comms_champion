@@ -11,6 +11,7 @@
 #include <ratio>
 #include "comms/options.h"
 #include "comms/CompileControl.h"
+#include "adapters.h"
 
 namespace comms
 {
@@ -28,42 +29,133 @@ template <>
 class OptionsParser<>
 {
 public:
-    static const bool HasCustomValueReader = false;
-    static const bool HasCustomRead = false;
-    static const bool HasSerOffset = false;
-    static const bool HasFixedLengthLimit = false;
-    static const bool HasFixedBitLengthLimit = false;
-    static const bool HasVarLengthLimits = false;
-    static const bool HasSequenceElemLengthForcing = false;
-    static const bool HasSequenceSizeForcing = false;
-    static const bool HasSequenceLengthForcing = false;
-    static const bool HasSequenceFixedSize = false;
-    static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
-    static const bool HasSequenceSizeFieldPrefix = false;
-    static const bool HasSequenceSerLengthFieldPrefix = false;
-    static const bool HasSequenceElemSerLengthFieldPrefix = false;
-    static const bool HasSequenceElemFixedSerLengthFieldPrefix = false;
-    static const bool HasSequenceTrailingFieldSuffix = false;
-    static const bool HasSequenceTerminationFieldSuffix = false;
-    static const bool HasDefaultValueInitialiser = false;
-    static const bool HasCustomValidator = false;
-    static const bool HasContentsRefresher = false;
-    static const bool HasCustomRefresh = false;
-    static const bool HasFailOnInvalid = false;
-    static const bool HasIgnoreInvalid = false;
-    static const bool HasInvalidByDefault = false;
-    static const bool HasFixedSizeStorage = false;
-    static const bool HasCustomStorageType = false;
-    static const bool HasScalingRatio = false;
-    static const bool HasUnits = false;
-    static const bool HasOrigDataView = false;
-    static const bool HasEmptySerialization = false;
-    static const bool HasMultiRangeValidation = false;
-    static const bool HasCustomVersionUpdate = false;
-    static const bool HasVersionsRange = false;
-    static const bool HasVersionStorage = false;
-    static const bool HasRemLengthMemberField = false;
-    static const bool HasCustomWrite = false;
+    static constexpr bool HasInvalidByDefault = false;
+    static constexpr bool HasVersionStorage = false;
+    static constexpr bool HasCustomValueReader = false;
+    static constexpr bool HasSerOffset = false;
+    static constexpr bool HasVersionsRange = false;
+    static constexpr bool HasFixedLengthLimit = false;
+    static constexpr bool HasFixedBitLengthLimit = false;
+    static constexpr bool HasVarLengthLimits = false;
+    static constexpr bool HasSequenceElemLengthForcing = false;
+    static constexpr bool HasSequenceElemSerLengthFieldPrefix = false;
+    static constexpr bool HasSequenceElemFixedSerLengthFieldPrefix = false;
+    static constexpr bool HasSequenceSizeForcing = false;
+    static constexpr bool HasSequenceLengthForcing = false;
+    static constexpr bool HasSequenceFixedSize = false;
+    static constexpr bool HasSequenceSizeFieldPrefix = false;
+    static constexpr bool HasSequenceSerLengthFieldPrefix = false;
+    static constexpr bool HasSequenceTrailingFieldSuffix = false;
+    static constexpr bool HasSequenceTerminationFieldSuffix = false;
+    static constexpr bool HasRemLengthMemberField = false;
+    static constexpr bool HasDefaultValueInitialiser = false;
+    static constexpr bool HasMultiRangeValidation = false;
+    static constexpr bool HasCustomValidator = false;
+    static constexpr bool HasContentsRefresher = false;
+    static constexpr bool HasFailOnInvalid = false;
+    static constexpr bool HasIgnoreInvalid = false;
+    static constexpr bool HasEmptySerialization = false;
+    static constexpr bool HasCustomRead = false;
+    static constexpr bool HasCustomRefresh = false;
+    static constexpr bool HasCustomWrite = false;
+    static constexpr bool HasSequenceFixedSizeUseFixedSizeStorage = false;
+    static constexpr bool HasFixedSizeStorage = false;
+    static constexpr bool HasCustomStorageType = false;
+    static constexpr bool HasScalingRatio = false;
+    static constexpr bool HasUnits = false;
+    static constexpr bool HasOrigDataView = false;
+    static constexpr bool HasCustomVersionUpdate = false;
+
+    using UnitsType = void;
+    using ScalingRatio = std::ratio<1, 1>;
+    using UnitsRatio = std::ratio<1, 1>;
+
+    template <typename TField>
+    using AdaptInvalidByDefault = TField;
+
+    template <typename TField>
+    using AdaptVersionStorage = TField;
+
+    template <typename TField>
+    using AdaptCustomValueReader = TField;
+
+    template <typename TField>
+    using AdaptSerOffset = TField;
+
+    template <typename TField>
+    using AdaptVersionsRange = TField;
+
+    template <typename TField>
+    using AdaptFixedLengthLimit = TField;
+
+    template <typename TField>
+    using AdaptFixedBitLengthLimit = TField;
+
+    template <typename TField>
+    using AdaptVarLengthLimits = TField;
+
+    template <typename TField>
+    using AdaptSequenceElemLengthForcing = TField;
+
+    template <typename TField>
+    using AdaptSequenceElemSerLengthFieldPrefix = TField;
+
+    template <typename TField>
+    using AdaptSequenceElemFixedSerLengthFieldPrefix = TField;
+
+    template <typename TField>
+    using AdaptSequenceSizeForcing = TField;
+
+    template <typename TField>
+    using AdaptSequenceLengthForcing = TField;
+
+    template <typename TField>
+    using AdaptSequenceFixedSize = TField;
+
+    template <typename TField>
+    using AdaptSequenceSizeFieldPrefix = TField;
+
+    template <typename TField>
+    using AdaptSequenceSerLengthFieldPrefix = TField;
+
+    template <typename TField>
+    using AdaptSequenceTrailingFieldSuffix = TField;
+
+    template <typename TField>
+    using AdaptSequenceTerminationFieldSuffix = TField;
+
+    template <typename TField>
+    using AdaptRemLengthMemberField = TField;
+
+    template <typename TField>
+    using AdaptDefaultValueInitialiser = TField;
+
+    template <typename TField>
+    using AdaptMultiRangeValidation = TField;
+
+    template <typename TField>
+    using AdaptCustomValidator = TField;
+
+    template <typename TField>
+    using AdaptContentsRefresher = TField;
+    
+    template <typename TField>
+    using AdaptFailOnInvalid = TField;
+
+    template <typename TField>
+    using AdaptIgnoreInvalid = TField;
+
+    template <typename TField>
+    using AdaptEmptySerialization = TField;
+
+    template <typename TField>
+    using AdaptCustomRead = TField;
+
+    template <typename TField>
+    using AdaptCustomRefresh = TField;
+
+    template <typename TField>
+    using AdaptCustomWrite = TField;
 };
 
 template <typename T, typename... TOptions>
@@ -72,8 +164,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomValueReader = true;
+    static constexpr bool HasCustomValueReader = true;
     using CustomValueReader = T;
+
+    template <typename TField>
+    using AdaptCustomValueReader = comms::field::adapter::CustomValueReader<CustomValueReader, TField>;    
 };
 
 template <typename... TOptions>
@@ -82,7 +177,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomRead = true;
+    static constexpr bool HasCustomRead = true;
+
+    template <typename TField>
+    using AdaptCustomRead = comms::field::adapter::CustomReadWrap<TField>;
 };
 
 template <std::intmax_t TOffset, typename... TOptions>
@@ -91,8 +189,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSerOffset = true;
-    static const auto SerOffset = TOffset;
+    static constexpr bool HasSerOffset = true;
+    static const std::intmax_t SerOffset = TOffset;
+
+    template <typename TField>
+    using AdaptSerOffset = comms::field::adapter::SerOffset<SerOffset, TField>;
 };
 
 template <std::size_t TLen, bool TSignExtend, typename... TOptions>
@@ -101,9 +202,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasFixedLengthLimit = true;
-    static const std::size_t FixedLength = TLen;
-    static const bool FixedLengthSignExtend = TSignExtend;
+    static constexpr bool HasFixedLengthLimit = true;
+    static constexpr std::size_t FixedLength = TLen;
+    static constexpr bool FixedLengthSignExtend = TSignExtend;
+
+    template <typename TField>
+    using AdaptFixedLengthLimit = 
+        comms::field::adapter::FixedLength<
+            FixedLength,
+            FixedLengthSignExtend,
+            TField
+        >;            
 };
 
 template <std::size_t TLen, typename... TOptions>
@@ -112,8 +221,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasFixedBitLengthLimit = true;
-    static const std::size_t FixedBitLength = TLen;
+    static constexpr bool HasFixedBitLengthLimit = true;
+    static constexpr std::size_t FixedBitLength = TLen;
+
+    template <typename TField>
+    using AdaptFixedBitLengthLimit = comms::field::adapter::FixedBitLength<FixedBitLength, TField>;
 };
 
 template <std::size_t TMinLen, std::size_t TMaxLen, typename... TOptions>
@@ -122,9 +234,13 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasVarLengthLimits = true;
-    static const std::size_t MinVarLength = TMinLen;
-    static const std::size_t MaxVarLength = TMaxLen;
+    static constexpr bool HasVarLengthLimits = true;
+    static constexpr std::size_t MinVarLength = TMinLen;
+    static constexpr std::size_t MaxVarLength = TMaxLen;
+
+    template <typename TField>
+    using AdaptVarLengthLimits = 
+        comms::field::adapter::VarLength<MinVarLength, MaxVarLength, TField>;
 };
 
 template <typename... TOptions>
@@ -133,7 +249,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceSizeForcing = true;
+    static constexpr bool HasSequenceSizeForcing = true;
+
+    template <typename TField>
+    using AdaptSequenceSizeForcing = comms::field::adapter::SequenceSizeForcing<TField>;
 };
 
 template <typename... TOptions>
@@ -142,7 +261,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceLengthForcing = true;
+    static constexpr bool HasSequenceLengthForcing = true;
+
+    template <typename TField>
+    using AdaptSequenceLengthForcing = comms::field::adapter::SequenceLengthForcing<TField>;
 };
 
 template <typename... TOptions>
@@ -151,7 +273,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceElemLengthForcing = true;
+    static constexpr bool HasSequenceElemLengthForcing = true;
+
+    template <typename TField>
+    using AdaptSequenceElemLengthForcing = comms::field::adapter::SequenceElemLengthForcing<TField>;
 };
 
 template <std::size_t TSize, typename... TOptions>
@@ -160,8 +285,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceFixedSize = true;
-    static const auto SequenceFixedSize = TSize;
+    static constexpr bool HasSequenceFixedSize = true;
+    static constexpr std::size_t SequenceFixedSize = TSize;
+
+    template <typename TField>
+    using AdaptSequenceFixedSize = comms::field::adapter::SequenceFixedSize<SequenceFixedSize, TField>;
 };
 
 template <typename... TOptions>
@@ -170,7 +298,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceFixedSizeUseFixedSizeStorage = true;
+    static constexpr bool HasSequenceFixedSizeUseFixedSizeStorage = true;
 };
 
 template <typename TSizeField, typename... TOptions>
@@ -179,8 +307,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceSizeFieldPrefix = true;
+    static constexpr bool HasSequenceSizeFieldPrefix = true;
     using SequenceSizeFieldPrefix = TSizeField;
+
+    template <typename TField>
+    using AdaptSequenceSizeFieldPrefix = comms::field::adapter::SequenceSizeFieldPrefix<SequenceSizeFieldPrefix, TField>;
 };
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
@@ -189,9 +320,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceSerLengthFieldPrefix = true;
+    static constexpr bool HasSequenceSerLengthFieldPrefix = true;
     using SequenceSerLengthFieldPrefix = TField;
-    static const comms::ErrorStatus SequenceSerLengthFieldReadErrorStatus = TReadErrorStatus;
+    static constexpr comms::ErrorStatus SequenceSerLengthFieldReadErrorStatus = TReadErrorStatus;
+
+    template <typename TWrappedField>
+    using AdaptSequenceSerLengthFieldPrefix = 
+        comms::field::adapter::SequenceSerLengthFieldPrefix<
+            SequenceSerLengthFieldPrefix,
+            SequenceSerLengthFieldReadErrorStatus,
+            TWrappedField
+        >;    
 };
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
@@ -200,9 +339,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceElemSerLengthFieldPrefix = true;
+    static constexpr bool HasSequenceElemSerLengthFieldPrefix = true;
     using SequenceElemSerLengthFieldPrefix = TField;
-    static const comms::ErrorStatus SequenceElemSerLengthFieldReadErrorStatus = TReadErrorStatus;
+    static constexpr comms::ErrorStatus SequenceElemSerLengthFieldReadErrorStatus = TReadErrorStatus;
+
+    template <typename TWrappedField>
+    using AdaptSequenceElemSerLengthFieldPrefix =
+        comms::field::adapter::SequenceElemSerLengthFieldPrefix<
+            SequenceElemSerLengthFieldPrefix,
+            SequenceElemSerLengthFieldReadErrorStatus,
+            TWrappedField
+        >;
 };
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
@@ -211,9 +358,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceElemFixedSerLengthFieldPrefix = true;
+    static constexpr bool HasSequenceElemFixedSerLengthFieldPrefix = true;
     using SequenceElemFixedSerLengthFieldPrefix = TField;
-    static const comms::ErrorStatus SequenceElemFixedSerLengthFieldReadErrorStatus = TReadErrorStatus;
+    static constexpr comms::ErrorStatus SequenceElemFixedSerLengthFieldReadErrorStatus = TReadErrorStatus;
+
+    template <typename TWrappedField>
+    using AdaptSequenceElemFixedSerLengthFieldPrefix = 
+        comms::field::adapter::SequenceElemFixedSerLengthFieldPrefix<
+            SequenceElemFixedSerLengthFieldPrefix,
+            SequenceElemFixedSerLengthFieldReadErrorStatus,
+            TWrappedField
+        >;    
 };
 
 template <typename TTrailField, typename... TOptions>
@@ -222,8 +377,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceTrailingFieldSuffix = true;
+    static constexpr bool HasSequenceTrailingFieldSuffix = true;
     using SequenceTrailingFieldSuffix = TTrailField;
+
+    template <typename TField>
+    using AdaptSequenceTrailingFieldSuffix = comms::field::adapter::SequenceTrailingFieldSuffix<SequenceTrailingFieldSuffix, TField>;
 };
 
 template <typename TTermField, typename... TOptions>
@@ -232,8 +390,12 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasSequenceTerminationFieldSuffix = true;
+    static constexpr bool HasSequenceTerminationFieldSuffix = true;
     using SequenceTerminationFieldSuffix = TTermField;
+
+    template <typename TField>
+    using AdaptSequenceTerminationFieldSuffix = 
+        comms::field::adapter::SequenceTerminationFieldSuffix<SequenceTerminationFieldSuffix, TField>;
 };
 
 template <typename TInitialiser, typename... TOptions>
@@ -242,8 +404,12 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasDefaultValueInitialiser = true;
+    static constexpr bool HasDefaultValueInitialiser = true;
     using DefaultValueInitialiser = TInitialiser;
+
+    template <typename TField>
+    using AdaptDefaultValueInitialiser = 
+        comms::field::adapter::DefaultValueInitialiser<DefaultValueInitialiser, TField>;
 };
 
 template <typename TValidator, typename... TOptions>
@@ -252,8 +418,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomValidator = true;
+    static constexpr bool HasCustomValidator = true;
     using CustomValidator = TValidator;
+
+    template <typename TField>
+    using AdaptCustomValidator = comms::field::adapter::CustomValidator<CustomValidator, TField>;
 };
 
 template <typename TRefresher, typename... TOptions>
@@ -262,8 +431,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasContentsRefresher = true;
+    static constexpr bool HasContentsRefresher = true;
     using CustomRefresher = TRefresher;
+
+    template <typename TField>
+    using AdaptContentsRefresher = comms::field::adapter::CustomRefresher<CustomRefresher, TField>;
 };
 
 template <typename... TOptions>
@@ -272,7 +444,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomRefresh = true;
+    static constexpr bool HasCustomRefresh = true;
+
+    template <typename TField>
+    using AdaptCustomRefresh = comms::field::adapter::CustomRefreshWrap<TField>;    
 };
 
 template <comms::ErrorStatus TStatus, typename... TOptions>
@@ -281,8 +456,11 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasFailOnInvalid = true;
-    static const comms::ErrorStatus FailOnInvalidStatus = TStatus;
+    static constexpr bool HasFailOnInvalid = true;
+    static constexpr comms::ErrorStatus FailOnInvalidStatus = TStatus;
+
+    template <typename TField>
+    using AdaptFailOnInvalid = comms::field::adapter::FailOnInvalid<FailOnInvalidStatus, TField>;
 };
 
 template <typename... TOptions>
@@ -291,7 +469,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasIgnoreInvalid = true;
+    static constexpr bool HasIgnoreInvalid = true;
+
+    template <typename TField>
+    using AdaptIgnoreInvalid = comms::field::adapter::IgnoreInvalid<TField>;
 };
 
 template <typename... TOptions>
@@ -300,7 +481,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasInvalidByDefault = true;
+    static constexpr bool HasInvalidByDefault = true;
+
+    template <typename TField>
+    using AdaptInvalidByDefault = comms::field::adapter::InvalidByDefault<TField>;
 };
 
 template <std::size_t TSize, typename... TOptions>
@@ -309,8 +493,8 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasFixedSizeStorage = true;
-    static const std::size_t FixedSizeStorage = TSize;
+    static constexpr bool HasFixedSizeStorage = true;
+    static constexpr std::size_t FixedSizeStorage = TSize;
 };
 
 template <typename TType, typename... TOptions>
@@ -319,7 +503,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomStorageType = true;
+    static constexpr bool HasCustomStorageType = true;
     using CustomStorageType = TType;
 };
 
@@ -329,7 +513,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasScalingRatio = true;
+    static constexpr bool HasScalingRatio = true;
     using ScalingRatio = std::ratio<TNum, TDenom>;
 };
 
@@ -339,7 +523,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasUnits = true;
+    static constexpr bool HasUnits = true;
     using UnitsType = TType;
     using UnitsRatio = TRatio;
 };
@@ -350,7 +534,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasOrigDataView = true;
+    static constexpr bool HasOrigDataView = true;
 };
 
 template <typename... TOptions>
@@ -359,14 +543,14 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasEmptySerialization = true;
+    static constexpr bool HasEmptySerialization = true;
+
+    template <typename TField>
+    using AdaptEmptySerialization = comms::field::adapter::EmptySerialization<TField>;
 };
 
 template <bool THasMultiRangeValidation>
-struct MultiRangeAssembler;
-
-template <>
-struct MultiRangeAssembler<false>
+struct MultiRangeAssembler
 {
     template <typename TBase, typename T, T TMinValue, T TMaxValue>
     using Type =
@@ -414,7 +598,11 @@ public:
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
-    static const bool HasMultiRangeValidation = true;
+    static constexpr bool HasMultiRangeValidation = true;
+
+    template <typename TField>
+    using AdaptMultiRangeValidation = 
+        comms::field::adapter::NumValueMultiRangeValidator<MultiRangeValidationRanges, TField>;
 };
 
 template <typename... TOptions>
@@ -425,7 +613,10 @@ class OptionsParser<
     using BaseImpl = OptionsParser<TOptions...>;
 public:
     using MultiRangeValidationRanges = void;
-    static const bool HasMultiRangeValidation = false;
+    static constexpr bool HasMultiRangeValidation = false;
+
+    template <typename TField>
+    using AdaptMultiRangeValidation = TField;
 };
 
 
@@ -443,7 +634,11 @@ public:
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
-    static const bool HasMultiRangeValidation = true;
+    static constexpr bool HasMultiRangeValidation = true;
+
+    template <typename TField>
+    using AdaptMultiRangeValidation = 
+        comms::field::adapter::NumValueMultiRangeValidator<MultiRangeValidationRanges, TField>;    
 };
 
 template <typename... TOptions>
@@ -452,7 +647,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomVersionUpdate = true;
+    static constexpr bool HasCustomVersionUpdate = true;
 };
 
 template <std::uintmax_t TFrom, std::uintmax_t TUntil, typename... TOptions>
@@ -461,9 +656,13 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasVersionsRange = true;
-    static const std::uintmax_t ExistsFromVersion = TFrom;
-    static const std::uintmax_t ExistsUntilVersion = TUntil;
+    static constexpr bool HasVersionsRange = true;
+    static constexpr std::uintmax_t ExistsFromVersion = TFrom;
+    static constexpr std::uintmax_t ExistsUntilVersion = TUntil;
+
+    template <typename TField>
+    using AdaptVersionsRange = 
+        comms::field::adapter::ExistsBetweenVersions<ExistsFromVersion, ExistsUntilVersion, TField>;
 };
 
 template <typename... TOptions>
@@ -472,7 +671,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasVersionStorage = true;
+    static constexpr bool HasVersionStorage = true;
+
+    template <typename TField>
+    using AdaptVersionStorage = comms::field::adapter::VersionStorage<TField>;    
 };
 
 template <std::size_t TIdx, typename... TOptions>
@@ -484,8 +686,12 @@ class OptionsParser<
     static_assert(!BaseImpl::HasRemLengthMemberField, 
         "Option comms::def::option::RemLengthMemberField used multiple times");
 public:
-    static const bool HasRemLengthMemberField = true;
-    static const std::size_t RemLengthMemberFieldIdx = TIdx;
+    static constexpr bool HasRemLengthMemberField = true;
+    static constexpr std::size_t RemLengthMemberFieldIdx = TIdx;
+
+    template <typename TField>
+    using AdaptRemLengthMemberField = 
+        comms::field::adapter::RemLengthMemberField<RemLengthMemberFieldIdx, TField>;
 };
 
 template <typename... TOptions>
@@ -494,7 +700,10 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomWrite = true;
+    static constexpr bool HasCustomWrite = true;
+
+    template <typename TField>
+    using AdaptCustomWrite = comms::field::adapter::CustomWriteWrap<TField>;
 };
 
 template <typename... TOptions>

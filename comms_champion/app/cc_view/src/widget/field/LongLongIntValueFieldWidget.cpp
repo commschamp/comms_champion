@@ -93,7 +93,7 @@ void LongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         static_cast<decltype(m_offset)>(actProps.displayOffset());
 
     bool needRefresh = false;
-    if (std::numeric_limits<double>::epsilon() < std::abs(m_offset - offset)) {
+    if (std::numeric_limits<double>::epsilon() < std::fabs(m_offset - offset)) {
         m_offset = offset;
         needRefresh = true;
     }

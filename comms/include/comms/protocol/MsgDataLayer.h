@@ -16,11 +16,13 @@
 #include "comms/Assert.h"
 #include "comms/Field.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
 #include "comms/details/detect.h"
+#include "comms/details/tag.h"
 #include "ProtocolLayerBase.h"
 
 namespace comms
@@ -53,8 +55,6 @@ public:
     {
         return *this;
     }
-
-
 
     /// @brief Raw data field type.
     /// @details This field is used only in @ref AllFields field and @ref
@@ -126,19 +126,22 @@ public:
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
-                DirectOpTag,
-                typename std::conditional<
-                    comms::isMessage<MsgType>(),
-                    InterfaceOpTag,
-                    typename std::conditional<
-                        std::is_pointer<MsgType>::value,
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
+                DirectOpTag<>,
+                typename comms::util::Conditional<
+                    comms::isMessage<MsgType>()
+                >::template Type<
+                    InterfaceOpTag<>,
+                    typename comms::util::LazyShallowConditional<
+                        std::is_pointer<MsgType>::value
+                    >::template Type<
                         PointerOpTag,
                         OtherOpTag
-                    >::type
-                >::type
-            >::type;
+                    >
+                >
+            >;
 
         if (setPayloadRequiredInternal(extraValues...)) {
             auto fromIter = iter;
@@ -315,19 +318,22 @@ public:
             "The provided message object must inherit from comms::Message");
 
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
-                DirectOpTag,
-                typename std::conditional<
-                    comms::isMessage<MsgType>(),
-                    InterfaceOpTag,
-                    typename std::conditional<
-                        std::is_pointer<MsgType>::value,
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
+                DirectOpTag<>,
+                typename comms::util::Conditional<
+                    comms::isMessage<MsgType>()
+                >::template Type<
+                    InterfaceOpTag<>,
+                    typename comms::util::LazyShallowConditional<
+                        std::is_pointer<MsgType>::value
+                    >::template Type<
                         PointerOpTag,
                         OtherOpTag
-                    >::type
-                >::type
-            >::type;
+                    >
+                >
+            >;
 
         return writeInternal(msg, iter, size, Tag());
     }
@@ -489,12 +495,13 @@ public:
             comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
-        using Tag = typename
-            std::conditional<
-                details::ProtocolLayerHasFieldsImpl<MsgType>::Value,
+        using Tag = 
+            typename comms::util::LazyShallowConditional<
+                details::ProtocolLayerHasFieldsImpl<MsgType>::Value
+            >::template Type<
                 MsgDirectLengthTag,
                 MsgHasLengthTag
-            >::type;
+            >;
         return getMsgLength(msg, Tag());
     }
 
@@ -516,16 +523,26 @@ public:
     }
 
 private:
+    template <typename... TParams>
+    using MsgHasLengthTag = comms::details::tag::Tag1<>;
 
-    struct MsgHasLengthTag {};
-    struct MsgNoLengthTag {};
-    struct MsgDirectLengthTag {};
+    template <typename... TParams>
+    using MsgNoLengthTag = comms::details::tag::Tag2<>;
 
-    struct DirectOpTag {};
-    struct InterfaceOpTag {};
-    struct PointerOpTag {};
-    struct OtherOpTag {};
+    template <typename... TParams>
+    using MsgDirectLengthTag = comms::details::tag::Tag3<>;    
 
+    template <typename... TParams>
+    using DirectOpTag = comms::details::tag::Tag4<>;     
+
+    template <typename... TParams>
+    using InterfaceOpTag = comms::details::tag::Tag5<>;    
+
+    template <typename... TParams>
+    using PointerOpTag = comms::details::tag::Tag6<>; 
+
+    template <typename... TParams>
+    using OtherOpTag = comms::details::tag::Tag7<>;              
 
     template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedInternal(
@@ -595,24 +612,24 @@ private:
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TMsg>
-    static std::size_t getMsgLength(const TMsg& msg, MsgHasLengthTag)
+    template <typename TMsg, typename... TParams>
+    static std::size_t getMsgLength(const TMsg& msg, MsgHasLengthTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::InterfaceOptions::HasLength, "Message interface must define length()");
         return msg.length();
     }
 
-    template <typename TMsg>
-    static constexpr std::size_t getMsgLength(const TMsg& msg, MsgDirectLengthTag)
+    template <typename TMsg, typename... TParams>
+    static constexpr std::size_t getMsgLength(const TMsg& msg, MsgDirectLengthTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::ImplOptions::HasFieldsImpl, "FieldsImpl option hasn't been used");
         return msg.doLength();
     }
 
-    template <typename TMsg>
-    static constexpr std::size_t getMsgLength(const TMsg&, MsgNoLengthTag)
+    template <typename TMsg, typename... TParams>
+    static constexpr std::size_t getMsgLength(const TMsg&, MsgNoLengthTag<TParams...>)
     {
         return 0U;
     }
@@ -643,10 +660,13 @@ private:
         auto result = msg.read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
             missingSizeRequiredInternal(extraValues...)) {
-            using Tag = typename std::conditional<
-                MsgType::InterfaceOptions::HasLength,
-                MsgHasLengthTag,
-                MsgNoLengthTag>::type;
+            using Tag = 
+                typename comms::util::LazyShallowConditional<
+                    MsgType::InterfaceOptions::HasLength
+                >::template Type<
+                    MsgHasLengthTag,
+                    MsgNoLengthTag
+                >;
 
             std::size_t missingSize = 1U;
             auto msgLen = getMsgLength(msg, Tag());
@@ -678,7 +698,7 @@ private:
         if ((result == ErrorStatus::NotEnoughData) &&
             (missingSizeRequiredInternal(extraValues...))) {
             std::size_t missingSize = 1U;
-            auto msgLen = getMsgLength(msg, MsgDirectLengthTag());
+            auto msgLen = getMsgLength(msg, MsgDirectLengthTag<>());
             if (size < msgLen) {
                 missingSize = msgLen - size;
             }
@@ -692,7 +712,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        DirectOpTag,
+        DirectOpTag<>,
         TExtraValues... extraValues)
     {
         return readInternalDirect(msg, iter, size, extraValues...);
@@ -703,7 +723,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        InterfaceOpTag,
+        InterfaceOpTag<>,
         TExtraValues... extraValues)
     {
         static_assert(comms::isMessage<TMsg>(), "Must be interface class");
@@ -718,7 +738,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        PointerOpTag,
+        PointerOpTag<>,
         TExtraValues... extraValues)
     {
         return read(*msg, iter, size, extraValues...);
@@ -729,7 +749,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        OtherOpTag,
+        OtherOpTag<>,
         TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
@@ -738,22 +758,22 @@ private:
         return read(*msg, iter, size, extraValues...);
     }
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TParams>
     static ErrorStatus writeInternal(
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        DirectOpTag)
+        DirectOpTag<TParams...>)
     {
         return msg.doWrite(iter, size);
     }
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TParams>
     static ErrorStatus writeInternal(
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        InterfaceOpTag)
+        InterfaceOpTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
 
@@ -770,22 +790,22 @@ private:
         return msg.write(static_cast<WriteIter>(iter), size);
     }
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TParams>
     static ErrorStatus writeInternal(
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        PointerOpTag)
+        PointerOpTag<TParams...>)
     {
         return write(*msg, iter, size);
     }
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TParams>
     static ErrorStatus writeInternal(
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        OtherOpTag)
+        OtherOpTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(comms::details::hasElementType<MsgType>(),
@@ -800,7 +820,7 @@ private:
     }
 
     template <typename... TExtraValues>
-    static bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues...)
+    static bool missingSizeRequiredInternal(details::MissingSizeRetriever<>, TExtraValues...)
     {
         return true;
     }
@@ -822,7 +842,7 @@ private:
     template <typename... TExtraValues>
     static void updateMissingSizeInternal(
         std::size_t val,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues)
     {
         retriever.setValue(val);

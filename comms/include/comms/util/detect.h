@@ -30,6 +30,7 @@ template <typename T>
 constexpr bool hasClearFunc()
 {
     return details::HasClearFunc<T>::Value;
+    // return details::PresenceDetector<void, details::HasClearOp, T>::Value;
 }
 
 /// @brief Detect whether provided type has @b reserve() member function

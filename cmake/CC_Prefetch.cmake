@@ -52,7 +52,7 @@ function (cc_prefetch)
     
     execute_process (
         COMMAND 
-            ${GIT_EXECUTABLE} clone -b ${CC_FETCH_TAG} --depth 1 ${CC_FETCH_REPO} ${CC_FETCH_SRC_DIR}
+            ${GIT_EXECUTABLE} clone -b ${CC_FETCH_TAG} ${CC_FETCH_REPO} ${CC_FETCH_SRC_DIR}
         RESULT_VARIABLE git_result
     )
 

@@ -110,7 +110,9 @@ private:
 
     const char* nameInternal(NoNameTag) const
     {
-        assert(!"nameImpl() needs to be overriden with proper value");
+        static constexpr bool Must_be_overriden = false;
+        static_cast<void>(Must_be_overriden);
+        assert(Must_be_overriden);         
         return nullptr;
     }
 

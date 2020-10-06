@@ -14,6 +14,8 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/field/tag.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -49,11 +51,12 @@ public:
     static constexpr std::size_t maxLengthFrom()
     {
         using Tag = 
-            typename std::conditional<
-                TLenFieldIdx < TFromIdx,
+            typename comms::util::LazyShallowConditional<
+                TLenFieldIdx < TFromIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
         return maxLengthFromInternal<TFromIdx>(Tag());
     }
 
@@ -61,11 +64,12 @@ public:
     static constexpr std::size_t maxLengthUntil()
     {
         using Tag = 
-            typename std::conditional<
-                TUntilIdx <= TLenFieldIdx,
+            typename comms::util::LazyShallowConditional<
+                TUntilIdx <= TLenFieldIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
 
         return maxLengthUntilInternal<TUntilIdx>(Tag());
     }
@@ -74,11 +78,12 @@ public:
     static constexpr std::size_t maxLengthFromUntil()
     {
         using Tag = 
-            typename std::conditional<
-                (TUntilIdx <= TLenFieldIdx) || (TLenFieldIdx < TFromIdx),
+            typename comms::util::LazyShallowConditional<
+                (TUntilIdx <= TLenFieldIdx) || (TLenFieldIdx < TFromIdx)
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
 
         return maxLengthFromUntilInternal<TFromIdx, TUntilIdx>(Tag());
     }
@@ -92,7 +97,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        return readFromUntilInternal<0, std::tuple_size<ValueType>::value>(iter, len, LocalTag());
+        return readFromUntilInternal<0, std::tuple_size<ValueType>::value>(iter, len, LocalTag<>());
     }
 
     template <std::size_t TFromIdx, typename TIter>
@@ -105,11 +110,12 @@ public:
     ErrorStatus readFromAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
-                TLenFieldIdx < TFromIdx,
+            typename comms::util::LazyShallowConditional<
+                TLenFieldIdx < TFromIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
         return readFromUntilInternal<TFromIdx, std::tuple_size<ValueType>::value>(iter, len, Tag());
     }       
 
@@ -123,11 +129,12 @@ public:
     ErrorStatus readUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
-                TUntilIdx <= TLenFieldIdx,
+            typename comms::util::LazyShallowConditional<
+                TUntilIdx <= TLenFieldIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;      
+            >;      
         return readFromUntilInternal<0, TUntilIdx>(iter, len, Tag());
     }   
 
@@ -141,11 +148,12 @@ public:
     ErrorStatus readFromUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
-                (TLenFieldIdx < TFromIdx) || (TUntilIdx <= TLenFieldIdx),
+            typename comms::util::LazyShallowConditional<
+                (TLenFieldIdx < TFromIdx) || (TUntilIdx <= TLenFieldIdx)
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
-            >::type;      
+            >;      
         return readFromUntilInternal<TFromIdx, TUntilIdx>(iter, len, Tag());
     }      
 
@@ -213,53 +221,57 @@ public:
     }
 
 private:
-    struct BaseRedirectTag {};
-    struct LocalTag {};
+    template <typename... TParams>
+    using BaseRedirectTag = comms::details::tag::Tag1<>;
 
-    template <std::size_t TFromIdx>
-    static constexpr std::size_t maxLengthFromInternal(BaseRedirectTag)
+    template <typename... TParams>
+    using LocalTag = comms::details::tag::Tag2<>;
+
+
+    template <std::size_t TFromIdx, typename... TParams>
+    static constexpr std::size_t maxLengthFromInternal(BaseRedirectTag<TParams...>)
     {
         return BaseImpl::template maxLengthFrom<TFromIdx>();
     }
 
-    template <std::size_t TFromIdx>
-    static constexpr std::size_t maxLengthFromInternal(LocalTag)
+    template <std::size_t TFromIdx, typename... TParams>
+    static constexpr std::size_t maxLengthFromInternal(LocalTag<TParams...>)
     {
         return MaxPossibleLen;
     }
 
-    template <std::size_t TUntilIdx>
-    static constexpr std::size_t maxLengthUntilInternal(BaseRedirectTag)
+    template <std::size_t TUntilIdx, typename... TParams>
+    static constexpr std::size_t maxLengthUntilInternal(BaseRedirectTag<TParams...>)
     {
         return BaseImpl::template maxLengthUntil<TUntilIdx>();
     }    
 
-    template <std::size_t TUntilIdx>
-    static constexpr std::size_t maxLengthUntilInternal(LocalTag)
+    template <std::size_t TUntilIdx, typename... TParams>
+    static constexpr std::size_t maxLengthUntilInternal(LocalTag<TParams...>)
     {
         return MaxPossibleLen;
     }
 
-    template <std::size_t TFromIdx, std::size_t TUntilIdx>
-    static constexpr std::size_t maxLengthFromUntilInternal(BaseRedirectTag)
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename... TParams>
+    static constexpr std::size_t maxLengthFromUntilInternal(BaseRedirectTag<TParams...>)
     {
         return BaseImpl::template maxLengthFromUntil<TFromIdx, TUntilIdx>();
     }    
 
-    template <std::size_t TFromIdx, std::size_t TUntilIdx>
-    static constexpr std::size_t maxLengthFromUntilInternal(LocalTag)
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename... TParams>
+    static constexpr std::size_t maxLengthFromUntilInternal(LocalTag<TParams...>)
     {
         return MaxPossibleLen;
     }       
 
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus readFromUntilInternal(TIter& iter, std::size_t& len, BaseRedirectTag)
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter, typename... TParams>
+    ErrorStatus readFromUntilInternal(TIter& iter, std::size_t& len, BaseRedirectTag<TParams...>)
     {
         return BaseImpl::template readFromUntilAndUpdateLen<TFromIdx>(iter, len);
     }       
 
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus readFromUntilInternal(TIter& iter, std::size_t& len, LocalTag)
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter, typename... TParams>
+    ErrorStatus readFromUntilInternal(TIter& iter, std::size_t& len, LocalTag<TParams...>)
     {
         static_assert(TFromIdx <= TLenFieldIdx, "Invalid function invocation");
         static_assert(TLenFieldIdx < TUntilIdx, "Invalid function invocation");

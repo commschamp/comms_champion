@@ -13,6 +13,8 @@
 #include <algorithm>
 #include "comms/Assert.h"
 #include "comms/field/OptionalMode.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -72,26 +74,31 @@ public:
     }
 
 private:
-    struct AlwaysTrueTag {};
-    struct CompareTag {};
+    template <typename... TParams>
+    using AlwaysTrueTag = comms::details::tag::Tag1<>;
+    template <typename... TParams>
+    using CompareTag = comms::details::tag::Tag2<>;
 
     static bool aboveFrom(VersionType version)
     {
         using Tag =
-            typename std::conditional<
-                TFrom == 0,
+            typename comms::util::LazyShallowConditional<
+                TFrom == 0
+            >::template Type<
                 AlwaysTrueTag,
                 CompareTag
-            >::type;
+            >;
         return aboveFrom(version, Tag());
     }
 
-    static constexpr bool aboveFrom(VersionType, AlwaysTrueTag)
+    template <typename... TParams>
+    static constexpr bool aboveFrom(VersionType, AlwaysTrueTag<TParams...>)
     {
         return true;
     }
 
-    static bool aboveFrom(VersionType version, CompareTag)
+    template <typename... TParams>
+    static bool aboveFrom(VersionType version, CompareTag<TParams...>)
     {
         static const VersionType MinVersion =
             static_cast<VersionType>(
@@ -105,20 +112,23 @@ private:
     static bool belowUntil(VersionType version)
     {
         using Tag =
-            typename std::conditional<
-                static_cast<decltype(TUntil)>(std::numeric_limits<VersionType>::max()) <= TUntil,
+            typename comms::util::LazyShallowConditional<
+                static_cast<decltype(TUntil)>(std::numeric_limits<VersionType>::max()) <= TUntil
+            >::template Type<
                 AlwaysTrueTag,
                 CompareTag
-            >::type;
+            >;
         return belowUntil(version, Tag());
     }
 
-    static constexpr bool belowUntil(VersionType, AlwaysTrueTag)
+    template <typename... TParams>
+    static constexpr bool belowUntil(VersionType, AlwaysTrueTag<TParams...>)
     {
         return true;
     }
 
-    static bool belowUntil(VersionType version, CompareTag)
+    template <typename... TParams>
+    static bool belowUntil(VersionType version, CompareTag<TParams...>)
     {
         static const VersionType MaxVersion =
             static_cast<VersionType>(

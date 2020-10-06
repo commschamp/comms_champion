@@ -47,19 +47,7 @@ details::ValueAssignWrapper<T> cast_assign(T& value)
 template <typename TFieldTo, typename TFieldFrom>
 TFieldTo field_cast(const TFieldFrom& field)
 {
-    static const bool Convertible =
-        std::is_convertible<typename TFieldFrom::ValueType, typename TFieldTo::ValueType>::value;
-    static const bool FromIntegral =
-        std::is_enum<typename TFieldFrom::ValueType>::value ||
-        std::is_integral<typename TFieldFrom::ValueType>::value;
-    static const bool ToIntegral =
-        std::is_enum<typename TFieldTo::ValueType>::value ||
-        std::is_integral<typename TFieldTo::ValueType>::value;
-
-    static const bool UseStaticCast =
-        Convertible || (FromIntegral && ToIntegral);
-
-    return details::FieldCastHelper<TFieldTo, TFieldFrom, UseStaticCast>::cast(field);
+    return details::FieldCastHelper<>::template cast<TFieldTo, TFieldFrom>(field);
 }
 
 

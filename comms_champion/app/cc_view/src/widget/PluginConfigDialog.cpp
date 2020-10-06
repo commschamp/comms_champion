@@ -329,7 +329,9 @@ void PluginConfigDialog::topClicked()
     assert(m_currentSelectedList != nullptr);
     auto curRow = m_currentSelectedList->currentRow();
     if (curRow <= 0) {
-        assert(!"No item is selected or moving up top item");
+        static constexpr bool No_item_is_selected_or_moving_up_top_item = false;
+        static_cast<void>(No_item_is_selected_or_moving_up_top_item);
+        assert(No_item_is_selected_or_moving_up_top_item);          
         return;
     }
 
@@ -341,7 +343,9 @@ void PluginConfigDialog::upClicked()
     assert(m_currentSelectedList != nullptr);
     auto curRow = m_currentSelectedList->currentRow();
     if (curRow <= 0) {
-        assert(!"No item is selected or moving up top item");
+        static constexpr bool No_item_is_selected_or_moving_up_top_item = false;
+        static_cast<void>(No_item_is_selected_or_moving_up_top_item);
+        assert(No_item_is_selected_or_moving_up_top_item);   
         return;
     }
 
@@ -353,7 +357,9 @@ void PluginConfigDialog::downClicked()
     assert(m_currentSelectedList != nullptr);
     auto curRow = m_currentSelectedList->currentRow();
     if ((m_currentSelectedList->count() - 1) <= curRow) {
-        assert(!"No item is selected or moving down bottom item");
+        static constexpr bool No_item_is_selected_or_moving_down_bottom_item = false;
+        static_cast<void>(No_item_is_selected_or_moving_down_bottom_item);
+        assert(No_item_is_selected_or_moving_down_bottom_item);           
         return;
     }
 
@@ -365,7 +371,9 @@ void PluginConfigDialog::bottomClicked()
     assert(m_currentSelectedList != nullptr);
     auto curRow = m_currentSelectedList->currentRow();
     if ((m_currentSelectedList->count() - 1) <= curRow) {
-        assert(!"No item is selected or moving down bottom item");
+        static constexpr bool No_item_is_selected_or_moving_down_bottom_item = false;
+        static_cast<void>(No_item_is_selected_or_moving_down_bottom_item);
+        assert(No_item_is_selected_or_moving_down_bottom_item);        
         return;
     }
 

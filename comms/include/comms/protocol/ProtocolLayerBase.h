@@ -16,6 +16,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 #include "comms/options.h"
 
@@ -23,6 +24,7 @@
 #include "comms/protocol/details/ProtocolLayerDetails.h"
 #include "comms/details/protocol_layers_access.h"
 #include "comms/details/detect.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -204,13 +206,14 @@ public:
         TExtraValues... extraValues)
     {
         using Tag =
-            typename std::conditional<
-                ParsedOptions::HasForceReadUntilDataSplit,
+            typename comms::util::LazyShallowConditional<
+                ParsedOptions::HasForceReadUntilDataSplit
+            >::template Type<
                 SplitReadTag,
                 NormalReadTag
-            >::type;
+            >;
 
-        static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
+        static_assert(std::is_same<Tag, NormalReadTag<> >::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
         return readInternal(msg, iter, size, Tag(), extraValues...);
     }
@@ -687,7 +690,7 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        return updateInternal(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
+        return updateInternal(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag<>());
     }
 
     /// @brief Default implementation of the "update" functaionality.
@@ -709,7 +712,7 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        return updateInternal(msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
+        return updateInternal(msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag<>());
     }
 
     /// @brief Default implementation of field length retrieval.
@@ -776,11 +779,12 @@ protected:
     static void resetMsg(TMsg& msg)
     {
         using Tag =
-            typename std::conditional<
-                isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+            typename comms::util::LazyShallowConditional<
+                isMessageObjRef<typename std::decay<decltype(msg)>::type>()
+            >::template Type<
                 MessageObjTag,
                 SmartPtrTag
-            >::type;
+            >;
         resetMsgInternal(msg, Tag());
     }
 
@@ -883,13 +887,20 @@ protected:
     }
 
     /// @cond SKIP_DOC
-    struct FixedLengthTag {};
-    struct VarLengthTag {};
-    using LengthTag = typename std::conditional<
-        (Field::minLength() == Field::maxLength()),
-        FixedLengthTag,
-        VarLengthTag
-    >::type;
+    template <typename... TParams>
+    using FixedLengthTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using VarLengthTag = comms::details::tag::Tag2<>;
+
+    template <typename...>
+    using LengthTag = 
+        typename comms::util::LazyShallowConditional<
+            (Field::minLength() == Field::maxLength())
+        >::template Type<
+            FixedLengthTag,
+            VarLengthTag
+        >;
 
     class NextLayerReader
     {
@@ -1134,17 +1145,24 @@ protected:
     /// @endcond
 private:
 
-    struct NormalReadTag {};
-    struct SplitReadTag {};
-    struct MessageObjTag {};
-    struct SmartPtrTag {};
+    template <typename... TParams>
+    using NormalReadTag = comms::details::tag::Tag3<>;
+
+    template <typename... TParams>
+    using SplitReadTag = comms::details::tag::Tag4<>;
+
+    template <typename... TParams>
+    using MessageObjTag = comms::details::tag::Tag5<>;  
+
+    template <typename... TParams>
+    using SmartPtrTag = comms::details::tag::Tag6<>;       
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        NormalReadTag,
+        NormalReadTag<>,
         TExtraValues... extraValues)
     {
         Field field;
@@ -1157,7 +1175,7 @@ private:
         TMsgPtr& msgPtr,
         TIter& iter,
         std::size_t size,
-        SplitReadTag,
+        SplitReadTag<>,
         TExtraValues... extraValues)
     {
         auto fromIter = iter;
@@ -1171,13 +1189,13 @@ private:
         return readFromData(msgPtr, iter, size - consumed, extraValues...);
     }
 
-    template <typename TIter, typename TNextLayerUpdater>
+    template <typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus updateInternal(
         Field& field,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        FixedLengthTag) const
+        FixedLengthTag<TParams...>) const
     {
         auto len = field.length();
         COMMS_ASSERT(len <= size);
@@ -1185,13 +1203,13 @@ private:
         return nextLayerUpdater.update(iter, size - len);
     }
 
-    template <typename TIter, typename TNextLayerUpdater>
+    template <typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus updateInternal(
         Field& field,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        VarLengthTag) const
+        VarLengthTag<TParams...>) const
     {
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::Success) {
@@ -1200,14 +1218,14 @@ private:
         return es;
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus updateInternal(
         const TMsg& msg,
         Field& field,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        FixedLengthTag) const
+        FixedLengthTag<TParams...>) const
     {
         auto len = field.length();
         COMMS_ASSERT(len <= size);
@@ -1215,14 +1233,14 @@ private:
         return nextLayerUpdater.update(msg, iter, size - len);
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename... TParams>
     comms::ErrorStatus updateInternal(
         const TMsg& msg,
         Field& field,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater,
-        VarLengthTag) const
+        VarLengthTag<TParams...>) const
     {
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::Success) {
@@ -1231,14 +1249,14 @@ private:
         return es;
     }
 
-    template <typename TMsg>
-    static void resetMsgInternal(TMsg&, MessageObjTag)
+    template <typename TMsg, typename... TParams>
+    static void resetMsgInternal(TMsg&, MessageObjTag<TParams...>)
     {
         // Do nothing
     }
 
-    template <typename TMsg>
-    static void resetMsgInternal(TMsg& msg, SmartPtrTag)
+    template <typename TMsg, typename... TParams>
+    static void resetMsgInternal(TMsg& msg, SmartPtrTag<TParams...>)
     {
         msg.reset();
     }
@@ -1257,7 +1275,7 @@ private:
     template <typename... TExtraValues>
     void updateMissingSizeInternal(
         std::size_t size,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues) const
     {
         COMMS_ASSERT(size <= length());
@@ -1269,7 +1287,7 @@ private:
     void updateMissingSizeInternal(
         const Field& field,
         std::size_t size,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues) const
     {
         static_assert(
@@ -1315,7 +1333,7 @@ private:
     template <typename... TExtraValues>
     static void setMissingSizeInternal(
         std::size_t val,
-        details::MissingSizeRetriever retriever,
+        details::MissingSizeRetriever<> retriever,
         TExtraValues... extraValues)
     {
         retriever.setValue(val);
@@ -1445,9 +1463,9 @@ toProtocolLayerBase(const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptio
 /// @see @ref comms::protocol::ProtocolLayerBase::read()
 /// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
 inline
-details::MissingSizeRetriever missingSize(std::size_t& val)
+details::MissingSizeRetriever<> missingSize(std::size_t& val)
 {
-    return details::MissingSizeRetriever(val);
+    return details::MissingSizeRetriever<>(val);
 }
 
 /// @brief Add "message ID" output parameter to protocol stack's (frame's)

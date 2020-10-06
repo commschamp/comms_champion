@@ -13,6 +13,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/field/details/FieldOpHelpers.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -25,10 +26,14 @@ namespace basic
 {
 
 template <typename TFieldBase, typename TMembers>
-class Bundle : public TFieldBase
+class Bundle;    
+
+template <typename TFieldBase, typename... TMembers>
+class Bundle<TFieldBase, std::tuple<TMembers...> > : public TFieldBase
 {
 public:
-    using ValueType = TMembers;
+    using ValueType = std::tuple<TMembers...>;
+    using Members = ValueType;
     using VersionType = typename TFieldBase::VersionType;
 
     Bundle() = default;
@@ -61,7 +66,8 @@ public:
 
     constexpr std::size_t length() const
     {
-        return comms::util::tupleAccumulate(value(), std::size_t(0), LengthCalcHelper());
+        return comms::util::tupleAccumulate(
+            value(), std::size_t(0), comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx>
@@ -71,7 +77,7 @@ public:
             comms::util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value>(
                 value(),
                 std::size_t(0),
-                LengthCalcHelper());
+                comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TUntilIdx>
@@ -81,7 +87,7 @@ public:
             comms::util::tupleAccumulateFromUntil<0, TUntilIdx>(
                 value(),
                 std::size_t(0),
-                LengthCalcHelper());
+                comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
@@ -91,81 +97,79 @@ public:
             comms::util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
                 value(),
                 std::size_t(0),
-                LengthCalcHelper());
+                comms::field::details::FieldLengthSumCalcHelper<>());
     }
 
     static constexpr std::size_t minLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(static_cast<std::size_t>(0U), MinLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulate<Members>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t minLengthFrom()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-                static_cast<std::size_t>(0U),
-                MinLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, Members>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t minLengthUntil()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-                static_cast<std::size_t>(0U),
-                MinLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, Members>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t minLengthFromUntil()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-                static_cast<std::size_t>(0U),
-                MinLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, Members>(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>());
     }
 
     static constexpr std::size_t maxLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MaxLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulate<Members>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());        
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t maxLengthFrom()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-                static_cast<std::size_t>(0U),
-                MaxLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, Members>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());      
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t maxLengthUntil()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-                static_cast<std::size_t>(0U),
-                MaxLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, Members>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t maxLengthFromUntil()
     {
-        return
-            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-                static_cast<std::size_t>(0U),
-                MaxLengthCalcHelper());
+        return 
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, Members>(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>());
     }
 
     constexpr bool valid() const
     {
-        return comms::util::tupleAccumulate(value(), true, ValidCheckHelper());
+        return comms::util::tupleAccumulate(value(), true, comms::field::details::FieldValidCheckHelper<>());
     }
 
     bool refresh()
     {
-        return comms::util::tupleAccumulate(value(), false, RefreshHelper());
+        return comms::util::tupleAccumulate(value(), false, comms::field::details::FieldRefreshHelper<>());
     }
 
     template <typename TIter>
@@ -220,7 +224,7 @@ public:
 
     static constexpr bool hasReadNoStatus()
     {
-        return comms::util::tupleTypeAccumulate<TMembers>(true, ReadNoStatusDetector());
+        return CommonFuncs::AllFieldsHaveReadNoStatusBoolType<TMembers...>::value;
     }
 
     template <typename TIter>
@@ -249,7 +253,9 @@ public:
 
     bool canWrite() const
     {
-        return comms::util::tupleAccumulate(value(), true, CanWriteHelper());
+        return 
+            comms::util::tupleAccumulate(
+                value(), true, comms::field::details::FieldCanWriteCheckHelper<>());
     }
 
     template <typename TIter>
@@ -286,7 +292,7 @@ public:
 
     static constexpr bool hasWriteNoStatus()
     {
-        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
+        return CommonFuncs::AllFieldsHaveWriteNoStatusBoolType<TMembers...>::value;
     }
 
     template <typename TIter>
@@ -315,12 +321,12 @@ public:
 
     static constexpr bool isVersionDependent()
     {
-        return CommonFuncs::areMembersVersionDependent<ValueType>();
+        return CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value;
     }
 
     static constexpr bool hasNonDefaultRefresh()
     {
-        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<ValueType>();
+        return CommonFuncs::AnyFieldHasNonDefaultRefreshBoolType<TMembers...>::value;
     }
 
     bool setVersion(VersionType version)
@@ -329,205 +335,29 @@ public:
     }
 
 private:
-    struct LengthCalcHelper
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t sum, const TField& field) const
-        {
-            return sum + field.length();
-        }
-    };
-
-    struct MinLengthCalcHelper
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t sum) const
-        {
-            return sum + TField::minLength();
-        }
-    };
-
-    struct MaxLengthCalcHelper
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t sum) const
-        {
-            return sum + TField::maxLength();
-        }
-    };
-
-    struct ValidCheckHelper
-    {
-        template <typename TField>
-        constexpr bool operator()(bool soFar, const TField& field) const
-        {
-            return soFar && field.valid();
-        }
-    };
-
-    struct RefreshHelper
-    {
-        template <typename TField>
-        bool operator()(bool soFar, TField& field) const
-        {
-            return field.refresh() || soFar;
-        }
-    };
-
     template <typename TIter>
-    class ReadHelper
+    static comms::field::details::FieldReadHelper<TIter> makeReadHelper(comms::ErrorStatus& es, TIter& iter, std::size_t& len)
     {
-    public:
-        ReadHelper(ErrorStatus& es, TIter& iter, std::size_t& len)
-          : es_(es),
-            iter_(iter),
-            len_(len)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field)
-        {
-            if (es_ != comms::ErrorStatus::Success) {
-                return;
-            }
-
-            auto fromIter = iter_;
-            es_ = field.read(iter_, len_);
-            if (es_ == comms::ErrorStatus::Success) {
-                len_ -= static_cast<std::size_t>(std::distance(fromIter, iter_));
-            }
-        }
-
-
-    private:
-        ErrorStatus& es_;
-        TIter& iter_;
-        std::size_t& len_;
-    };
-
-    struct CanWriteHelper
-    {
-        template <typename TField>
-        constexpr bool operator()(bool soFar, const TField& field) const
-        {
-            return soFar && field.canWrite();
-        }
-    };
-
-    template <typename TIter>
-    static ReadHelper<TIter> makeReadHelper(comms::ErrorStatus& es, TIter& iter, std::size_t& len)
-    {
-        return ReadHelper<TIter>(es, iter, len);
+        return comms::field::details::FieldReadHelper<TIter>(es, iter, len);
     }
 
     template <typename TIter>
-    class ReadNoStatusHelper
+    static comms::field::details::FieldReadNoStatusHelper<TIter> makeReadNoStatusHelper(TIter& iter)
     {
-    public:
-        ReadNoStatusHelper(TIter& iter)
-          : iter_(iter)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field)
-        {
-            field.readNoStatus(iter_);
-        }
-
-    private:
-        TIter& iter_;
-    };
-
-    template <typename TIter>
-    static ReadNoStatusHelper<TIter> makeReadNoStatusHelper(TIter& iter)
-    {
-        return ReadNoStatusHelper<TIter>(iter);
+        return comms::field::details::FieldReadNoStatusHelper<TIter>(iter);
     }
 
     template <typename TIter>
-    class WriteHelper
+    static comms::field::details::FieldWriteHelper<TIter> makeWriteHelper(ErrorStatus& es, TIter& iter, std::size_t len)
     {
-    public:
-        WriteHelper(ErrorStatus& es, TIter& iter, std::size_t len)
-          : es_(es),
-            iter_(iter),
-            len_(len)
-        {
-        }
-
-        template <typename TField>
-        void operator()(const TField& field)
-        {
-            if (es_ != comms::ErrorStatus::Success) {
-                return;
-            }
-
-            es_ = field.write(iter_, len_);
-            if (es_ == comms::ErrorStatus::Success) {
-                len_ -= field.length();
-            }
-        }
-
-    private:
-        ErrorStatus& es_;
-        TIter& iter_;
-        std::size_t len_;
-    };
-
-    template <typename TIter>
-    static WriteHelper<TIter> makeWriteHelper(ErrorStatus& es, TIter& iter, std::size_t len)
-    {
-        return WriteHelper<TIter>(es, iter, len);
+        return comms::field::details::FieldWriteHelper<TIter>(es, iter, len);
     }
 
     template <typename TIter>
-    class WriteNoStatusHelper
+    static comms::field::details::FieldWriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter)
     {
-    public:
-        WriteNoStatusHelper(TIter& iter)
-          : iter_(iter)
-        {
-        }
-
-        template <typename TField>
-        void operator()(const TField& field)
-        {
-            field.writeNoStatus(iter_);
-        }
-
-    private:
-        TIter& iter_;
-    };
-
-    template <typename TIter>
-    static WriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter)
-    {
-        return WriteNoStatusHelper<TIter>(iter);
+        return comms::field::details::FieldWriteNoStatusHelper<TIter>(iter);
     }
-
-    struct ReadNoStatusDetector
-    {
-        constexpr ReadNoStatusDetector() = default;
-
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasReadNoStatus() && soFar;
-        }
-    };
-
-    struct WriteNoStatusDetector
-    {
-        constexpr WriteNoStatusDetector() = default;
-
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasWriteNoStatus() && soFar;
-        }
-    };
 
     static_assert(comms::util::IsTuple<ValueType>::Value, "ValueType must be tuple");
     ValueType members_;

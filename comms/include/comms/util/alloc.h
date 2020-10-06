@@ -20,7 +20,9 @@
 
 #include "comms/Assert.h"
 #include "comms/dispatch.h"
-#include "Tuple.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -40,43 +42,50 @@ struct DynMemoryDeleteHandler
     template <typename TObj>
     void handle(TObj& obj) const
     {
+        using HandleTag =
+            typename comms::util::LazyShallowConditional<
+                std::is_void<TDefaultType>::value
+            >::template Type<
+                NoDefaultCastTag,
+                DefaultCastCheckTag
+            >;
+
         handleInternal(obj, HandleTag());
     }
 
 private:
-    struct NoDefaultCastTag {};
-    struct DefaultCastCheckTag {};
-    struct ForcedDefaultCastTag {};
+    template <typename... TParams>
+    using NoDefaultCastTag = comms::details::tag::Tag1<>;
 
-    using HandleTag =
-        typename std::conditional<
-            std::is_void<TDefaultType>::value,
-            NoDefaultCastTag,
-            DefaultCastCheckTag
-        >::type;
+    template <typename... TParams>
+    using DefaultCastCheckTag = comms::details::tag::Tag2<>;
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, NoDefaultCastTag) const
+    template <typename... TParams>
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<>;
+
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
     {
         delete (&obj);
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, ForcedDefaultCastTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, ForcedDefaultCastTag<TParams...>) const
     {
         delete static_cast<TDefaultType*>(&obj);
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, DefaultCastCheckTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, DefaultCastCheckTag<TParams...>) const
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename std::conditional<
-                std::is_same<ObjType, TInterfaceType>::value,
+            typename comms::util::LazyShallowConditional<
+                std::is_same<ObjType, TInterfaceType>::value
+            >::template Type<
                 ForcedDefaultCastTag,
                 NoDefaultCastTag
-            >::type;
+            >;
         handleInternal(obj, Tag());
     }
 
@@ -88,43 +97,50 @@ struct InPlaceDeleteHandler
     template <typename TObj>
     void handle(TObj& obj) const
     {
+        using HandleTag =
+            typename comms::util::LazyShallowConditional<
+                std::is_void<TDefaultType>::value
+            >::template Type<
+                NoDefaultCastTag,
+                DefaultCastCheckTag
+            >;
+
         handleInternal(obj, HandleTag());
     }
 
 private:
-    struct NoDefaultCastTag {};
-    struct DefaultCastCheckTag {};
-    struct ForcedDefaultCastTag {};
+    template <typename... TParams>
+    using NoDefaultCastTag = comms::details::tag::Tag1<>;
 
-    using HandleTag =
-        typename std::conditional<
-            std::is_void<TDefaultType>::value,
-            NoDefaultCastTag,
-            DefaultCastCheckTag
-        >::type;
+    template <typename... TParams>
+    using DefaultCastCheckTag = comms::details::tag::Tag2<>;
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, NoDefaultCastTag) const
+    template <typename... TParams>
+    using ForcedDefaultCastTag = comms::details::tag::Tag3<>;
+
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
     {
         obj.~TObj();
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, ForcedDefaultCastTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, ForcedDefaultCastTag<TParams...>) const
     {
         static_cast<TDefaultType&>(obj).~TDefaultType();
     }
 
-    template <typename TObj>
-    void handleInternal(TObj& obj, DefaultCastCheckTag) const
+    template <typename TObj, typename... TParams>
+    void handleInternal(TObj& obj, DefaultCastCheckTag<TParams...>) const
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename std::conditional<
-                std::is_same<ObjType, TInterfaceType>::value,
+            typename comms::util::LazyShallowConditional<
+                std::is_same<ObjType, TInterfaceType>::value
+            >::template Type<
                 ForcedDefaultCastTag,
                 NoDefaultCastTag
-            >::type;
+            >;
         handleInternal(obj, Tag());
     }
 };
@@ -411,7 +427,7 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllTypes>::Value, ""
+        static_assert(comms::util::IsInTuple<TAllTypes>::template Type<TObj>::value, 
             "TObj must be in provided tuple of supported types");
 
         static_assert(
@@ -531,7 +547,7 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllocMessages>::Value, ""
+        static_assert(comms::util::IsInTuple<TAllocMessages>::template Type<TObj>::value, ""
             "TObj must be in provided tuple of supported types");
 
         static_assert(sizeof(TObj) <= sizeof(place_), "Object is too big");
@@ -634,7 +650,64 @@ private:
     Pool pool_;
 };
 
+namespace details
+{
 
+template <typename...>
+struct InPlaceSingleDeepCondWrap
+{
+    template <typename TInterface, typename TAllTypes, typename...>
+    using Type = comms::util::alloc::InPlaceSingle<TInterface, TAllTypes>;
+};
+
+template <typename...>
+struct InPlaceSingleNoVirtualDestructorDeepCondWrap
+{
+    template <
+        typename TInterface,
+        typename TAllocMessages,
+        typename TOrigMessages,
+        typename TId,
+        typename TDefaultType,
+        typename...>
+    using Type = 
+        comms::util::alloc::InPlaceSingleNoVirtualDestructor<
+            TInterface, 
+            TAllocMessages,
+            TOrigMessages,
+            TId,
+            TDefaultType
+        >;
+};
+
+template <typename...>
+struct DynMemoryDeepCondWrap
+{
+    template <typename TInterface, typename...>
+    using Type = comms::util::alloc::DynMemory<TInterface>;
+};
+
+template <typename...>
+struct DynMemoryNoVirtualDestructorDeepCondWrap
+{
+    template <
+        typename TInterface, 
+        typename TAllMessages, 
+        typename TId, 
+        typename TDefaultType,
+        typename...
+    >
+    using Type = 
+        comms::util::alloc::DynMemoryNoVirtualDestructor<
+            TInterface,
+            TAllMessages,
+            TId, 
+            TDefaultType
+        >;
+};
+
+
+} // namespace details
 
 }  // namespace alloc
 

@@ -12,7 +12,9 @@
 
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -35,11 +37,13 @@ public:
     static_assert(TLen <= sizeof(BaseSerialisedType),
         "The provided length limit is too big");
 
-    using SerialisedType = typename std::conditional<
-        (TLen < sizeof(BaseSerialisedType)),
-        typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
-        BaseSerialisedType
-    >::type;
+    using SerialisedType = 
+        typename comms::util::Conditional<
+            (TLen < sizeof(BaseSerialisedType))
+        >::template Type<
+            typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
+            BaseSerialisedType
+        >;
 
     using Endian = typename BaseImpl::Endian;
 
@@ -72,12 +76,12 @@ public:
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(BaseImpl::toSerialised(val), ConversionTag());
+        return adjustToSerialised(BaseImpl::toSerialised(val), ConversionTag<>());
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return BaseImpl::fromSerialised(adjustFromSerialised(val, ConversionTag()));
+        return BaseImpl::fromSerialised(adjustFromSerialised(val, ConversionTag<>()));
     }
 
     template <typename TIter>
@@ -118,56 +122,74 @@ public:
 
 private:
 
-    struct JustCastTag {};
-    struct SignExtendTag {};
-    struct UnsignedTag {};
-    struct SignedTag {};
+    template <typename... TParams>
+    using JustCastTag = comms::details::tag::Tag1<>;
 
-    using ConversionTag = typename std::conditional<
-        (TLen < sizeof(SerialisedType)),
-        SignExtendTag,
-        JustCastTag
-    >::type;
+    template <typename... TParams>
+    using SignExtendTag = comms::details::tag::Tag2<>;    
 
+    template <typename... TParams>
+    using UnsignedTag = comms::details::tag::Tag3<>;  
 
-    using HasSignTag = typename std::conditional<
-        std::is_signed<SerialisedType>::value && TSignExtend,
-        SignedTag,
-        UnsignedTag
-    >::type;
+    template <typename... TParams>
+    using SignedTag = comms::details::tag::Tag4<>;     
+
+    template <typename...>
+    using ConversionTag = 
+        typename comms::util::LazyShallowConditional<
+            (TLen < sizeof(SerialisedType))
+        >::template Type<
+            SignExtendTag,
+            JustCastTag
+        >;
+
+    template <typename...>
+    using HasSignTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_signed<SerialisedType>::value && TSignExtend
+        >::template Type<
+            SignedTag,
+            UnsignedTag
+        >;
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    static constexpr SerialisedType adjustToSerialised(BaseSerialisedType val, JustCastTag)
+    template <typename... TParams>
+    static constexpr SerialisedType adjustToSerialised(BaseSerialisedType val, JustCastTag<TParams...>)
     {
         return static_cast<SerialisedType>(val);
     }
 
-    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignExtendTag)
+    template <typename... TParams>
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignExtendTag<TParams...>)
     {
         auto valueTmp =
             static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
 
-        return signExtUnsignedSerialised(valueTmp, HasSignTag());
+        return signExtUnsignedSerialised(valueTmp, HasSignTag<>());
     }
 
-    static constexpr BaseSerialisedType adjustFromSerialised(SerialisedType val, JustCastTag)
+    template <typename... TParams>
+    static constexpr BaseSerialisedType adjustFromSerialised(SerialisedType val, JustCastTag<TParams...>)
     {
         return static_cast<BaseSerialisedType>(val);
     }
 
-    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignExtendTag)
+    template <typename... TParams>
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignExtendTag<TParams...>)
     {
         auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
-        return static_cast<BaseSerialisedType>(signExtUnsignedSerialised(valueTmp, HasSignTag()));
+        return static_cast<BaseSerialisedType>(signExtUnsignedSerialised(valueTmp, HasSignTag<>()));
     }
 
-    static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, UnsignedTag)
+    template <typename... TParams>
+    static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, UnsignedTag<TParams...>)
     {
         return static_cast<SerialisedType>(val);
     }
 
-    static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, SignedTag)
+    template <typename... TParams>
+    static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, SignedTag<TParams...>)
     {
         static const UnsignedSerialisedType SignExtMask =
             ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1);

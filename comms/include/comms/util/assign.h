@@ -38,7 +38,7 @@ namespace util
 template <typename T, typename TIter>
 void assign(T& obj, TIter from, TIter to)
 {
-    details::AssignHelper::assign(obj, from, to);
+    details::AssignHelper<>::assign(obj, from, to);
 }
 
 } // namespace util

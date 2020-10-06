@@ -42,7 +42,9 @@ ShortIntValueFieldWidget::ShortIntValueFieldWidget(
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
 
-    m_ui.m_valueSpinBox->setRange((int)m_wrapper->minValue(), (int)m_wrapper->maxValue());
+    m_ui.m_valueSpinBox->setRange(
+        static_cast<int>(m_wrapper->minValue()), 
+        static_cast<int>(m_wrapper->maxValue()));
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
             this, SLOT(valueUpdated(int)));
@@ -61,7 +63,7 @@ void ShortIntValueFieldWidget::refreshImpl()
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
-    auto value = adjustRealToDisplayed(m_wrapper->getValue());
+    auto value = adjustRealToDisplayed(static_cast<int>(m_wrapper->getValue()));
     assert(m_ui.m_valueSpinBox);
     if (m_ui.m_valueSpinBox->value() != value) {
         m_ui.m_valueSpinBox->setValue(value);
@@ -113,7 +115,7 @@ void ShortIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void ShortIntValueFieldWidget::valueUpdated(int value)
 {
-    if (value == adjustRealToDisplayed(m_wrapper->getValue())) {
+    if (value == adjustRealToDisplayed(static_cast<int>(m_wrapper->getValue()))) {
         return;
     }
 

@@ -149,7 +149,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
         std::size_t writtenCount = 0;
         while (writtenCount < dataPtr->m_data.size()) {
-            auto remSize = dataPtr->m_data.size() - writtenCount;
+            auto remSize = static_cast<qint64>(dataPtr->m_data.size() - writtenCount);
             auto count =
                 m_broadcastSocket.writeDatagram(
                     reinterpret_cast<const char*>(&dataPtr->m_data[writtenCount]),
@@ -161,7 +161,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
                 return;
             }
 
-            writtenCount += count;
+            writtenCount += static_cast<std::size_t>(count);
         }
 
         QString to =
@@ -178,7 +178,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
     std::size_t writtenCount = 0;
     while (writtenCount < dataPtr->m_data.size()) {
-        auto remSize = dataPtr->m_data.size() - writtenCount;
+        auto remSize = static_cast<qint64>(dataPtr->m_data.size() - writtenCount);
         auto count =
             m_socket.write(
                 reinterpret_cast<const char*>(&dataPtr->m_data[writtenCount]),
@@ -187,7 +187,7 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
             return;
         }
 
-        writtenCount += count;
+        writtenCount += static_cast<std::size_t>(count);
     }
 
     QString to =
@@ -227,10 +227,10 @@ void Socket::readData(QUdpSocket& socket)
 
         auto dataPtr = makeDataInfo();
         dataPtr->m_timestamp = DataInfo::TimestampClock::now();
-        dataPtr->m_data.resize(socket.pendingDatagramSize());
+        dataPtr->m_data.resize(static_cast<std::size_t>(socket.pendingDatagramSize()));
         socket.readDatagram(
             reinterpret_cast<char*>(&dataPtr->m_data[0]),
-            dataPtr->m_data.size(),
+            static_cast<qint64>(dataPtr->m_data.size()),
             &senderAddress,
             &senderPort);
 

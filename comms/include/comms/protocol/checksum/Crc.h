@@ -14,6 +14,8 @@
 #include <array>
 #include <limits>
 #include <type_traits>
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -296,24 +298,33 @@ public:
     }
 
 private:
-    struct NoReflectTag {};
-    struct DoReflectTag {};
+    template <typename... TParams>
+    using NoReflectTag = comms::details::tag::Tag1<>;
 
-    using ReflectTag = typename std::conditional<
-        TReflect,
-        DoReflectTag,
-        NoReflectTag
-    >::type;
+    template <typename... TParams>
+    using DoReflectTag = comms::details::tag::Tag2<>;
 
-    using ReflectRemTag = typename std::conditional<
-        TRefrectRem,
-        DoReflectTag,
-        NoReflectTag
-    >::type;
+    template <typename...>
+    using ReflectTag = 
+        typename comms::util::LazyShallowConditional<
+            TReflect
+        >::template Type<
+            DoReflectTag,
+            NoReflectTag
+        >;
+
+    template <typename...>
+    using ReflectRemTag = 
+        typename comms::util::LazyShallowConditional<
+            TRefrectRem
+        >::template Type<
+            DoReflectTag,
+            NoReflectTag
+        >;
 
     static std::uint8_t reflect(std::uint8_t byte)
     {
-        return reflectInternal(byte, 8U, ReflectTag());
+        return reflectInternal(byte, 8U, ReflectTag<>());
     }
 
     static TResult reflectRem(TResult value)
@@ -321,17 +332,17 @@ private:
         static const std::size_t Width =
             sizeof(TResult) * std::numeric_limits<std::uint8_t>::digits;
 
-        return reflectInternal(value, Width, ReflectRemTag());
+        return reflectInternal(value, Width, ReflectRemTag<>());
     }
 
-    template <typename TVal>
-    static TVal reflectInternal(TVal value, std::size_t bitsCount, DoReflectTag)
+    template <typename TVal, typename... TParams>
+    static TVal reflectInternal(TVal value, std::size_t bitsCount, DoReflectTag<TParams...>)
     {
         return static_cast<TVal>(doReflect(value, bitsCount));
     }
 
-    template <typename TVal>
-    static constexpr TVal reflectInternal(TVal value, std::size_t, NoReflectTag)
+    template <typename TVal, typename... TParams>
+    static constexpr TVal reflectInternal(TVal value, std::size_t, NoReflectTag<TParams...>)
     {
         return value;
     }

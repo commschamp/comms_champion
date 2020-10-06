@@ -92,13 +92,17 @@ protected:
 
     virtual void resetImpl() override
     {
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
     }
 
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 

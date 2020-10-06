@@ -20,7 +20,8 @@
     GCC_DIAG_PRAGMA(push) \
     GCC_DIAG_PRAGMA(ignored "-Wpedantic") \
     GCC_DIAG_PRAGMA(ignored "-Wctor-dtor-privacy")\
-    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast")
+    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast") \
+    GCC_DIAG_PRAGMA(ignored "-Wconversion")
 
 #define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 
@@ -67,6 +68,8 @@
 #define COMMS_IS_CLANG_9_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 9))
 #define COMMS_IS_MSVC_2019 (COMMS_IS_MSVC && (_MSC_VER >= 1920) && (_MSC_VER < 1930))
 #define COMMS_IS_MSVC_2019_OR_BELOW (COMMS_IS_MSVC && (_MSC_VER < 1930))
+#define COMMS_IS_MSVC_2017_OR_BELOW (COMMS_IS_MSVC && (_MSC_VER < 1920))
+#define COMMS_IS_MSVC_2015_OR_BELOW (COMMS_IS_MSVC && (_MSC_VER < 1910))
 
 #if !defined(CC_COMPILER_GCC47) && COMMS_IS_GCC_47_OR_BELOW
 #define CC_COMPILER_GCC47

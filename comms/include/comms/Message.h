@@ -19,6 +19,7 @@
 #include "comms/Assert.h"
 #include "comms/Field.h"
 
+#include "comms/util/type_traits.h"
 #include "comms/details/MessageInterfaceBuilder.h"
 #include "comms/details/transport_fields_access.h"
 #include "comms/details/detect.h"
@@ -545,9 +546,13 @@ constexpr bool isMessage()
 ///     interface class doesn't define its ID type
 template <typename TMsg, typename TDefaultType = std::intmax_t>
 using MessageIdType =
-    typename details::MessageIdTypeRetriever<TMsg::hasMsgIdType()>::
-        template Type<typename TMsg::InterfaceOptions, TDefaultType>;
-
+    typename comms::util::LazyDeepConditional<
+        TMsg::InterfaceOptions::HasMsgIdType
+    >::template Type<
+        comms::details::MessageIdTypeRetriever,
+        comms::util::AliasType,
+        TDefaultType, TMsg
+    >;
 }  // namespace comms
 
 /// @brief Add convenience access enum and functions to extra transport fields.

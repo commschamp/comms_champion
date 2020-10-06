@@ -16,9 +16,11 @@
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/details/message_check.h"
 #include "comms/CompileControl.h"
 #include "comms/details/DispatchMsgIdRetrieveHelper.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -466,134 +468,208 @@ static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
         DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
 }
 
-template <typename TMsg, typename THandler, bool THasDispatch>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector;
-
-template <typename TMsg, typename THandler>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, false>
+template <typename...>
+struct DispatchMsgPolymorphicCompatibleHandlerDetector
 {
-    static const bool Value = false;
+    template <typename TMsg, typename THandler>
+    using Type = std::is_base_of<typename TMsg::Handler, THandler>;
 };
 
 template <typename TMsg, typename THandler>
-struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, true>
-{
-    static const bool Value = std::is_base_of<typename TMsg::Handler, THandler>::value;
-};
+using DispatchMsgPolymorphicCompatibleHandlerDetectBoolType = 
+    typename comms::util::LazyDeepConditional<
+        TMsg::hasDispatch()
+    >::template Type<
+        DispatchMsgPolymorphicCompatibleHandlerDetector,
+        comms::util::FalseType,
+        TMsg, THandler
+    >;
+
 
 template <typename TMsg, typename THandler>
 constexpr bool dispatchMsgPolymorphicIsCompatibleHandler()
 {
-    return
-        DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, TMsg::hasDispatch()>::Value;
+    return DispatchMsgPolymorphicCompatibleHandlerDetectBoolType<TMsg, THandler>::value;
 }
 
-
-template <typename TAllMessages, typename TMsgBase, typename THandler>
+template <typename ...>
 class DispatchMsgPolymorphicHelper
 {
-    struct EmptyTag {};
-    struct DispatchInterfaceTag {};
-    struct DirectTag {};
-    struct StrongBinSearchTag {};
-    struct WeakBinSearchTag {};
+    template <typename... TParams>
+    using EmptyTag = comms::details::tag::Tag1<>;
 
-    struct IdInterfaceTag {};
-    struct NoIdInterfaceTag {};
+    template <typename... TParams>
+    using DispatchInterfaceTag = comms::details::tag::Tag2<>;
+    
+    template <typename... TParams>
+    using DirectTag = comms::details::tag::Tag3<>;
 
-    static const std::size_t NumOfMessages = 
-        std::tuple_size<TAllMessages>::value;
+    template <typename... TParams>
+    using StrongBinSearchTag = comms::details::tag::Tag4<>;
 
-    static_assert(allMessagesAreWeakSorted<TAllMessages>(),
-        "Message types must be sorted by their ID");
+    template <typename... TParams>
+    using WeakBinSearchTag = comms::details::tag::Tag5<>;
 
-    static_assert(comms::isMessage<TMsgBase>(), 
-        "TMsgBase is expected to be message interface class");
+    template <typename... TParams>
+    using IdInterfaceTag = comms::details::tag::Tag6<>;
 
-    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
-    using MsgIdParamType = typename TMsgBase::MsgIdParamType;
+    template <typename... TParams>
+    using NoIdInterfaceTag = comms::details::tag::Tag7<>;
 
+    template <typename TAllMessages, typename...>
+    using DirectStrongTag = 
+        typename comms::util::LazyShallowConditional<
+            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>()
+        >::template Type<
+            DirectTag,
+            StrongBinSearchTag
+        >;
+
+    template <typename TAllMessages, typename...>
+    using DirectStrongWeakTag = 
+        typename comms::util::LazyShallowConditional<
+            allMessagesAreStrongSorted<TAllMessages>()
+        >::template Type<
+            DirectStrongTag,
+            WeakBinSearchTag,
+            TAllMessages
+        >;
+
+
+    template <typename TAllMessages, typename TMsgBase, typename THandler, typename...>
     using Tag = 
-        typename std::conditional<
-            dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
+        typename comms::util::LazyShallowConditional<
+            dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>()
+        >::template Type<
             DispatchInterfaceTag,
-            typename std::conditional<
-                allMessagesAreStrongSorted<TAllMessages>(),
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
-                    DirectTag,
-                    StrongBinSearchTag
-                >::type,
-                WeakBinSearchTag
-            >::type
-        >::type;
+            DirectStrongWeakTag,
+            TAllMessages
+        >;
 
-    template <typename TMsg>
+    template <typename TAllMessages, typename TMsgBase, typename THandler, typename...>
     using AdjustedTag =
-        typename std::conditional<
-            comms::isMessageBase<TMsg>(),
+        typename comms::util::LazyShallowConditional<
+            comms::isMessageBase<TMsgBase>()
+        >::template Type<
             EmptyTag,
-            Tag
-        >::type;
+            Tag,
+            TAllMessages, TMsgBase, THandler
+        >;
+
+        template <typename TMsgBase, typename...>
+        using InterfaceDispatchTag =
+            typename comms::util::LazyShallowConditional<
+                TMsgBase::hasGetId()
+            >::template Type<
+                IdInterfaceTag,
+                NoIdInterfaceTag
+            >;
+
+        template <typename TMsgBase, typename THandler, typename...>
+        using PolymorphicCheckDispatchTag = 
+            typename comms::util::LazyShallowConditional<
+                dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>()
+            >::template Type<
+                NoIdInterfaceTag,
+                InterfaceDispatchTag,
+                TMsgBase
+            >;
 
 public:
+    template <typename TAllMessages, typename TMsgBase, typename THandler>
     static auto dispatch(TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        using IdRetrieveTag = 
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
-                EmptyTag,
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
-                    NoIdInterfaceTag,
-                    typename std::conditional<
-                        TMsgBase::hasGetId(),
-                        IdInterfaceTag,
-                        NoIdInterfaceTag
-                    >::type
-                >::type
-            >::type;
 
-        return dispatchInternal(msg, handler, IdRetrieveTag());
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            "Message types must be sorted by their ID");
+
+        static_assert(comms::isMessage<TMsgBase>(), 
+            "TMsgBase is expected to be message interface class");
+
+        static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
+
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        using IdRetrieveTag = 
+            typename comms::util::LazyShallowConditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
+                EmptyTag,
+                PolymorphicCheckDispatchTag,
+                MsgType, HandlerType
+            >;
+
+        return dispatchInternal<TAllMessages>(msg, handler, IdRetrieveTag());
     }
 
-    template <typename TId>
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler>
     static auto dispatch(TId&& id, TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            "Message types must be sorted by their ID");
+
+        static_assert(comms::isMessage<TMsgBase>(), 
+            "TMsgBase is expected to be message interface class");
+
+        static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
+
         using MsgType = typename std::decay<decltype(msg)>::type;
-        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, AdjustedTag<MsgType>());
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        return 
+            dispatchInternal<TAllMessages>(
+                static_cast<typename MsgType::MsgIdParamType>(id), 
+                msg, 
+                handler, 
+                AdjustedTag<TAllMessages, MsgType, HandlerType>());
     }
 
-    template <typename TId>
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler>
     static auto dispatch(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            "Message types must be sorted by their ID");
+                    
+        static_assert(comms::isMessage<TMsgBase>(), 
+            "TMsgBase is expected to be message interface class");
+
+        static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
+
         using MsgType = typename std::decay<decltype(msg)>::type;
-        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, AdjustedTag<MsgType>());
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        return 
+            dispatchInternal<TAllMessages>(
+                static_cast<typename MsgType::MsgIdParamType>(id), 
+                offset, 
+                msg, 
+                handler, 
+                AdjustedTag<TAllMessages, MsgType, HandlerType>());
     }
 
 private:
-    static auto dispatchInternal(TMsgBase& msg, THandler& handler, EmptyTag) ->
+    template <typename TAllMessages, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TMsgBase& msg, THandler& handler, EmptyTag<TParams...>) ->
         decltype(handler.handle(msg))
     {
         return handler.handle(msg);
     }
 
-    static auto dispatchInternal(TMsgBase& msg, THandler& handler, IdInterfaceTag) ->
+    template <typename TAllMessages, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TMsgBase& msg, THandler& handler, IdInterfaceTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         typename TMsgBase::MsgIdParamType id = msg.getId();
-        return dispatch(id, msg, handler);
+        return dispatch<TAllMessages>(id, msg, handler);
     }
 
-    static auto dispatchInternal(TMsgBase& msg, THandler& handler, NoIdInterfaceTag) ->
+    template <typename TAllMessages, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TMsgBase& msg, THandler& handler, NoIdInterfaceTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -605,45 +681,57 @@ private:
         return static_cast<RetType>(msg.dispatch(handler));
     }
 
-    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, EmptyTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, TMsgBase& msg, THandler& handler, EmptyTag<TParams...>) ->
         decltype(handler.handle(msg))
     {
         static_cast<void>(id);
         return handler.handle(msg);
     }
 
-    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, DispatchInterfaceTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, TMsgBase& msg, THandler& handler, DispatchInterfaceTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         static_cast<void>(id);
-        return dispatchInternal(msg, handler, NoIdInterfaceTag());
+        return dispatchInternal<TAllMessages>(msg, handler, NoIdInterfaceTag<>());
     }
 
-    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, DirectTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, TMsgBase& msg, THandler& handler, DirectTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return DispatchMsgDirectPolymorphicHelper<TAllMessages, TMsgBase, THandler>::
-            dispatch(id, msg, handler);
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+
+        return DispatchMsgDirectPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(std::forward<TId>(id), msg, handler);
     }
 
-    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, StrongBinSearchTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, TMsgBase& msg, THandler& handler, StrongBinSearchTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return DispatchMsgBinSearchStrongPolymorphicHelper<TAllMessages, TMsgBase, THandler>::
-            dispatch(id, msg, handler);
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+
+        return DispatchMsgBinSearchStrongPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(std::forward<TId>(id), msg, handler);
     }
 
-    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, WeakBinSearchTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, TMsgBase& msg, THandler& handler, WeakBinSearchTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(id, 0U, msg, handler, WeakBinSearchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), 0U, msg, handler, WeakBinSearchTag<>());
     }
 
-    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, DispatchInterfaceTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler, DispatchInterfaceTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -652,14 +740,12 @@ private:
         static_assert(std::is_base_of<typename TMsgBase::Handler, THandler>::value,
             "Incompatible handlers");
 
-        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
-                "The message types in the provided tuple must be sorted by their IDs");
-
         using RetType = MessageInterfaceDispatchRetType<THandler>;
         return static_cast<RetType>(msg.dispatch(handler));
     }
 
-    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, EmptyTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler, EmptyTag<TParams...>) ->
         decltype(handler.handle(msg))
     {
         static_cast<void>(id);
@@ -667,7 +753,8 @@ private:
         return handler.handle(msg);
     }
 
-    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, DirectTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler, DirectTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -676,10 +763,11 @@ private:
             return static_cast<RetType>(handler.handle(msg));
         }
 
-        return dispatchInternal(id, msg, handler, DirectTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), msg, handler, DirectTag<>());
     }
 
-    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, StrongBinSearchTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler, StrongBinSearchTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -688,15 +776,19 @@ private:
             return static_cast<RetType>(handler.handle(msg));
         }
 
-        return dispatchInternal(id, msg, handler, StrongBinSearchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), msg, handler, StrongBinSearchTag<>());
     }
 
-    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, WeakBinSearchTag) ->
+    template <typename TAllMessages, typename TId, typename TMsgBase, typename THandler, typename... TParams>
+    static auto dispatchInternal(TId&& id, std::size_t offset, TMsgBase& msg, THandler& handler, WeakBinSearchTag<TParams...>) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return DispatchMsgBinSearchWeakPolymorphicHelper<TAllMessages, TMsgBase, THandler>::
-            dispatch(id, offset, msg, handler);
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        
+        return DispatchMsgBinSearchWeakPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(std::forward<TId>(id), offset, msg, handler);
     }
 };
 
@@ -1041,60 +1133,82 @@ public:
     }
 };
 
-template <typename TAllMessages, typename THandler>
+template <typename...>
 class DispatchMsgTypePolymorphicHelper
 {
-    struct EmptyTag {};
-    struct DirectTag {};
-    struct StrongBinSearchTag {};
-    struct WeakBinSearchTag {};
+    template <typename... TParams>
+    using EmptyTag = comms::details::tag::Tag1<>;
 
-    static const std::size_t NumOfMessages = 
-        std::tuple_size<TAllMessages>::value;
+    template <typename... TParams>
+    using DirectTag = comms::details::tag::Tag2<>;
 
-    static_assert((!allMessagesHaveStaticNumId<TAllMessages>()) || allMessagesAreWeakSorted<TAllMessages>(),
-        "Message types must be sorted by their ID");
+    template <typename... TParams>
+    using StrongBinSearchTag = comms::details::tag::Tag3<>;
 
+    template <typename... TParams>
+    using WeakBinSearchTag = comms::details::tag::Tag4<>;
+
+    template <typename TAllMessages, typename...>
+    using DirectStrongTag = 
+        typename comms::util::LazyShallowConditional<
+            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>()
+        >::template Type<
+            DirectTag,
+            StrongBinSearchTag
+        >;
+
+    template <typename TAllMessages, typename...>
+    using DirectStrongWeakTag = 
+        typename comms::util::LazyShallowConditional<
+            allMessagesAreStrongSorted<TAllMessages>()
+        >::template Type<
+            DirectStrongTag,
+            WeakBinSearchTag,
+            TAllMessages
+        >;
+
+
+    template <typename TAllMessages, typename...>
     using Tag = 
-        typename std::conditional<
-            NumOfMessages == 0U,
+        typename comms::util::LazyShallowConditional<
+            std::tuple_size<TAllMessages>::value == 0U
+        >::template Type<
             EmptyTag,
-            typename std::conditional<
-                allMessagesAreStrongSorted<TAllMessages>(),
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
-                    DirectTag,
-                    StrongBinSearchTag
-                >::type,
-                WeakBinSearchTag
-            >::type
-        >::type;
+            DirectStrongWeakTag,
+            TAllMessages
+        >;
 
 public:
-    template <typename TId>
+    template <typename TAllMessages, typename TId, typename THandler>
     static bool dispatch(TId&& id, THandler& handler) 
     {
-        return dispatchInternal(std::forward<TId>(id), handler, Tag());
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            "Message types must be sorted by their ID");
+
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), handler, Tag<TAllMessages>());
     }
 
-    template <typename TId>
+    template <typename TAllMessages, typename TId, typename THandler>
     static bool dispatch(TId&& id, std::size_t offset, THandler& handler) 
     {
-        return dispatchInternal(std::forward<TId>(id), offset, handler, Tag());
+        static_assert(allMessagesAreWeakSorted<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            "Message types must be sorted by their ID");
+
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), offset, handler, Tag<TAllMessages>());
     }
 
 private:
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, THandler& handler, EmptyTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, THandler& handler, EmptyTag<TParams...>) 
     {
         static_cast<void>(id);
         static_cast<void>(handler);
         return false;
     }
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, EmptyTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, EmptyTag<TParams...>) 
     {
         static_cast<void>(id);
         static_cast<void>(handler);
@@ -1102,65 +1216,68 @@ private:
         return false;
     }
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, THandler& handler, DirectTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, THandler& handler, DirectTag<TParams...>) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
-        return DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        return DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, HandlerType>::
             dispatch(static_cast<MsgIdParamType>(id), handler);
     }
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, DirectTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, DirectTag<TParams...>) 
     {
         if (offset != 0U) {
             return false;
         }
 
-        return dispatchInternal(std::forward<TId>(id), handler, DirectTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), handler, DirectTag<>());
     }    
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, THandler& handler, StrongBinSearchTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, THandler& handler, StrongBinSearchTag<TParams...>) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
-        return DispatchMsgTypeBinSearchStrongPolymorphicHelper<TAllMessages, THandler>::
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        return DispatchMsgTypeBinSearchStrongPolymorphicHelper<TAllMessages, HandlerType>::
             dispatch(static_cast<MsgIdParamType>(id), handler);
     }   
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, StrongBinSearchTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, StrongBinSearchTag<TParams...>) 
     {
         if (offset != 0U) {
             return false;
         }
 
-        return dispatchInternal(std::forward<TId>(id), handler, StrongBinSearchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), handler, StrongBinSearchTag<>());
     }         
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, THandler& handler, WeakBinSearchTag)
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, THandler& handler, WeakBinSearchTag<TParams...>)
     {
-        return dispatchInternal(std::forward<TId>(id), 0U, handler, WeakBinSearchTag());
+        return dispatchInternal<TAllMessages>(std::forward<TId>(id), 0U, handler, WeakBinSearchTag<>());
     }
 
-    template <typename TId>
-    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, WeakBinSearchTag) 
+    template <typename TAllMessages, typename TId, typename THandler, typename... TParams>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, WeakBinSearchTag<TParams...>) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
         static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
-        return DispatchMsgTypeBinSearchWeakPolymorphicHelper<TAllMessages, THandler>::
+        using HandlerType = typename std::decay<decltype(handler)>::type;
+        return DispatchMsgTypeBinSearchWeakPolymorphicHelper<TAllMessages, HandlerType>::
             dispatch(static_cast<MsgIdParamType>(id), offset, handler);
     }       
 };

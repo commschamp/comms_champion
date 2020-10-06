@@ -60,7 +60,7 @@ QString FieldWrapper::getSerialisedString() const
     auto seq = getSerialisedValue();
     QString str;
     for (auto& byte : seq) {
-        str.append(QString("%1").arg((unsigned)byte, 2, 16, QChar('0')));
+        str.append(QString("%1").arg(static_cast<unsigned>(byte), 2, 16, QChar('0')));
     }
     return str;
 }
@@ -69,7 +69,7 @@ bool FieldWrapper::setSerialisedString(const QString& str)
 {
     assert((str.size() & 0x1) == 0U);
     SerialisedSeq seq;
-    seq.reserve(str.size() / 2);
+    seq.reserve(static_cast<std::size_t>(str.size() / 2));
     QString byteStr;
     for (auto ch : str) {
         byteStr.append(ch);

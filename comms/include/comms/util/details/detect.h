@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+#include "comms/util/type_traits.h"
+
 namespace comms
 {
 
@@ -22,10 +25,41 @@ namespace detect
 namespace details
 {
 
+// MSVC2015 Is not working correctly with VoidT or any other workaround 
+// suggested at https://en.cppreference.com/w/cpp/types/void_t
+
+// template <typename... TArgs>
+// using VoidT = void;
+
+// template <typename TVoid, template <class...> class TOp, typename... TArgs>
+// struct PresenceDetector
+// {
+//    static const bool Value = false;
+// };
+
+// template <template <class...> class TOp, typename... TArgs>
+// struct PresenceDetector<VoidT<TOp<TArgs...> >, TOp, TArgs...>
+// {
+//    static const bool Value = true;
+// };
+
+// template <template <class...> class TOp, typename... TArgs>
+// constexpr bool isDetected()
+// {
+//    return PresenceDetector<void, TOp, TArgs...>::Value;
+// }
+
+// template <typename T>
+// using HasClearOp = decltype(std::declval<T&>().clear());
+
+// template <typename T>
+// using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
+
+
 template <typename T>
 class HasClearFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -41,7 +75,7 @@ public:
 template <typename T>
 class HasReserveFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -57,7 +91,7 @@ public:
 template <typename T>
 class HasResizeFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -73,7 +107,7 @@ public:
 template <typename T>
 class HasRemoveSuffixFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -89,7 +123,7 @@ public:
 template <typename T>
 class HasAssignFunc
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>
@@ -105,7 +139,7 @@ public:
 template <typename T>
 class HasPtrSizeConstructor
 {
-    struct No {};
+    using No = comms::util::EmptyStruct<>;
 
 protected:
     template <typename C>

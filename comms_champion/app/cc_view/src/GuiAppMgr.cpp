@@ -440,7 +440,7 @@ void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
     emit sigSendListCountReport(m_sendListCount);
     emit sigAddSendMsg(msg);
 
-    sendMsgClicked(msg, m_sendListCount - 1);
+    sendMsgClicked(msg, static_cast<int>(m_sendListCount) - 1);
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
 }
@@ -489,7 +489,7 @@ void GuiAppMgr::sendUpdateList(const MessagesList& msgs)
         ++clickedIdx;
     }
 
-    m_sendListCount = msgs.size();
+    m_sendListCount = static_cast<decltype(m_sendListCount)>(msgs.size());
     emit sigSendListCountReport(m_sendListCount);
     if ((clickedMsg) && (static_cast<std::size_t>(clickedIdx) < msgs.size())) {
         sendMsgClicked(clickedMsg, clickedIdx);
@@ -553,7 +553,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
         msgMgr.stop();
         msgMgr.clear();
-        emit sigActivityStateChanged((int)ActivityState::Inactive);
+        emit sigActivityStateChanged(static_cast<int>(ActivityState::Inactive));
     }
 
     if (needsReload) {
@@ -572,7 +572,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         for (auto& ptr : pluginsToUnload) {
             pluginMgr.unloadAppliedPlugin(*ptr);
         }
-        emit sigActivityStateChanged((int)ActivityState::Clear);
+        emit sigActivityStateChanged(static_cast<int>(ActivityState::Clear));
     }
 
     typedef Plugin::ListOfFilters ListOfFilters;
@@ -590,7 +590,9 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     for (auto& info : plugins) {
         Plugin* plugin = pluginMgr.loadPlugin(*info);
         if (plugin == nullptr) {
-            assert(!"Failed to load plugin");
+            static constexpr bool Failed_to_load_plugin = false;
+            static_cast<void>(Failed_to_load_plugin);
+            assert(Failed_to_load_plugin);
             continue;
         }
 
@@ -635,7 +637,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     msgMgr.setProtocol(std::move(applyInfo.m_protocol));
 
     msgMgr.start();
-    emit sigActivityStateChanged((int)ActivityState::Active);
+    emit sigActivityStateChanged(static_cast<int>(ActivityState::Active));
 
     for (auto& action : applyInfo.m_actions) {
         emit sigAddMainToolbarAction(std::move(action));
@@ -801,7 +803,7 @@ void GuiAppMgr::refreshRecvList()
     if (m_selType == SelectionType::Recv) {
         assert(m_clickedMsg);
         assert(0 < m_recvListCount);
-        recvMsgClicked(m_clickedMsg, m_recvListCount - 1);
+        recvMsgClicked(m_clickedMsg, static_cast<int>(m_recvListCount) - 1);
         assert(!m_clickedMsg);
     }
     else if (m_selType != SelectionType::Send) {
@@ -819,7 +821,7 @@ void GuiAppMgr::refreshRecvList()
             addMsgToRecvList(msg);
             if (msg == clickedMsg) {
                 assert(0 < m_recvListCount);
-                recvMsgClicked(msg, m_recvListCount - 1);
+                recvMsgClicked(msg, static_cast<int>(m_recvListCount) - 1);
             }
         }
     }
@@ -912,7 +914,7 @@ void GuiAppMgr::updateRecvListMode(RecvListMode mode, bool checked)
         m_recvListMode |= mask;
     }
     else {
-        m_recvListMode &= (~mask);
+        m_recvListMode &= static_cast<decltype(m_recvListMode)>(~mask);
     }
 
     if (mode != RecvListMode_ShowGarbage) {

@@ -132,9 +132,7 @@ protected:
                 [this, &readIterBeg]()
                 {
                     ReadIterator dataBegin = &m_data[0];
-                    auto dist =
-                        static_cast<std::size_t>(
-                            std::distance(dataBegin, readIterBeg));
+                    auto dist = std::distance(dataBegin, readIterBeg);
                     m_data.erase(m_data.begin(), m_data.begin() + dist);
                 });
 
@@ -245,7 +243,9 @@ protected:
             addMsgInfoGuard.release();
 
             if (es == comms::ErrorStatus::MsgAllocFailure) {
-                assert(!"Mustn't happen");
+                static constexpr bool Must_not_be_happen = false;
+                static_cast<void>(Must_not_be_happen);
+                assert(Must_not_be_happen); 
                 break;
             }
 
@@ -260,9 +260,8 @@ protected:
 
         if (final) {
             ReadIterator dataBegin = &m_data[0];
-            auto consumed =
-                static_cast<std::size_t>(std::distance(dataBegin, readIterBeg));
-            auto remDataCount = m_data.size() - consumed;
+            auto consumed = std::distance(dataBegin, readIterBeg);
+            auto remDataCount = static_cast<decltype(consumed)>(m_data.size()) - consumed;
             m_garbage.insert(m_garbage.end(), m_data.begin() + consumed, m_data.end());
             std::advance(readIterBeg, remDataCount);
             checkGarbageFunc();
@@ -286,7 +285,9 @@ protected:
         }
 
         if (es != comms::ErrorStatus::Success) {
-            assert(!"Unexpected write/update failure");
+            static constexpr bool Unexpected_write_update_failure = false;
+            static_cast<void>(Unexpected_write_update_failure);
+            assert(Unexpected_write_update_failure); 
             return DataInfoPtr();
         }
 
@@ -319,7 +320,9 @@ protected:
             }
 
             if (es != comms::ErrorStatus::Success) {
-                assert(!"Message write/update has failed unexpectedly");
+                static constexpr bool Unexpected_write_update_failure = false;
+                static_cast<void>(Unexpected_write_update_failure);
+                assert(Unexpected_write_update_failure); 
                 break;
             }
 
@@ -341,13 +344,17 @@ protected:
 
             std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
             if (!readMessageFunc(*transportMsgPtr)) {
-                assert(!"Unexpected failure to read transport message");
+                static constexpr bool Unexpected_failure_to_read_transport_message = false;
+                static_cast<void>(Unexpected_failure_to_read_transport_message);
+                assert(Unexpected_failure_to_read_transport_message);        
                 break;
             }
 
             std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
             if (!readMessageFunc(*rawDataMsgPtr)) {
-                assert(!"Unexpected failure to read raw data of the message");
+                static constexpr bool Unexpected_failure_to_read_raw_data = false;
+                static_cast<void>(Unexpected_failure_to_read_raw_data);
+                assert(Unexpected_failure_to_read_raw_data);                   
                 break;
             }
 

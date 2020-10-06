@@ -14,6 +14,8 @@
 #include <type_traits>
 
 #include "comms/traits.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -24,21 +26,8 @@ namespace units
 namespace details
 {
 
-template <typename TField, bool THasScalingRatio>
-struct ScalingRatioRetriever
-{
-    using Type = std::ratio<1, 1>;
-};
-
 template <typename TField>
-struct ScalingRatioRetriever<TField, true>
-{
-    using Type = typename TField::ParsedOptions::ScalingRatio;
-};
-
-template <typename TField>
-using ScalingRatioOf =
-    typename ScalingRatioRetriever<TField, TField::ParsedOptions::HasScalingRatio>::Type;
+using ScalingRatioOf = typename TField::ParsedOptions::ScalingRatio;
 
 template <typename TField, typename TConvRatio>
 using FullUnitsRatioOf =
@@ -50,18 +39,14 @@ using FullUnitsRatioOf =
         TConvRatio
     >::type;
 
+template <typename...>
 struct UnitsValueConverter
 {
     template <typename TRet, typename TConvRatio, typename TField>
     static TRet getValue(const TField& field)
     {
         using Ratio = FullUnitsRatioOf<TField, TConvRatio>;
-        using Tag = typename std::conditional<
-            std::is_same<Ratio, std::ratio<1, 1> >::value,
-            NoConversionTag,
-            HasConversionTag
-        >::type;
-
+        using Tag = RatioTag<TField, TConvRatio>;
         return getValueInternal<TRet, Ratio>(field, Tag());
     }
 
@@ -69,50 +54,64 @@ struct UnitsValueConverter
     static void setValue(TField& field, TVal&& value)
     {
         using Ratio = FullUnitsRatioOf<TField, TConvRatio>;
-        using Tag = typename std::conditional<
-            std::is_same<Ratio, std::ratio<1, 1> >::value,
-            NoConversionTag,
-            HasConversionTag
-        >::type;
-
+        using Tag = RatioTag<TField, TConvRatio>;
         return setValueInternal<Ratio>(field, std::forward<TVal>(value), Tag());
     }
 
 private:
-    struct HasConversionTag {};
-    struct NoConversionTag {};
-    struct ConvertToFpTag {};
-    struct ConvertToIntTag {};
+    template <typename...>
+    using HasConversionTag = comms::details::tag::Tag1<>;
 
+    template <typename...>
+    using NoConversionTag = comms::details::tag::Tag2<>;
 
-    template <typename TRet, typename TRatio, typename TField>
-    static TRet getValueInternal(const TField& field, NoConversionTag)
+    template <typename...>
+    using ConvertToFpTag = comms::details::tag::Tag3<>;
+
+    template <typename...>
+    using ConvertToIntTag = comms::details::tag::Tag4<>;
+
+    template <typename TField, typename TConvRatio>
+    using RatioTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<FullUnitsRatioOf<TField, TConvRatio>, std::ratio<1, 1> >::value
+        >::template Type<
+            NoConversionTag,
+            HasConversionTag
+        >;
+
+    template <typename TRet>
+    using TypeTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_floating_point<TRet>::value
+        >::template Type<
+            ConvertToFpTag,
+            ConvertToIntTag
+        >;
+
+    template <typename TRet, typename TRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, NoConversionTag<TParams...>)
     {
         return static_cast<TRet>(field.value());
     }
 
-    template <typename TRet, typename TRatio, typename TField>
-    static TRet getValueInternal(const TField& field, HasConversionTag)
+    template <typename TRet, typename TRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, HasConversionTag<TParams...>)
     {
-        using Tag = typename std::conditional<
-            std::is_floating_point<TRet>::value,
-            ConvertToFpTag,
-            ConvertToIntTag
-        >::type;
-
+        using Tag = TypeTag<TRet>;
         return getValueInternal<TRet, TRatio>(field, Tag());
     }
 
-    template <typename TRet, typename TRatio, typename TField>
-    static TRet getValueInternal(const TField& field, ConvertToFpTag)
+    template <typename TRet, typename TRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, ConvertToFpTag<TParams...>)
     {
         static_assert(std::is_floating_point<TRet>::value,
             "TRet is expected to be floating point type");
         return static_cast<TRet>(field.value()) * (static_cast<TRet>(TRatio::num) / static_cast<TRet>(TRatio::den));
     }
 
-    template <typename TRet, typename TRatio, typename TField>
-    static TRet getValueInternal(const TField& field, ConvertToIntTag)
+    template <typename TRet, typename TRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, ConvertToIntTag<TParams...>)
     {
         static_assert(std::is_integral<TRet>::value,
             "TRet is expected to be integral type");
@@ -127,47 +126,45 @@ private:
             "Unexpected field in units conversion");
 
         using CastType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
-                typename std::conditional<
-                    std::is_same<ValueType, float>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
+                typename comms::util::Conditional<
+                    std::is_same<ValueType, float>::value
+                >::template Type<
                     double,
                     ValueType
-                >::type,
-                typename std::conditional<
-                    std::is_signed<TRet>::value,
+                >,
+                typename comms::util::Conditional<
+                    std::is_signed<TRet>::value
+                >::template Type<
                     std::intmax_t,
                     std::uintmax_t
-                >::type
-        >::type;
+                >
+            >;
 
         return
             static_cast<TRet>(
                 (static_cast<CastType>(field.value()) * TRatio::num) / TRatio::den);
     }
 
-    template <typename TRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& value, NoConversionTag)
+    template <typename TRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& value, NoConversionTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         using ValueType = typename FieldType::ValueType;
         field.value() = static_cast<ValueType>(value);
     }
 
-    template <typename TRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& value, HasConversionTag)
+    template <typename TRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& value, HasConversionTag<TParams...>)
     {
-        using Tag = typename std::conditional<
-            std::is_floating_point<typename std::decay<decltype(value)>::type>::value,
-            ConvertToFpTag,
-            ConvertToIntTag
-        >::type;
-
+        using Tag = TypeTag<typename std::decay<decltype(value)>::type>;
         setValueInternal<TRatio>(field, std::forward<TVal>(value), Tag());
     }
 
-    template <typename TRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& value, ConvertToIntTag)
+    template <typename TRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& value, ConvertToIntTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         using ValueType = typename FieldType::ValueType;
@@ -179,27 +176,30 @@ private:
             "Unexpected field in units conversion");
 
         using CastType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
-                typename std::conditional<
-                    std::is_same<ValueType, float>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
+                typename comms::util::Conditional<
+                    std::is_same<ValueType, float>::value
+                >::template Type<
                     double,
                     ValueType
-                >::type,
-                typename std::conditional<
-                    std::is_signed<typename std::decay<decltype(value)>::type>::value,
+                >,
+                typename comms::util::Conditional<
+                    std::is_signed<typename std::decay<decltype(value)>::type>::value
+                >::template Type<
                     std::intmax_t,
                     std::uintmax_t
-                >::type
-        >::type;
+                >
+            >;
 
         field.value() =
             static_cast<ValueType>(
                 (static_cast<CastType>(value) * TRatio::den) / static_cast<CastType>(TRatio::num));
     }
 
-    template <typename TRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& value, ConvertToFpTag)
+    template <typename TRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& value, ConvertToFpTag<TParams...>)
     {
         using DecayedType = typename std::decay<decltype(value)>::type;
         using FieldType = typename std::decay<decltype(field)>::type;
@@ -225,23 +225,10 @@ private:
 
 };
 
-template <typename TField, typename TType, bool THasUnits>
-struct UnitsChecker
-{
-    static const bool Value = false;
-};
-
-template <typename TField, typename TType>
-struct UnitsChecker<TField, TType, true>
-{
-    static const bool Value =
-        std::is_same<typename TField::ParsedOptions::UnitsType, TType>::value;
-};
-
 template <typename TField, typename TType>
 constexpr bool hasExpectedUnits()
 {
-    return UnitsChecker<TField, TType, TField::ParsedOptions::HasUnits>::Value;
+    return std::is_same<typename TField::ParsedOptions::UnitsType, TType>::value;
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -249,7 +236,7 @@ TRet getTime(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Time>(),
          "The field is expected to contain \"time\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -257,7 +244,7 @@ void setTime(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Time>(),
          "The field is expected to contain \"time\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -265,7 +252,7 @@ TRet getDistance(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Distance>(),
          "The field is expected to contain \"distance\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -273,7 +260,7 @@ void setDistance(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Distance>(),
          "The field is expected to contain \"distance\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -281,7 +268,7 @@ TRet getSpeed(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Speed>(),
          "The field is expected to contain \"speed\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -289,7 +276,7 @@ void setSpeed(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Speed>(),
          "The field is expected to contain \"speed\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -297,7 +284,7 @@ TRet getFrequency(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Frequency>(),
          "The field is expected to contain \"frequency\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -305,16 +292,16 @@ void setFrequency(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Frequency>(),
          "The field is expected to contain \"frequency\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename T>
 struct PI
 {
     static constexpr T Value = static_cast<T>(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899L);
-
 };
 
+template <typename...>
 struct AngleValueConverter
 {
     template <typename TRet, typename TConvRatio, typename TField>
@@ -324,17 +311,7 @@ struct AngleValueConverter
         static_assert(details::hasExpectedUnits<FieldType, comms::traits::units::Angle>(),
              "The field is expected to contain \"angle\" units.");
 
-        using Tag =
-            typename std::conditional<
-                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
-                SameUnitsTag,
-                typename::std::conditional<
-                    std::is_same<TConvRatio, comms::traits::units::RadiansRatio>::value,
-                    DegreesToRadiansTag,
-                    RadiansToDegreesTag
-                >::type
-            >::type;
-
+        using Tag = GetTag<FieldType, TConvRatio>;
         return getValueInternal<TRet, TConvRatio>(field, Tag());
     }
 
@@ -345,59 +322,92 @@ struct AngleValueConverter
         static_assert(details::hasExpectedUnits<FieldType, comms::traits::units::Angle>(),
              "The field is expected to contain \"angle\" units.");
 
-        using Tag =
-            typename std::conditional<
-                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
-                SameUnitsTag,
-                typename::std::conditional<
-                    std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value,
-                    RadiansToDegreesTag,
-                    DegreesToRadiansTag
-                >::type
-            >::type;
-
+        using Tag = SetTag<FieldType, TConvRatio>;
         setValueInternal<TConvRatio>(field, std::forward<TVal>(val), Tag());
     }
 
 private:
-    struct SameUnitsTag {};
-    struct DegreesToRadiansTag {};
-    struct RadiansToDegreesTag {};
+    template <typename... TParams>
+    using SameUnitsTag = comms::details::tag::Tag1<>;
 
-    template <typename TRet, typename TConvRatio, typename TField>
-    static TRet getValueInternal(const TField& field, SameUnitsTag)
+    template <typename... TParams>
+    using DegreesToRadiansTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using RadiansToDegreesTag = comms::details::tag::Tag3<>;    
+
+    template <typename TConvRatio>
+    using SetUnitsTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value
+        >::template Type<
+            RadiansToDegreesTag,
+            DegreesToRadiansTag
+        >;
+
+    template <typename TConvRatio>
+    using GetUnitsTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value
+        >::template Type<
+            DegreesToRadiansTag,
+            RadiansToDegreesTag
+        >;        
+
+    template <typename TField, typename TConvRatio>
+    using GetTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<TConvRatio, typename TField::ParsedOptions::UnitsRatio>::value
+        >::template Type<
+            SameUnitsTag,
+            GetUnitsTag,
+            TConvRatio
+        >;    
+
+    template <typename TField, typename TConvRatio>
+    using SetTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<TConvRatio, typename TField::ParsedOptions::UnitsRatio>::value
+        >::template Type<
+            SameUnitsTag,
+            SetUnitsTag,
+            TConvRatio
+        >;         
+
+    template <typename TRet, typename TConvRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, SameUnitsTag<TParams...>)
     {
         return field.template getScaled<TRet>();
     }
 
-    template <typename TRet, typename TConvRatio, typename TField>
-    static TRet getValueInternal(const TField& field, DegreesToRadiansTag)
+    template <typename TRet, typename TConvRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, DegreesToRadiansTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::DegreesRatio>::value,
              "The field is expected to contain degrees.");
 
-        return PI<TRet>::Value * UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+        return PI<TRet>::Value * UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
     }
 
-    template <typename TRet, typename TConvRatio, typename TField>
-    static TRet getValueInternal(const TField& field, RadiansToDegreesTag)
+    template <typename TRet, typename TConvRatio, typename TField, typename... TParams>
+    static TRet getValueInternal(const TField& field, RadiansToDegreesTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::RadiansRatio>::value,
              "The field is expected to contain radians.");
 
-        return UnitsValueConverter::getValue<TRet, TConvRatio>(field) / PI<TRet>::Value;
+        return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field) / PI<TRet>::Value;
     }
 
-    template <typename TConvRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& val, SameUnitsTag)
+    template <typename TConvRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& val, SameUnitsTag<TParams...>)
     {
         field.setScaled(std::forward<TVal>(val));
     }
 
-    template <typename TConvRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& val, DegreesToRadiansTag)
+    template <typename TConvRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& val, DegreesToRadiansTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::RadiansRatio>::value,
@@ -405,17 +415,18 @@ private:
 
         using ValueType = typename std::decay<decltype(val)>::type;
         using PiType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
                 ValueType,
                 double
-            >::type;
+            >;
 
-        UnitsValueConverter::setValue<TConvRatio>(field, val * PI<PiType>::Value);
+        UnitsValueConverter<>::setValue<TConvRatio>(field, val * PI<PiType>::Value);
     }
 
-    template <typename TConvRatio, typename TField, typename TVal>
-    static void setValueInternal(TField& field, TVal&& val, RadiansToDegreesTag)
+    template <typename TConvRatio, typename TField, typename TVal, typename... TParams>
+    static void setValueInternal(TField& field, TVal&& val, RadiansToDegreesTag<TParams...>)
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::DegreesRatio>::value,
@@ -423,26 +434,27 @@ private:
 
         using ValueType = typename std::decay<decltype(val)>::type;
         using PiType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
                 ValueType,
                 double
-            >::type;
+            >;
 
-        UnitsValueConverter::setValue<TConvRatio>(field, static_cast<PiType>(val) / PI<PiType>::Value);
+        UnitsValueConverter<>::setValue<TConvRatio>(field, static_cast<PiType>(val) / PI<PiType>::Value);
     }
 };
 
 template <typename TRet, typename TConvRatio, typename TField>
 TRet getAngle(const TField& field)
 {
-    return AngleValueConverter::getValue<TRet, TConvRatio>(field);
+    return AngleValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
 void setAngle(TField& field, TVal&& val)
 {
-    AngleValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    AngleValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -450,7 +462,7 @@ TRet getCurrent(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Current>(),
          "The field is expected to contain \"current\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -458,7 +470,7 @@ void setCurrent(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Current>(),
          "The field is expected to contain \"current\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -466,7 +478,7 @@ TRet getVoltage(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Voltage>(),
          "The field is expected to contain \"voltage\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -474,7 +486,7 @@ void setVoltage(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Voltage>(),
          "The field is expected to contain \"voltage\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 template <typename TRet, typename TConvRatio, typename TField>
@@ -482,7 +494,7 @@ TRet getMemory(const TField& field)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Memory>(),
          "The field is expected to contain \"memory\" units.");
-    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    return UnitsValueConverter<>::getValue<TRet, TConvRatio>(field);
 }
 
 template <typename TConvRatio, typename TField, typename TVal>
@@ -490,7 +502,7 @@ void setMemory(TField& field, TVal&& val)
 {
     static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Memory>(),
          "The field is expected to contain \"memory\" units.");
-    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+    UnitsValueConverter<>::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
 } // namespace details

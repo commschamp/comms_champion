@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "comms/details/tag.h"
+
 namespace comms
 {
 
@@ -19,29 +21,18 @@ namespace field
 namespace tag
 {
 
-struct RawArrayList {};
-
-struct ArrayList {};
-
-struct Bitfield {};
-
-struct Bitmask {};
-
-struct Bundle {};
-
-struct Enum {};
-
-struct Float {};
-
-struct Int {};
-
-struct NoValue {};
-
-struct Optional {};
-
-struct String {};
-
-struct Variant {};
+using RawArrayList = comms::details::tag::Tag1<>;
+using ArrayList = comms::details::tag::Tag2<>;
+using Bitfield = comms::details::tag::Tag3<>;
+using Bitmask = comms::details::tag::Tag4<>;
+using Bundle = comms::details::tag::Tag5<>;
+using Enum = comms::details::tag::Tag6<>;
+using Float = comms::details::tag::Tag7<>;
+using Int = comms::details::tag::Tag8<>;
+using NoValue = comms::details::tag::Tag9<>;
+using Optional = comms::details::tag::Tag10<>;
+using String = comms::details::tag::Tag11<>;
+using Variant = comms::details::tag::Tag12<>;
 
 }  // namespace tag
 

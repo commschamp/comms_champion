@@ -58,7 +58,7 @@ public:
 
     virtual void handle(cc::field_wrapper::BitmaskValueWrapper& wrapper) override
     {
-        m_out << m_sep << "0x" << std::setw(wrapper.length() * 2) <<
+        m_out << m_sep << "0x" << std::setw(static_cast<int>(wrapper.length() * 2)) <<
             std::setfill('0') << std::hex << wrapper.getValue() << std::dec;
     }
 
@@ -123,7 +123,9 @@ public:
     virtual void handle(cc::field_wrapper::VariantWrapper& wrapper) override
     {
         static_cast<void>(wrapper);
-        assert(!"NYI");
+        static constexpr bool Not_yet_implemented = false;
+        static_cast<void>(Not_yet_implemented);
+        assert(Not_yet_implemented);
     }
 
     virtual void handle(cc::field_wrapper::UnknownValueWrapper& wrapper) override
@@ -134,7 +136,9 @@ public:
     virtual void handle(cc::field_wrapper::FieldWrapper& wrapper) override
     {
         static_cast<void>(wrapper);
-        assert(!"Unexpected wrapper");
+        static constexpr bool Unexpected_wrapper = false;
+        static_cast<void>(Unexpected_wrapper);
+        assert(Unexpected_wrapper);
     }
 
 private:

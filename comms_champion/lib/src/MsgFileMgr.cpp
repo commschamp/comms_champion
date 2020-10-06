@@ -341,7 +341,9 @@ QVariantList convertRecvMsgList(
     QVariantList convertedList;
     for (auto& msg : allMsgs) {
         if (!msg) {
-            assert(!"Message is expected to exist");
+            static constexpr bool Message_must_exist = false;
+            static_cast<void>(Message_must_exist);
+            assert(Message_must_exist);  
             continue;
         }
 
@@ -394,7 +396,9 @@ QVariantList convertSendMsgList(
     QVariantList convertedList;
     for (auto& msg : allMsgs) {
         if (!msg) {
-            assert(!"Message is expected to exist");
+            static constexpr bool Message_must_exist = false;
+            static_cast<void>(Message_must_exist);
+            assert(Message_must_exist); 
             continue;
         }
 

@@ -13,6 +13,9 @@
 #include <limits>
 #include <iterator>
 
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
+
 namespace comms
 {
 
@@ -38,23 +41,24 @@ struct Little {};
 namespace details
 {
 
-template <typename T, bool TMakeIntSize>
-struct TypeOptimiser;
+template <typename T>
+using AccessSelectTypeItself = typename std::decay<T>::type;
 
 template <typename T>
-struct TypeOptimiser<T, false>
-{
-    using Type = typename std::decay<T>::type;
-};
+using AccessSelectIntType = 
+    typename comms::util::Conditional<
+        std::is_signed<T>::value
+    >::template Type<int, unsigned>;
 
 template <typename T>
-struct TypeOptimiser<T, true>
-{
-    using Type = typename std::conditional<std::is_signed<T>::value, int, unsigned>::type;
-};
-
-template <typename T>
-using OptimisedValueType = typename TypeOptimiser<T, sizeof(T) < sizeof(int)>::Type;
+using AccessOptimisedValueType = 
+    typename comms::util::LazyShallowConditional<
+        sizeof(T) >= sizeof(int)
+    >::template Type<
+        AccessSelectTypeItself,
+        AccessSelectIntType,
+        T
+    >;
 
 template <typename TUnsignedByteType, typename T>
 typename std::decay<T>::type signExtCommon(T value, std::size_t size)
@@ -69,41 +73,50 @@ typename std::decay<T>::type signExtCommon(T value, std::size_t size)
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
 
     ValueType mask =
-        (static_cast<ValueType>(1) << ((size * BinDigits) - 1));
+        static_cast<ValueType>(static_cast<ValueType>(1) << ((size * BinDigits) - 1));
     if (value & mask) {
-        return value | (~((mask << 1) - 1));
+        return static_cast<ValueType>(value | (~((mask << 1) - 1)));
     }
     return value;
 }
 
-template <typename T, std::size_t TSize, typename TByteType>
+template <typename...>
 class SignExt
 {
-    struct FullSize {};
-    struct PartialSize {};
+    template <typename... TParams>
+    using FullSize = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using PartialSize = comms::details::tag::Tag2<>;    
+
 public:
-    using ValueType = typename std::decay<T>::type;
-
-    static ValueType value(T val)
+    template <std::size_t TSize, typename TByteType, typename T>
+    static typename std::decay<T>::type value(T val)
     {
-        using Tag = typename std::conditional<
-            sizeof(ValueType) == TSize,
-            FullSize,
-            PartialSize
-        >::type;
+        using ValueType = typename std::decay<T>::type;
+        using Tag = 
+            typename comms::util::LazyShallowConditional<
+                sizeof(ValueType) == TSize
+            >::template Type<
+                FullSize,
+                PartialSize
+            >;
 
-        return valueInternal(val, Tag());
+        return valueInternal<TSize, TByteType>(val, Tag());
     }
 
 private:
 
-    static ValueType valueInternal(T val, FullSize)
+    template <std::size_t TSize, typename TByteType, typename T, typename... TParams>
+    static typename std::decay<T>::type valueInternal(T val, FullSize<TParams...>)
     {
         return val;
     }
 
-    static ValueType valueInternal(T val, PartialSize)
+    template <std::size_t TSize, typename TByteType, typename T, typename... TParams>
+    static typename std::decay<T>::type valueInternal(T val, PartialSize<TParams...>)
     {
+        using ValueType = typename std::decay<T>::type;
         using UnsignedValueType = typename std::make_unsigned<ValueType>::type;
         static_assert(std::is_integral<ValueType>::value, "T must be integer type");
         using UnsignedByteType = typename std::make_unsigned<TByteType>::type;
@@ -114,38 +127,46 @@ private:
     }
 };
 
-template <typename TIter, bool TIsPointer>
-struct ByteTypeRetriever;
+template <typename TIter>
+using AccessIteratorByteType = typename std::iterator_traits<typename std::decay<TIter>::type>::value_type;
 
 template <typename TIter>
-struct ByteTypeRetriever<TIter, true>
+struct AccessContainerByteTypeDetector
 {
-    using Type = typename std::decay<decltype(*(TIter()))>::type;
-};
-
-template <typename TIter>
-struct ByteTypeRetriever<TIter, false>
-{
-    using DecayedIter = typename std::decay<TIter>::type;
-    using Type = typename DecayedIter::value_type;
+    using Type = AccessIteratorByteType<TIter>;
 };
 
 template <typename TContainer>
-struct ByteTypeRetriever<std::back_insert_iterator<TContainer>, false>
+struct AccessContainerByteTypeDetector<std::back_insert_iterator<TContainer> >
 {
-    using DecayedContainer = typename std::decay<TContainer>::type;
-    using Type = typename DecayedContainer::value_type;
+    using Type = typename TContainer::value_type;
 };
 
 template <typename TContainer>
-struct ByteTypeRetriever<std::front_insert_iterator<TContainer>, false>
+struct AccessContainerByteTypeDetector<std::insert_iterator<TContainer> >
 {
-    using DecayedContainer = typename std::decay<TContainer>::type;
-    using Type = typename DecayedContainer::value_type;
+    using Type = typename TContainer::value_type;
+};
+
+template <typename TContainer>
+struct AccessContainerByteTypeDetector<std::front_insert_iterator<TContainer> >
+{
+    using Type = typename TContainer::value_type;
 };
 
 template <typename TIter>
-using ByteType = typename ByteTypeRetriever<TIter, std::is_pointer<TIter>::value>::Type;
+using AccessContainerByteType = 
+    typename AccessContainerByteTypeDetector<typename std::decay<TIter>::type>::Type;
+
+template <typename TIter>
+using AccessByteType = 
+    typename comms::util::LazyShallowConditional<
+        std::is_void<AccessIteratorByteType<TIter> >::value
+    >::template Type<
+        AccessContainerByteType,
+        AccessIteratorByteType,
+        TIter
+    >;
 
 template <typename T, typename TIter>
 void writeBigUnsigned(T value, std::size_t size, TIter& iter)
@@ -154,7 +175,8 @@ void writeBigUnsigned(T value, std::size_t size, TIter& iter)
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
@@ -177,7 +199,8 @@ void writeLittleUnsigned(T value, std::size_t size, TIter& iter)
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
@@ -240,7 +263,8 @@ void writeRandomAccess(T value, std::size_t size, TIter& iter)
         >::value,
         "TIter must be random access iterator");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static_assert(!std::is_const<UnsignedByteType>::value, "Value must be updatable");
 
@@ -250,54 +274,59 @@ void writeRandomAccess(T value, std::size_t size, TIter& iter)
     iter += (endPtr - startPtr);
 }
 
-template <typename TEndian, bool TIsPointerToUnsigned>
-struct WriteRandomAccessHelper;
-
-template <typename TEndian>
-struct WriteRandomAccessHelper<TEndian, false>
+template <typename...>
+class WriteHelper
 {
-    template <typename T, typename TIter>
-    static void write(T value, std::size_t size, TIter& iter)
+    template <typename... TParams>
+    using RandomAccessTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using RegularTag = comms::details::tag::Tag2<>;
+
+    template <typename TIter>
+    using RandomAccessOrPointerTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_pointer<TIter>::value &&
+            std::is_unsigned<AccessByteType<TIter> >::value        
+        >::template Type<
+            RegularTag,
+            RandomAccessTag
+        >;       
+
+    template <typename TIter>
+    using Tag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_same<
+                typename std::iterator_traits<TIter>::iterator_category,
+                std::random_access_iterator_tag
+            >::value
+        >::template Type<
+            RandomAccessOrPointerTag,
+            RegularTag,
+            TIter
+        >;
+
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static void writeInternal(T value, std::size_t size, TIter& iter, RandomAccessTag<TParams...>)
     {
         writeRandomAccess<TEndian>(value, size, iter);
     }
-};
 
-template <typename TEndian>
-struct WriteRandomAccessHelper<TEndian, true>
-{
-    template <typename T, typename TIter>
-    static void write(T value, std::size_t size, TIter& iter)
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static void writeInternal(T value, std::size_t size, TIter& iter, RegularTag<TParams...>)
     {
         details::write<TEndian>(value, size, iter);
-    }
-};
+    }        
 
-template <typename TEndian, bool TIsRandomAccess>
-struct WriteHelper;
-
-template <typename TEndian>
-struct WriteHelper<TEndian, false>
-{
-    template <typename T, typename TIter>
+public:
+    template <typename TEndian, typename T, typename TIter>
     static void write(T value, std::size_t size, TIter& iter)
     {
-        details::write<TEndian>(value, size, iter);
-    }
-};
+        using ValueType = typename std::decay<T>::type;
+        using AccessOptimisedValueType = details::AccessOptimisedValueType<ValueType>;
 
-template <typename TEndian>
-struct WriteHelper<TEndian, true>
-{
-    template <typename T, typename TIter>
-    static void write(T value, std::size_t size, TIter& iter)
-    {
-        using ByteType = ByteType<TIter>;
-        static const bool IsPointerToUnsigned =
-            std::is_pointer<TIter>::value &&
-            std::is_unsigned<ByteType>::value;
-        return WriteRandomAccessHelper<TEndian, IsPointerToUnsigned>::write(value, size, iter);
-    }
+        return writeInternal<TEndian>(static_cast<AccessOptimisedValueType>(value), size, iter, Tag<TIter>());
+    }    
 };
 
 template <typename T, typename TIter>
@@ -307,7 +336,8 @@ T readBigUnsigned(std::size_t size, TIter& iter)
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
@@ -317,7 +347,7 @@ T readBigUnsigned(std::size_t size, TIter& iter)
     std::size_t remainingSize = size;
     while (remainingSize > 0) {
         auto byte = *iter;
-        value <<= BinDigits;
+        value = static_cast<ValueType>(value << BinDigits);
         value |= static_cast<decltype(value)>(static_cast<UnsignedByteType>(byte));
         ++iter;
         --remainingSize;
@@ -332,7 +362,8 @@ T readLittleUnsigned(std::size_t size, TIter& iter)
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
@@ -399,7 +430,8 @@ T readFromPointerToSigned(std::size_t size, TIter& iter)
         >::value,
         "TIter must be random access iterator");
 
-    using ByteType = ByteType<TIter>;
+    using ByteType = AccessByteType<TIter>;
+    static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
     using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
 
     auto startPtr = reinterpret_cast<const UnsignedByteType*>(&(*iter));
@@ -409,131 +441,71 @@ T readFromPointerToSigned(std::size_t size, TIter& iter)
     return static_cast<T>(static_cast<ValueType>(value));
 }
 
-template <typename TEndian, bool TIsPointer, bool TIsUnsignedConst>
-struct ReadRandomAccessHelper;
-
-template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true, false>
+template <typename...>
+class ReadHelper
 {
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
+    template <typename... TParams>
+    using PointerToSignedTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using OtherTag = comms::details::tag::Tag2<>;
+
+    template <typename TIter>
+    using PointerCheckTag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_const<AccessByteType<TIter> >::value &&
+            std::is_unsigned<AccessByteType<TIter> >::value
+        >::template Type<
+            OtherTag,
+            PointerToSignedTag
+        >;
+
+    template <typename TIter>
+    using Tag = 
+        typename comms::util::LazyShallowConditional<
+            std::is_pointer<TIter>::value
+        >::template Type<
+            PointerCheckTag,
+            OtherTag,
+            TIter
+        >;
+
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static T readInternal(std::size_t size, TIter& iter, PointerToSignedTag<TParams...>)
     {
         return readFromPointerToSigned<TEndian, T>(size, iter);
     }
-};
 
-template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true, true>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
+    template <typename TEndian, typename T, typename TIter, typename... TParams>
+    static T readInternal(std::size_t size, TIter& iter, OtherTag<TParams...>)
     {
         return details::read<TEndian, T>(size, iter);
     }
-};
 
-template <typename TEndian, bool TIsUnsignedConst>
-struct ReadRandomAccessHelper<TEndian, false, TIsUnsignedConst>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
-    {
-        return details::read<TEndian, T>(size, iter);
-    }
-};
-
-template <typename TEndian, bool TIsRandomAccess>
-struct ReadHelper;
-
-template <typename TEndian>
-struct ReadHelper<TEndian, false>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
-    {
-        return details::read<TEndian, T>(size, iter);
-    }
-};
-
-template <typename TEndian>
-struct ReadHelper<TEndian, true>
-{
-    template <typename T, typename TIter>
-    static T read(std::size_t size, TIter& iter)
-    {
-        using ByteType = ByteType<TIter>;
-        static const bool IsPointer =
-            std::is_pointer<TIter>::value;
-
-        static const bool IsUnsignedConstData =
-            std::is_const<ByteType>::value &&
-            std::is_unsigned<ByteType>::value;
-        return ReadRandomAccessHelper<TEndian, IsPointer, IsUnsignedConstData>::template read<T>(size, iter);
-    }
-};
-
-template <template <typename, bool> class THelper>
-struct Writer
-{
-    template <typename TEndian, std::size_t TSize, typename T, typename TIter>
-    static void write(T value, TIter& iter)
-    {
-        using ValueType = typename std::decay<T>::type;
-        using OptimisedValueType = details::OptimisedValueType<ValueType>;
-
-        static_assert(TSize <= sizeof(ValueType), "Precondition failure");
-        static const bool IsRandomAccess =
-            std::is_same<
-                typename std::iterator_traits<TIter>::iterator_category,
-                std::random_access_iterator_tag
-            >::value;
-        THelper<TEndian, IsRandomAccess>::write(
-                            static_cast<OptimisedValueType>(value), TSize, iter);
-    }
-
-
+public:
     template <typename TEndian, typename T, typename TIter>
-    static void write(T value, std::size_t size, TIter& iter)
+    static T read(std::size_t size, TIter& iter)
     {
         using ValueType = typename std::decay<T>::type;
-        using OptimisedValueType = details::OptimisedValueType<ValueType>;
-
-        //COMMS_ASSERT(size <= sizeof(ValueType));
-        static const bool IsRandomAccess =
-            std::is_same<
-                typename std::iterator_traits<TIter>::iterator_category,
-                std::random_access_iterator_tag
-            >::value;
-        THelper<TEndian, IsRandomAccess>::write(
-                            static_cast<OptimisedValueType>(value), size, iter);
+        using AccessOptimisedValueType = details::AccessOptimisedValueType<ValueType>;
+        return
+            static_cast<ValueType>(
+                readInternal<TEndian, AccessOptimisedValueType>(size, iter, Tag<TIter>()));
     }
-};
 
-template <template <typename, bool> class THelper>
-struct Reader
-{
     template <typename TEndian, typename T, std::size_t TSize, typename TIter>
     static T read(TIter& iter)
     {
         using ValueType = typename std::decay<T>::type;
-        using OptimisedValueType = details::OptimisedValueType<ValueType>;
-        using ByteType = details::ByteType<TIter>;
-
+        using ByteType = details::AccessByteType<TIter>;
+        static_assert(!std::is_void<ByteType>::value, "Invalid byte type");
         static_assert(TSize <= sizeof(ValueType), "Precondition failure");
-        static const bool IsRandomAccess =
-            std::is_same<
-                typename std::iterator_traits<TIter>::iterator_category,
-                std::random_access_iterator_tag
-            >::value;
-        auto retval =
-            static_cast<ValueType>(
-                THelper<TEndian, IsRandomAccess>::template read<OptimisedValueType>(TSize, iter));
-
+        auto retval = read<TEndian, ValueType>(TSize, iter);
         if (std::is_signed<ValueType>::value) {
-            retval = details::SignExt<decltype(retval), TSize, ByteType>::value(retval);
+            retval = details::SignExt<>::template value<TSize, ByteType>(retval);
         }
         return static_cast<T>(retval);
-    }
+    }    
 };
 
 }  // namespace details
@@ -550,7 +522,7 @@ struct Reader
 template <std::size_t TSize, typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
-    details::Writer<details::WriteHelper>::template write<traits::endian::Big, TSize>(value, iter);
+    details::WriteHelper<>::template write<traits::endian::Big>(value, TSize, iter);
 }
 
 /// @brief Write part of integral value into the output area using big
@@ -565,7 +537,7 @@ void writeBig(T value, TIter& iter)
 template <typename T, typename TIter>
 void writeBig(T value, std::size_t size, TIter& iter)
 {
-    details::Writer<details::WriteHelper>::template write<traits::endian::Big>(value, size, iter);
+    details::WriteHelper<>::template write<traits::endian::Big>(value, size, iter);
 }
 
 /// @brief Write integral value into the output area using big
@@ -595,7 +567,7 @@ void writeBig(T value, TIter& iter)
 template <typename T, std::size_t TSize, typename TIter>
 T readBig(TIter& iter)
 {
-    return details::Reader<details::ReadHelper>::template read<traits::endian::Big, T, TSize>(iter);
+    return details::ReadHelper<>::template read<traits::endian::Big, T, TSize>(iter);
 }
 
 /// @brief Read integral value from the input area using big
@@ -625,7 +597,7 @@ T readBig(TIter& iter)
 template <std::size_t TSize, typename T, typename TIter>
 void writeLittle(T value, TIter& iter)
 {
-    details::Writer<details::WriteHelper>::template write<traits::endian::Little, TSize>(value, iter);
+    details::WriteHelper<>::template write<traits::endian::Little>(value, TSize, iter);
 }
 
 /// @brief Write part of integral value into the output area using little
@@ -640,7 +612,7 @@ void writeLittle(T value, TIter& iter)
 template <typename T, typename TIter>
 void writeLittle(T value, std::size_t size, TIter& iter)
 {
-    details::Writer<details::WriteHelper>::template write<traits::endian::Little>(value, size, iter);
+    details::WriteHelper<>::template write<traits::endian::Little>(value, size, iter);
 }
 
 /// @brief Write integral value into the output area using big
@@ -670,7 +642,7 @@ void writeLittle(T value, TIter& iter)
 template <typename T, std::size_t TSize, typename TIter>
 T readLittle(TIter& iter)
 {
-    return details::Reader<details::ReadHelper>::template read<traits::endian::Little, T, TSize>(iter);
+    return details::ReadHelper<>::template read<traits::endian::Little, T, TSize>(iter);
 }
 
 /// @brief Read integral value from the input area using little

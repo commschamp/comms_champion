@@ -36,7 +36,9 @@ MsgSendMgrImpl::~MsgSendMgrImpl() noexcept = default;
 
 void MsgSendMgrImpl::start(ProtocolPtr protocol, const MessagesList& msgs)
 {
-    assert(m_msgsToSend.empty() || !"The previous sending must be stopped first.");
+    static constexpr bool The_previous_sending_must_be_stopped_first = false;
+    static_cast<void>(The_previous_sending_must_be_stopped_first);
+    assert(m_msgsToSend.empty() || The_previous_sending_must_be_stopped_first);
     m_protocol = std::move(protocol);
     for (auto& m : msgs) {
         auto clonedMsg = m_protocol->cloneMessage(*m);
@@ -92,7 +94,9 @@ void MsgSendMgrImpl::sendPendingAndWait()
 
         if (reinsert) {
             if (!m_protocol) {
-                assert(!"Expecting protocol to be valid");
+                static constexpr bool Protocol_must_be_valid = false;
+                static_cast<void>(Protocol_must_be_valid);
+                assert(Protocol_must_be_valid);                 
                 continue;
             }
 

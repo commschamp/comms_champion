@@ -23,6 +23,7 @@ class MsgDispatcherOptionsParser<>
 {
 public:
     static const bool HasForcedDispatch = false;
+    using ForcedDispatch = void;
 };
 
 template <typename T, typename... TOptions>

@@ -23,9 +23,11 @@
 #include "comms/util/StaticString.h"
 #include "comms/util/StringView.h"
 #include "comms/util/detect.h"
+#include "comms/util/type_traits.h"
 #include "comms/field/basic/String.h"
 #include "comms/field/details/AdaptBasicField.h"
 #include "comms/field/details/OptionsParser.h"
+#include "comms/details/tag.h"
 #include "tag.h"
 
 namespace comms
@@ -229,11 +231,13 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = BaseImpl::read(iter, len);
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasSequenceFixedSize,
-            AdjustmentNeededTag,
-            NoAdjustmentTag
-        >::type;
+        using TagTmp = 
+            typename comms::util::LazyShallowConditional<
+                ParsedOptions::HasSequenceFixedSize
+            >::template Type<
+                AdjustmentNeededTag,
+                NoAdjustmentTag
+            >;
 
         adjustValue(TagTmp());
         return es;
@@ -255,11 +259,13 @@ public:
     void readNoStatus(TIter& iter)
     {
         BaseImpl::readNoStatus(iter);
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasSequenceFixedSize,
-            AdjustmentNeededTag,
-            NoAdjustmentTag
-        >::type;
+        using TagTmp = 
+            typename comms::util::LazyShallowConditional<
+                ParsedOptions::HasSequenceFixedSize
+            >::template Type<
+                AdjustmentNeededTag,
+                NoAdjustmentTag
+            >;
 
         adjustValue(TagTmp());
     }
@@ -417,16 +423,25 @@ protected:
     using BaseImpl::writeData;
 
 private:
-    struct NoAdjustmentTag {};
-    struct AdjustmentNeededTag {};
-    struct HasResizeTag {};
-    struct HasRemoveSuffixTag {};
+    template <typename... TParams>
+    using NoAdjustmentTag = comms::details::tag::Tag1<>;
 
-    void adjustValue(NoAdjustmentTag)
+    template <typename... TParams>
+    using AdjustmentNeededTag = comms::details::tag::Tag2<>;
+
+    template <typename... TParams>
+    using HasResizeTag = comms::details::tag::Tag3<>;
+
+    template <typename... TParams>
+    using HasRemoveSuffixTag = comms::details::tag::Tag4<>;    
+
+    template <typename... TParams>
+    void adjustValue(NoAdjustmentTag<TParams...>)
     {
     }
 
-    void adjustValue(AdjustmentNeededTag)
+    template <typename... TParams>
+    void adjustValue(AdjustmentNeededTag<TParams...>)
     {
         std::size_t count = 0;
         for (auto iter = BaseImpl::value().begin(); iter != BaseImpl::value().end(); ++iter) {
@@ -442,15 +457,17 @@ private:
     void doResize(std::size_t count)
     {
         using TagTmp =
-            typename std::conditional<
-                comms::util::detect::hasResizeFunc<ValueType>(),
-                HasResizeTag,
-                typename std::conditional<
-                    comms::util::detect::hasRemoveSuffixFunc<ValueType>(),
-                    HasRemoveSuffixTag,
+            typename comms::util::Conditional<
+                comms::util::detect::hasResizeFunc<ValueType>()
+            >::template Type<
+                HasResizeTag<>,
+                typename comms::util::Conditional<
+                    comms::util::detect::hasRemoveSuffixFunc<ValueType>()
+                >::template Type<
+                    HasRemoveSuffixTag<>,
                     void
-                >::type
-            >::type;
+                >
+            >;
 
         static_assert(!std::is_void<Tag>::value,
             "The string storage value type must have either resize() or remove_suffix() "
@@ -458,12 +475,14 @@ private:
         doResize(count, TagTmp());
     }
 
-    void doResize(std::size_t count, HasResizeTag)
+    template <typename... TParams>
+    void doResize(std::size_t count, HasResizeTag<TParams...>)
     {
         BaseImpl::value().resize(count);
     }
 
-    void doResize(std::size_t count, HasRemoveSuffixTag)
+    template <typename... TParams>
+    void doResize(std::size_t count, HasRemoveSuffixTag<TParams...>)
     {
         BaseImpl::value().remove_suffix(BaseImpl::value().size() - count);
     }

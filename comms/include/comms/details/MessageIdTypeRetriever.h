@@ -13,21 +13,11 @@ namespace comms
 namespace details
 {
 
-template <bool THasMsgIdType>
-struct MessageIdTypeRetriever;
-
-template <>
-struct MessageIdTypeRetriever<true>
+template <typename...>
+struct MessageIdTypeRetriever
 {
-    template <typename TOpt, typename TDefaultType>
-    using Type = typename TOpt::MsgIdType;
-};
-
-template <>
-struct MessageIdTypeRetriever<false>
-{
-    template <typename TOpt, typename TDefaultType>
-    using Type = TDefaultType;
+    template <typename TDefault, typename TMsg>
+    using Type = typename TMsg::MsgIdType;
 };
 
 } // namespace details

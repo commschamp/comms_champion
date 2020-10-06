@@ -145,7 +145,9 @@ protected:
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
         static_cast<void>(value);
-        assert(!"Mustn't be called");
+        static constexpr bool Must_not_be_called = false;
+        static_cast<void>(Must_not_be_called);
+        assert(Must_not_be_called); 
         return false;
     }
 

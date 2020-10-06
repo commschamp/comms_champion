@@ -22,7 +22,8 @@
 #include <algorithm>
 
 #include "comms/Assert.h"
-#include "SizeToType.h"
+#include "comms/util/SizeToType.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -518,7 +519,9 @@ protected:
             return arrayOne().second;
         }
 
-        COMMS_ASSERT(!"Invalid iterator is used");
+        static constexpr bool Invalid_iterator_is_used = false;
+        static_cast<void>(Invalid_iterator_is_used);
+        COMMS_ASSERT(Invalid_iterator_is_used);
         return invalidIter();
     }
 
@@ -560,7 +563,9 @@ protected:
             return end();
         }
 
-        COMMS_ASSERT(!"Invalid iterator is used");
+        static constexpr bool Invalid_iterator_is_used = false;
+        static_cast<void>(Invalid_iterator_is_used);
+        COMMS_ASSERT(Invalid_iterator_is_used);
         return end();
     }
 
@@ -604,17 +609,21 @@ protected:
         using DecayedQueueType = typename std::decay<decltype(other)>::type;
         using NonRefQueueType = typename std::remove_reference<decltype(other)>::type;
 
-        using QueueValueType = typename std::conditional<
-            std::is_const<NonRefQueueType>::value,
-            const typename DecayedQueueType::ValueType,
-            typename DecayedQueueType::ValueType
-        >::type;
+        using QueueValueType = 
+            typename comms::util::Conditional<
+                std::is_const<NonRefQueueType>::value
+            >::template Type<
+                const typename DecayedQueueType::ValueType,
+                typename DecayedQueueType::ValueType
+            >;
 
-        using ElemRefType = typename std::conditional<
-            std::is_rvalue_reference<decltype(other)>::value,
-            typename std::add_rvalue_reference<QueueValueType>::type,
-            typename std::add_lvalue_reference<QueueValueType>::type
-        >::type;
+        using ElemRefType = 
+            typename comms::util::Conditional<
+                std::is_rvalue_reference<decltype(other)>::value
+            >::template Type<
+                typename std::add_rvalue_reference<QueueValueType>::type,
+                typename std::add_lvalue_reference<QueueValueType>::type
+            >;
 
         COMMS_ASSERT(other.size() <= capacity());
         COMMS_ASSERT(empty());

@@ -12,6 +12,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/field/details/FieldOpHelpers.h"
 
 namespace comms
 {
@@ -158,64 +159,115 @@ struct CommonFuncs
         return 0xffff;
     }
 
-    template <typename TFields>
-    static constexpr bool areMembersVersionDependent()
-    {
-        return comms::util::tupleTypeAccumulate<TFields>(false, VersionDependencyChecker());
-    }
-
-    template <typename TFields>
-    static constexpr bool doMembersMembersHaveNonDefaultRefresh()
-    {
-        return comms::util::tupleTypeAccumulate<TFields>(false, NonDefaultRefreshChecker());
-    }
-
     template <typename TFields, typename TVersionType>
     static bool setVersionForMembers(TFields& fields, TVersionType version)
     {
         return comms::util::tupleAccumulate(fields, false, makeVersionUpdater(version));
     }
 
+    template <typename... TFields>
+    using IsAnyFieldVersionDependentBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeIsAnyOf<std::tuple<TFields...> >(
+                comms::field::details::FieldVersionDependentCheckHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+
+    template <typename... TFields>
+    using FieldSelectMaxLengthIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldMaxLengthCalcHelper<>())
+        >;
+
+    template <typename... TFields>
+    using FieldSumMaxLengthIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>())
+        >;    
+
+    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
+    using FieldSumMaxLengthFromUntilIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulateFromUntil<TFrom, TUntil, std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldMaxLengthSumCalcHelper<>())
+        >;           
+
+    template <typename... TFields>
+    using FieldSumMinLengthIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>())
+        >;    
+
+    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
+    using FieldSumMinLengthFromUntilIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulateFromUntil<TFrom, TUntil, std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldMinLengthSumCalcHelper<>())
+        >;   
+
+    template <typename... TFields>
+    using FieldSumTotalBitLengthIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldTotalBitLengthSumCalcHelper<>())
+        >;       
+
+    template <std::size_t TFrom, std::size_t TUntil, typename... TFields>
+    using FieldSumTotalBitLengthFromUntilIntType = 
+        std::integral_constant<
+            std::size_t, 
+            comms::util::tupleTypeAccumulateFromUntil<TFrom, TUntil, std::tuple<TFields...> >(
+                std::size_t(0), comms::field::details::FieldTotalBitLengthSumCalcHelper<>())
+        >;              
+
+    template <typename... TFields>
+    using AnyFieldHasNonDefaultRefreshBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeIsAnyOf<std::tuple<TFields...> >(
+                comms::field::details::FieldNonDefaultRefreshCheckHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;    
+
+    template <typename... TFields>
+    using AllFieldsHaveReadNoStatusBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                true, comms::field::details::FieldReadNoStatusDetectHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;    
+
+    template <typename... TFields>
+    using AllFieldsHaveWriteNoStatusBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                true, comms::field::details::FieldWriteNoStatusDetectHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;                
+
 private:
-    struct VersionDependencyChecker
-    {
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::isVersionDependent() || soFar;
-        }
-    };
 
-    struct NonDefaultRefreshChecker
+    template <typename TVersionType>
+    static comms::field::details::FieldVersionUpdateHelper<TVersionType> makeVersionUpdater(TVersionType version)
     {
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasNonDefaultRefresh() || soFar;
-        }
-    };
-
-    template <typename TVerType>
-    class VersionUpdater
-    {
-    public:
-        explicit VersionUpdater(TVerType val) : version_(val) {}
-
-        template <typename TField>
-        bool operator()(bool soFar, TField& field) const
-        {
-            return field.setVersion(static_cast<typename TField::VersionType>(version_)) || soFar;
-        }
-    private:
-        TVerType version_;
-    };
-
-    template <typename TVerType>
-    static VersionUpdater<TVerType> makeVersionUpdater(TVerType val)
-    {
-        return VersionUpdater<TVerType>(val);
+        return comms::field::details::FieldVersionUpdateHelper<TVersionType>(version);
     }
-
 };
 
 } // namespace basic

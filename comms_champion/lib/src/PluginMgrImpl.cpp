@@ -91,7 +91,8 @@ PluginMgrImpl::PluginInfo::Type parseType(const QString& val)
         "protocol"
     };
 
-    static_assert(std::extent<decltype(Values)>::value == (std::size_t)PluginMgrImpl::PluginInfo::Type::NumOfValues,
+    static_assert(
+        std::extent<decltype(Values)>::value == static_cast<std::size_t>(PluginMgrImpl::PluginInfo::Type::NumOfValues),
         "The Values array must be adjusted.");
 
     auto iter = std::find(std::begin(Values), std::end(Values), val);

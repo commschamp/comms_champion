@@ -16,11 +16,8 @@ namespace field
 namespace details
 {
 
-template <typename TVersionType, bool TVersionDependent>
-struct VersionStorage;
-
 template <typename TVersionType>
-struct VersionStorage<TVersionType, true>
+struct VersionStorage
 {
     TVersionType getVersion() const
     {
@@ -28,11 +25,6 @@ struct VersionStorage<TVersionType, true>
     }
 protected:
     TVersionType version_ = TVersionType();
-};
-
-template <typename TVersionType>
-struct VersionStorage<TVersionType, false>
-{
 };
 
 } // namespace details

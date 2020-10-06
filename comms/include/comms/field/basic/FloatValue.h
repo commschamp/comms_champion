@@ -31,9 +31,7 @@ class FloatValue : public TFieldBase
 public:
 
     using ValueType = T;
-
     using SerialisedType = typename comms::util::SizeToType<sizeof(ValueType), false>::Type;
-
     using ScalingRatio = std::ratio<1, 1>;
 
     FloatValue() = default;
@@ -77,14 +75,14 @@ public:
 
     static SerialisedType toSerialised(ValueType val)
     {
-        CastUnion castUnion;
+        CastUnion<> castUnion;
         castUnion.value_ = val;
         return castUnion.serValue_;
     }
 
     static ValueType fromSerialised(SerialisedType val)
     {
-        CastUnion castUnion;
+        CastUnion<> castUnion;
         castUnion.serValue_ = val;
         return castUnion.value_;
     }
@@ -126,6 +124,7 @@ public:
     }
 
 private:
+    template<typename...>
     union CastUnion
     {
         ValueType value_;

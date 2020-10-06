@@ -93,7 +93,7 @@ void SerialSocket::sendDataImpl(DataInfoPtr dataPtr)
     assert(dataPtr);
     m_serial.write(
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-        dataPtr->m_data.size());
+        static_cast<qint64>(dataPtr->m_data.size()));
 }
 
 void SerialSocket::performRead()
@@ -104,11 +104,11 @@ void SerialSocket::performRead()
     dataPtr->m_timestamp = DataInfo::TimestampClock::now();
 
     auto dataSize = m_serial.bytesAvailable();
-    dataPtr->m_data.resize(dataSize);
+    dataPtr->m_data.resize(static_cast<std::size_t>(dataSize));
     auto result =
         m_serial.read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
     if (result != dataSize) {
-        dataPtr->m_data.resize(result);
+        dataPtr->m_data.resize(static_cast<std::size_t>(result));
     }
 
     reportDataReceived(std::move(dataPtr));

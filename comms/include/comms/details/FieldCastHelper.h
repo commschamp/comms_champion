@@ -12,6 +12,8 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -19,14 +21,66 @@ namespace comms
 namespace details
 {
 
-template <typename TFieldTo, typename TFieldFrom, bool TFixedLength>
-struct FieldCastNonEqualHelper;
-
-template <typename TFieldTo, typename TFieldFrom>
-struct FieldCastNonEqualHelper<TFieldTo, TFieldFrom, true>
+template <typename...>
+class FieldCastHelper
 {
+public:
+    template <typename TFieldTo, typename TFieldFrom>
     static TFieldTo cast(const TFieldFrom& field)
     {
+        return castInternal<TFieldTo>(field, Tag<TFieldFrom, TFieldTo>());
+    }
+
+private:    
+
+    template <typename... TParams>
+    using StaticCastTag = comms::details::tag::Tag1<>;
+
+    template <typename... TParams>
+    using WriteReadTag = comms::details::tag::Tag2<>;
+
+    template <typename TFieldFrom, typename TFieldTo>
+    using Convertible = 
+        std::is_convertible<typename TFieldFrom::ValueType, typename TFieldTo::ValueType>;
+
+    template <typename TField>
+    using IsIntegral =
+        std::integral_constant<
+            bool,
+            std::is_enum<typename TField::ValueType>::value ||
+                std::is_integral<typename TField::ValueType>::value
+        >;
+
+    template <typename TFieldFrom, typename TFieldTo>
+    using UseStaticCast = 
+        std::integral_constant<
+            bool,
+            Convertible<TFieldFrom, TFieldTo>::value || 
+                (IsIntegral<TFieldFrom>::value && IsIntegral<TFieldTo>::value)
+        >;
+
+    template <typename TFieldFrom, typename TFieldTo>
+    using Tag = 
+        typename comms::util::LazyShallowConditional<
+            UseStaticCast<TFieldFrom, TFieldTo>::value
+        >::template Type<
+            StaticCastTag,
+            WriteReadTag
+        >;
+
+    template <typename TFieldTo, typename TFieldFrom, typename... TParams>
+    static TFieldTo castInternal(const TFieldFrom& field, StaticCastTag<TParams...>)
+    {
+        TFieldTo result;
+        result.value() = static_cast<typename TFieldTo::ValueType>(field.value()); 
+        return result;
+    }
+
+    template <typename TFieldTo, typename TFieldFrom, typename... TParams>
+    static TFieldTo castInternal(const TFieldFrom& field, WriteReadTag<TParams...>)
+    {
+        static_assert(TFieldFrom::minLength() == TFieldTo::maxLength(), "Casting between different fields of variable sizes is not supported.");
+
         static const auto MaxBufSize = TFieldFrom::maxLength();
         std::uint8_t buf[MaxBufSize] = {0};
         auto* writeIter = &buf[0];
@@ -44,45 +98,9 @@ struct FieldCastNonEqualHelper<TFieldTo, TFieldFrom, true>
         es = result.read(readIter, len);
         static_cast<void>(es);
         COMMS_ASSERT(es == comms::ErrorStatus::Success);
-        return result;
-    }
+        return result;        
+    }    
 };
-
-template <typename TFieldTo, typename TFieldFrom>
-struct FieldCastNonEqualHelper<TFieldTo, TFieldFrom, false>
-{
-    static TFieldTo cast(const TFieldFrom& field)
-    {
-        static_cast<void>(field);
-        COMMS_ASSERT(!"Casting between different fields of variable sizes is not supported.");
-        return TFieldTo();
-    }
-};
-
-template <typename TFieldTo, typename TFieldFrom, bool TSameValue>
-struct FieldCastHelper;
-
-template <typename TFieldTo, typename TFieldFrom>
-struct FieldCastHelper<TFieldTo, TFieldFrom, true>
-{
-    static TFieldTo cast(const TFieldFrom& field)
-    {
-        TFieldTo result;
-        result.value() = static_cast<typename TFieldTo::ValueType>(field.value()); 
-        return result;
-    }
-};
-
-template <typename TFieldTo, typename TFieldFrom>
-struct FieldCastHelper<TFieldTo, TFieldFrom, false>
-{
-    static TFieldTo cast(const TFieldFrom& field)
-    {
-        static const bool SameValue = TFieldFrom::minLength() == TFieldTo::maxLength();
-        return FieldCastNonEqualHelper<TFieldTo, TFieldFrom, SameValue>::cast(field);
-    }
-};
-
 
 
 }  // namespace details

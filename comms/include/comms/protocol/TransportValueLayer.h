@@ -13,6 +13,8 @@
 #include "ProtocolLayerBase.h"
 #include "details/TransportValueLayerAdapter.h"
 #include "comms/cast.h"
+#include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -126,7 +128,7 @@ public:
         TNextLayerReader&& nextLayerReader,
         TExtraValues... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, ValueTag(), extraValues...);
+        auto es = readFieldInternal(field, iter, size, ValueTag<>(), extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -134,11 +136,12 @@ public:
         es = nextLayerReader.read(msg, iter, size, extraValues...);
 
         using Tag =
-            typename std::conditional<
-                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+            typename comms::util::LazyShallowConditional<
+                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>()
+            >::template Type<
                 MsgObjTag,
                 SmartPtrTag
-            >::type;
+            >;
 
         if (validMsg(msg, Tag())) {
             auto& allTransportFields = transportFields(msg, Tag());
@@ -185,7 +188,7 @@ public:
         auto& transportField = std::get<TIdx>(msg.transportFields());
         field = comms::field_cast<Field>(transportField);
 
-        auto es = writeFieldInternal(field, iter, size, ValueTag());
+        auto es = writeFieldInternal(field, iter, size, ValueTag<>());
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -198,7 +201,7 @@ public:
     ///     option, then the report length is 0.
     static constexpr std::size_t doFieldLength()
     {
-         return doFieldLengthInternal(ValueTag());
+         return doFieldLengthInternal(ValueTag<>());
     }
 
     /// @brief Customising field length calculation
@@ -222,21 +225,29 @@ public:
     const Field& pseudoField() const;
 #endif
 private:
-    struct SmartPtrTag {};
-    struct MsgObjTag {};
+    template <typename... TParams>
+    using SmartPtrTag = comms::details::tag::Tag1<>;
 
-    struct PseudoValueTag {};
-    struct NormalValueTag {};
+    template <typename... TParams>
+    using MsgObjTag = comms::details::tag::Tag2<>;   
 
+    template <typename... TParams>
+    using PseudoValueTag = comms::details::tag::Tag3<>;   
+
+    template <typename... TParams>
+    using NormalValueTag = comms::details::tag::Tag4<>;          
+
+    template <typename...>
     using ValueTag =
-        typename std::conditional<
-            TransportParsedOptions::HasPseudoValue,
+        typename comms::util::LazyShallowConditional<
+            TransportParsedOptions::HasPseudoValue
+        >::template Type<
             PseudoValueTag,
             NormalValueTag
-        >::type;
+        >;
 
-    template <typename TMsg>
-    static bool validMsg(TMsg& msgPtr, SmartPtrTag)
+    template <typename TMsg, typename... TParams>
+    static bool validMsg(TMsg& msgPtr, SmartPtrTag<TParams...>)
     {
         using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
         using MessageInterfaceType = typename MsgPtrType::element_type;
@@ -249,8 +260,8 @@ private:
         return static_cast<bool>(msgPtr);
     }
 
-    template <typename TMsg>
-    static bool validMsg(TMsg& msg, MsgObjTag)
+    template <typename TMsg, typename... TParams>
+    static bool validMsg(TMsg& msg, MsgObjTag<TParams...>)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
@@ -262,24 +273,26 @@ private:
         return true;
     }
 
-    template <typename TMsg>
-    static auto transportFields(TMsg& msgPtr, SmartPtrTag) -> decltype(msgPtr->transportFields())
+    template <typename TMsg, typename... TParams>
+    static auto transportFields(TMsg& msgPtr, SmartPtrTag<TParams...>) -> decltype(msgPtr->transportFields())
     {
         return msgPtr->transportFields();
     }
 
-    template <typename TMsg>
-    static auto transportFields(TMsg& msg, MsgObjTag) -> decltype(msg.transportFields())
+    template <typename TMsg, typename... TParams>
+    static auto transportFields(TMsg& msg, MsgObjTag<TParams...>) -> decltype(msg.transportFields())
     {
         return msg.transportFields();
     }
 
-    static constexpr std::size_t doFieldLengthInternal(PseudoValueTag)
+    template <typename... TParams>
+    static constexpr std::size_t doFieldLengthInternal(PseudoValueTag<TParams...>)
     {
         return 0U;
     }
 
-    static constexpr std::size_t doFieldLengthInternal(NormalValueTag)
+    template <typename... TParams>
+    static constexpr std::size_t doFieldLengthInternal(NormalValueTag<TParams...>)
     {
         return BaseImpl::doFieldLength();
     }
@@ -289,7 +302,7 @@ private:
         Field& field,
         TIter& iter,
         std::size_t& len,
-        PseudoValueTag,
+        PseudoValueTag<>,
         TExtraValues...)
     {
         static_cast<void>(iter);
@@ -303,7 +316,7 @@ private:
         Field& field,
         TIter& iter,
         std::size_t& len,
-        NormalValueTag,
+        NormalValueTag<>,
         TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
@@ -318,12 +331,12 @@ private:
         return es;
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        PseudoValueTag) const
+        PseudoValueTag<TParams...>) const
     {
         static_cast<void>(iter);
         static_cast<void>(len);
@@ -331,12 +344,12 @@ private:
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        NormalValueTag) const
+        NormalValueTag<TParams...>) const
     {
         auto es = field.write(iter, len);
         if (es == comms::ErrorStatus::Success) {

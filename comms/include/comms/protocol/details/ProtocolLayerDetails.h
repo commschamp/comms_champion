@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "comms/details/detect.h"
+
 namespace comms
 {
 

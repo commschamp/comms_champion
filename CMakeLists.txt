@@ -12,7 +12,7 @@ option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when n
 option (CC_NO_CCACHE "Disable use of ccache on UNIX systems")
 
 # Extra variables
-# CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
+# Qt5_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 #   differs from system default installation path.
 # CC_EXTERNALS_DIR - Directory where pull externals, defaults to 
 #   ${PROJECT_SOURCE_DIR}/externals
@@ -73,19 +73,13 @@ cc_compile(${warn_opt} ${static_runtime_opt} ${ccache_opt})
 
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
 
-if (NOT "${CC_QT_DIR}" STREQUAL "")
-    list (APPEND CMAKE_PREFIX_PATH ${CC_QT_DIR})
-    link_directories ("${CC_QT_DIR}/lib")
-    link_directories ("${CC_QT_DIR}/plugins/platforms")
-endif ()
-
 include(GNUInstallDirs)
 set (INSTALL_NAME "CommsChampion")
 set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
+set (BIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 set (INC_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
 set (PLUGIN_INSTALL_REL_DIR ${CMAKE_INSTALL_LIBDIR}/${INSTALL_NAME}/plugin)
-set (PLUGIN_INSTALL_DIR ${PLUGIN_INSTALL_REL_DIR})
+set (PLUGIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_REL_DIR})
 set (DATA_INSTALL_REL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${INSTALL_NAME})
 set (DATA_INSTALL_DIR ${DATA_INSTALL_REL_DIR})
 set (DOC_INSTALL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/doc)
@@ -160,9 +154,13 @@ endif ()
 
 add_subdirectory (demo)
 
-if (WIN32 AND CC_QT_DIR)
+if (WIN32)
+    find_package(Qt5 COMPONENTS Core REQUIRED)
+    get_target_property(_qmake_executable Qt5::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+
     add_custom_target ("deploy_qt"
-        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
+        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${_qt_bin_dir}
             -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
             -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     )

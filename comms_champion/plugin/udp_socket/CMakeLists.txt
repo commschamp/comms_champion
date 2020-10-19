@@ -61,9 +61,7 @@ endfunction()
 
 ######################################################################
 
-find_package(Qt5Core)
-find_package(Qt5Widgets)
-find_package(Qt5Network)
+find_package(Qt5 COMPONENTS Widgets Network REQUIRED)
 
 include_directories (
     ${CMAKE_CURRENT_BINARY_DIR}

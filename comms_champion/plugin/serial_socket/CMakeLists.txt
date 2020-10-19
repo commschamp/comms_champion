@@ -60,9 +60,7 @@ endfunction()
 
 ######################################################################
 
-find_package(Qt5Core)
-find_package(Qt5Widgets)
-find_package(Qt5SerialPort)
+find_package(Qt5 COMPONENTS Widgets SerialPort REQUIRED)
 
 include_directories (
     ${CMAKE_CURRENT_BINARY_DIR}

@@ -84,21 +84,6 @@ function (lib_comms_champion)
 endfunction ()
 
 ###########################################################
-
-find_package(Qt5Core)
-find_package(Qt5Widgets)
-
-if (WIN32)
-    find_library(QT5PLATFORMSUPPORT_REL Qt5PlatformSupport HINTS "${CC_QT_DIR}/lib")
-    find_library(QT5PLATFORMSUPPORT_DEB Qt5PlatformSupportd HINTS "${CC_QT_DIR}/lib")
-    set(QT5PLATFORMSUPPORT optimized ${QT5PLATFORMSUPPORT_REL} debug ${QT5PLATFORMSUPPORT_DEB})
-
-    if (NOT QT5PLATFORMSUPPORT)
-        set (QT5PLATFORMSUPPORT)
-    endif ()
-    
-    set (CC_PLATFORM_SPECIFIC ${QT5PLATFORMSUPPORT} Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
-
-endif ()   
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 lib_comms_champion()

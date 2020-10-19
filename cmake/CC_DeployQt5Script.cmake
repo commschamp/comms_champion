@@ -18,8 +18,6 @@ if ("${CC_PLUGIN_DIR}" STREQUAL "")
     message (FATAL_ERROR "Directory of plugins hasn't been provided.")
 endif()
 
-
-message(STATUS ${CC_BIN_DIR})
 find_program(deploy_exe windeployqt HINTS "${CC_QT_DIR}")
 
 if (NOT deploy_exe)

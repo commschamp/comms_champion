@@ -1245,6 +1245,7 @@ void FieldsTestSuite::test27()
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem1>(), 4U);
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem2>(), 8U);
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem3>(), 4U);
+    TS_ASSERT_EQUALS(Field::FieldIdx_typeLimit, std::numeric_limits<unsigned>::max());
 
     static const char Buf[] = {
         (char)0x4f, (char)0xa1, (char)0xaa
@@ -5247,6 +5248,7 @@ void FieldsTestSuite::test103()
     TS_ASSERT_EQUALS(field.value(), 0x2);
     field.setBitValue_B0(true);
     TS_ASSERT_EQUALS(field.value(), 0x3);
+    TS_ASSERT_EQUALS(Field::BitIdx_typeLimit, std::numeric_limits<unsigned>::max());
 }
 
 void FieldsTestSuite::test104()

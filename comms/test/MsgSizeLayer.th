@@ -38,6 +38,7 @@ public:
     void test16();
     void test17();
     void test18();
+    void test19();
 
 private:
 
@@ -678,4 +679,17 @@ void MsgSizeLayerTestSuite::test18()
     auto es = stack.read(msg, readIter, BufSize, comms::protocol::missingSize(missingSize));
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT_EQUALS(missingSize, 2U);
+}
+
+void MsgSizeLayerTestSuite::test19()
+{
+    static const char Buf[] = {
+        0x0, 0x3, 0x7f, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT(!msgPtr);
 }

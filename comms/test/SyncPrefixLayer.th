@@ -368,6 +368,6 @@ void SyncPrefixLayerTestSuite::test8()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(msgId, MessageType90);
     TS_ASSERT_EQUALS(msgIndex, 1U);
-    TS_ASSERT_EQUALS(payloadIter, &Buf[5]);
+    TS_ASSERT_EQUALS(static_cast<const void*>(payloadIter), static_cast<const void*>(&Buf[5]));
     TS_ASSERT_EQUALS(payloadSize, 2U);
 }

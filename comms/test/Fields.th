@@ -3691,7 +3691,7 @@ void FieldsTestSuite::test72()
     TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf[0]));
     TS_ASSERT_EQUALS(field.length(), field.value().size() + 1U);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(&(*field.value().begin()), &Buf[1]);
+    TS_ASSERT_EQUALS(static_cast<const void*>(&(*field.value().begin())), static_cast<const void*>(&Buf[1]));
 
     static const std::string Str("blabla");
     field.value() = Field::ValueType(Str.c_str(), Str.size());
@@ -4447,7 +4447,7 @@ void FieldsTestSuite::test88()
     TS_ASSERT_EQUALS(std::get<1>(bundle0.value()).value(), "hello");
     TS_ASSERT_EQUALS(std::get<0>(bundle1.value()).value(), 2U);
     TS_ASSERT_EQUALS(std::get<1>(bundle1.value()).value(), "bla");
-    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(static_cast<const void*>(readIter), static_cast<const void*>(&Buf[0] + BufSize));
 
     static const char ExpectedBuf[] = {
         0x2,

@@ -152,7 +152,7 @@ function (cc_cxxtest_add_test)
     endif () 
     
     CXXTEST_ADD_TEST (${CC_CXXTEST_TEST_NAME} ${runner} ${CC_CXXTEST_TEST_SRC})
-    target_link_libraries(${CC_CXXTEST_TEST_NAME} ${CC_CXXTEST_TEST_COMMS_TARGET} ${CC_CXXTEST_TEST_CXXTEST_TARGET})
+    target_link_libraries(${CC_CXXTEST_TEST_NAME} PUBLIC ${CC_CXXTEST_TEST_COMMS_TARGET} ${CC_CXXTEST_TEST_CXXTEST_TARGET})
 
     if (NOT CC_CXXTEST_TEST_VALGRIND_EXECUTABLE)
         return ()

@@ -156,7 +156,7 @@ public:
     void test109();
     void test110();
 
-    enum Enum1 {
+    enum Enum1 : int {
         Enum1_Value1,
         Enum1_Value2,
         Enum1_Value3,

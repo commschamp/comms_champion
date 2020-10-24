@@ -17,6 +17,7 @@
 #include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 #include "comms/details/tag.h"
+#include "comms/cast.h"
 
 namespace comms
 {
@@ -295,9 +296,10 @@ private:
                 byte |= VarLengthContinueBit;
             }
 
-            unsignedValToWrite |= 
+            comms::cast_assign(unsignedValToWrite) = 
+                unsignedValToWrite | 
                 static_cast<decltype(unsignedValToWrite)>(
-                    (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte)));
+                    static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
         }           
 
         auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
@@ -332,9 +334,10 @@ private:
                 byte |= VarLengthContinueBit;
             }
 
-            unsignedValToWrite |= 
-                static_cast<UnsignedSerialisedType>(
-                    (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte)));
+            comms::cast_assign(unsignedValToWrite) = 
+                unsignedValToWrite | 
+                static_cast<decltype(unsignedValToWrite)>(
+                    static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
 
             ++bytesCount;
         }           

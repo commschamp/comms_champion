@@ -21,10 +21,23 @@ function (test_func test_suite_name)
 
     cc_cxxtest_add_test (NAME ${name} SRC ${tests} ${valgrand_args})
 
+    set (satinizer_opts)
+    if (CC_UNIT_TESTS_USE_SANITIZERS)
+        set (satinizer_opts -fno-omit-frame-pointer -fno-sanitize-recover=undefined -fsanitize=undefined)
+    endif ()
+
     target_compile_options(${name} PRIVATE
-        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast>
-    )     
+        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast ${satinizer_opts}>
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast ${satinizer_opts}>
+    ) 
+
+    if (CC_UNIT_TESTS_USE_SANITIZERS)
+        target_link_options(${name} PRIVATE
+            $<$<CXX_COMPILER_ID:GNU>:${satinizer_opts}>
+            $<$<CXX_COMPILER_ID:Clang>:${satinizer_opts}>
+        )     
+    endif ()
+
 endfunction ()
 
 #################################################################

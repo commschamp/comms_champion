@@ -16,6 +16,7 @@
 #include <type_traits>
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+#include "comms/cast.h"
 
 namespace comms
 {
@@ -289,8 +290,8 @@ public:
             >::type;
 
             auto val = static_cast<std::uint8_t>(static_cast<ByteType>(*iter));
-            val = reflect(val) ^ static_cast<decltype(val)>(rem >> (Width - 8));
-            rem = initTable[val] ^ static_cast<decltype(rem)>(rem << 8);
+            comms::cast_assign(val) = reflect(val) ^ static_cast<decltype(val)>(rem >> (Width - 8));
+            comms::cast_assign(rem) = initTable[val] ^ static_cast<decltype(rem)>(rem << 8);
             ++iter;
         }
 
@@ -354,7 +355,9 @@ private:
         {
             if (value & 0x01)
             {
-                reflection |= static_cast<decltype(reflection)>(1 << ((bitsCount - 1) - bit));
+                comms::cast_assign(reflection) = 
+                    reflection | 
+                    static_cast<decltype(reflection)>(1 << ((bitsCount - 1) - bit));
             }
 
             value = static_cast<decltype(value)>(value >> 1);

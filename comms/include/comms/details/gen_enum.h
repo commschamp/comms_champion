@@ -68,7 +68,7 @@
 #define COMMS_END_ENUM(p_) COMMS_CONCATENATE(p_, _numOfValues)
 
 #define COMMS_DEFINE_ENUM(p_, ...) \
-    enum p_ { \
+    enum p_ : unsigned { \
         COMMS_EXPAND(COMMS_DO_ENUM(COMMS_CONCATENATE(p_, _), __VA_ARGS__)) \
         , COMMS_END_ENUM(p_) \
     };

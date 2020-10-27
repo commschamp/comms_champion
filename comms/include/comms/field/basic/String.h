@@ -137,7 +137,7 @@ public:
 
     static constexpr std::size_t elementLength(const ElementType& elem)
     {
-        return sizeof(elem);
+        return sizeof(typename std::decay<decltype(elem)>::type);
     }
 
     template <typename TIter>

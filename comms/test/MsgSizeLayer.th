@@ -289,14 +289,17 @@ void MsgSizeLayerTestSuite::test1()
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -406,14 +409,17 @@ void MsgSizeLayerTestSuite::test6()
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -434,14 +440,17 @@ void MsgSizeLayerTestSuite::test7()
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -630,14 +639,17 @@ void MsgSizeLayerTestSuite::test16()
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT(!msgPtr)

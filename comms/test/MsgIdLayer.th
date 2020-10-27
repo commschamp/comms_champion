@@ -352,10 +352,12 @@ void MsgIdLayerTestSuite::test1()
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto& idLayer = static_cast<const ProtocolStack<BeField1, BeMsgBase>&>(stack).layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -367,10 +369,12 @@ void MsgIdLayerTestSuite::test1()
     auto& inPlacePayloadLayer = inPlaceStack.layer_payload();
     using InPlacePayloadLayerType = typename std::decay<decltype(inPlacePayloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<InPlacePayloadLayerType>(), "Invalid layer");
+    static_cast<void>(inPlacePayloadLayer);
 
     auto& inPlaceIdLayer = static_cast<const InPlaceProtocolStack<BeField1, BeMsgBase>&>(inPlaceStack).layer_id();
     using InPlaceIdLayerType = typename std::decay<decltype(inPlaceIdLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<InPlaceIdLayerType>(), "Invalid layer");
+    static_cast<void>(inPlaceIdLayer);
 
     auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
@@ -646,10 +650,12 @@ void MsgIdLayerTestSuite::test13()
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);

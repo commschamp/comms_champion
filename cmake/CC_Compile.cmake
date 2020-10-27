@@ -71,7 +71,7 @@ macro (cc_compile)
             SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
         endif ()
     elseif (MSVC)
-        add_definitions("/W1")
+        add_definitions("/W4")
 
         if (CC_COMPILE_WARN_AS_ERR)
             add_definitions("/WX")

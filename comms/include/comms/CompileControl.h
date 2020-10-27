@@ -29,7 +29,9 @@
 
 #define CC_DISABLE_WARNINGS()
 #define CC_ENABLE_WARNINGS()
+
 #endif
+
 
 #define COMMS_IS_MSVC false
 #define COMMS_IS_GCC  false
@@ -127,5 +129,17 @@
         (COMMS_IS_MSVC && (_MSC_VER >= 1926)) \
     )
 
+#if COMMS_IS_MSVC
 
+#define COMMS_MSVC_WARNING_PRAGMA(s_) __pragma(s_)
+#define COMMS_MSVC_WARNING_PUSH COMMS_MSVC_WARNING_PRAGMA( warning(push) )
+#define COMMS_MSVC_WARNING_POP COMMS_MSVC_WARNING_PRAGMA( warning(pop) )
+
+#else // #if COMMS_IS_MSVC
+
+#define COMMS_MSVC_WARNINGS_PRAGMA(s_)
+#define COMMS_MSVC_WARNINGS_PUSH
+#define COMMS_MSVC_WARNINGS_POP
+
+#endif // #if COMMS_IS_MSVC
 

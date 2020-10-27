@@ -13,9 +13,13 @@
 #include <ratio>
 #include <type_traits>
 
+#include "comms/CompileControl.h"
 #include "comms/traits.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNINGS_PUSH
+COMMS_MSVC_WARNINGS_PRAGMA(warning (disable : 4100))
 
 namespace comms
 {
@@ -2738,3 +2742,5 @@ constexpr bool isTerabytes(const TField& field)
 } // namespace units
 
 } // namespace comms
+
+COMMS_MSVC_WARNINGS_POP

@@ -17,6 +17,7 @@
 #include <tuple>
 #include <limits>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/type_traits.h"
@@ -591,11 +592,14 @@ private:
         return msg.getId();
     }
 
+COMMS_MSVC_WARNINGS_PUSH
+COMMS_MSVC_WARNINGS_PRAGMA(warning (disable : 4100))
     template <typename TMsg, typename... TParams>
     static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag<TParams...>)
     {
         return msg.doGetId();
     }
+COMMS_MSVC_WARNINGS_POP
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternalDirect(

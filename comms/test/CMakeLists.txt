@@ -60,6 +60,10 @@ if (NOT CC_NO_VALGRIND AND ("${CC_SANITIZER_OPTS}" STREQUAL ""))
     find_program(VALGRIND_EXECUTABLE NAMES "${CC_VALGRAND_EXE_NAME}")
 endif ()
 
+if (MSVC)
+    add_definitions("/wd4309") # Don't report warning about casts of const values
+endif ()
+
 if (TARGET cxxtest::cxxtest)
     test_func ("Fields")
     test_func ("Fields2")

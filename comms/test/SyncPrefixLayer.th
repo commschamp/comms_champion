@@ -162,7 +162,7 @@ private:
 void SyncPrefixLayerTestSuite::test1()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -190,7 +190,7 @@ void SyncPrefixLayerTestSuite::test2()
     std::get<0>(msg.fields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
-        (char)0xcd, (char)0xab, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
+        static_cast<char>(0xcd), static_cast<char>(0xab), 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
     };
 
     static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -211,7 +211,7 @@ void SyncPrefixLayerTestSuite::test2()
 void SyncPrefixLayerTestSuite::test3()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xce, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xce), 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -233,7 +233,7 @@ void SyncPrefixLayerTestSuite::test3()
 void SyncPrefixLayerTestSuite::test4()
 {
     static const char Buf[] = {
-        (char)0xab
+        static_cast<char>(0xab)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -275,7 +275,7 @@ void SyncPrefixLayerTestSuite::test5()
 void SyncPrefixLayerTestSuite::test6()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -300,7 +300,7 @@ void SyncPrefixLayerTestSuite::test6()
 void SyncPrefixLayerTestSuite::test7()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -338,7 +338,7 @@ void SyncPrefixLayerTestSuite::test7()
 void SyncPrefixLayerTestSuite::test8()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType90, 0x01, 0x01
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType90, 0x01, 0x01
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

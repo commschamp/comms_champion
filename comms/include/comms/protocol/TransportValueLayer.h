@@ -263,6 +263,7 @@ private:
     template <typename TMsg, typename... TParams>
     static bool validMsg(TMsg& msg, MsgObjTag<TParams...>)
     {
+        static_cast<void>(msg);
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "

@@ -14,6 +14,7 @@
 #include <utility>
 #include <algorithm>
 
+#include "comms/CompileControl.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/type_traits.h"
@@ -25,6 +26,9 @@
 #include "comms/details/protocol_layers_access.h"
 #include "comms/details/detect.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
 
 namespace comms
 {
@@ -1319,6 +1323,7 @@ private:
         T retriever,
         TExtraValues... extraValues) const
     {
+        static_cast<void>(retriever);
         static_assert(
             !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
@@ -1589,3 +1594,5 @@ details::MsgPayloadRetriever<TIter> msgPayload(TIter& iter, std::size_t& len)
 /// @related comms::protocol::ProtocolLayerBase
 #define COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(...) \
     COMMS_PROTOCOL_LAYERS_ACCESS(COMMS_EXPAND(COMMS_REVERSE_MACRO_ARGS(__VA_ARGS__)))
+
+COMMS_MSVC_WARNING_POP

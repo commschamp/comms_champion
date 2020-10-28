@@ -203,10 +203,13 @@ private:
             BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
             "BitLength is expected to be less than number of bits in the value type");
 
-        static const UnsignedSerialisedType SignExtMask =
-            ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1);
-        static const UnsignedSerialisedType SignMask =
-            static_cast<UnsignedSerialisedType>(1U) << (BitLength - 1);
+        static const auto SignExtMask =
+            static_cast<UnsignedSerialisedType>(
+                ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1));
+
+        static const auto SignMask =
+            static_cast<UnsignedSerialisedType>(
+                static_cast<UnsignedSerialisedType>(1U) << (BitLength - 1));
 
         if ((val & SignMask) != 0) {
             val |= SignExtMask;

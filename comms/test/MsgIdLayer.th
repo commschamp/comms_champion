@@ -955,7 +955,7 @@ void MsgIdLayerTestSuite::test23()
 void MsgIdLayerTestSuite::test24()
 {
     static const char Buf[] = {
-        MessageType1, (char)0xab, (char)0xcd
+        MessageType1, static_cast<char>(0xab), static_cast<char>(0xcd)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

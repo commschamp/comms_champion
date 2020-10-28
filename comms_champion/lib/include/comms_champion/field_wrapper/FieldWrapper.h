@@ -33,6 +33,9 @@ CC_ENABLE_WARNINGS()
 #include "comms/comms.h"
 #include "comms_champion/Api.h"
 
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4127) // Disable warning about constant conditional expressions
+
 namespace comms_champion
 {
 
@@ -293,3 +296,5 @@ typedef FieldWrapper::BasePtr FieldWrapperPtr;
 }  // namespace field_wrapper
 
 }  // namespace comms_champion
+
+COMMS_MSVC_WARNING_POP

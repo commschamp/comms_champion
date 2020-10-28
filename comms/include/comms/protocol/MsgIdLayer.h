@@ -29,6 +29,9 @@
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 #include "comms/details/tag.h"
 
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
+
 namespace comms
 {
 
@@ -358,6 +361,7 @@ protected:
             "Field must be of IntValue or EnumValue types");
 
         static_cast<void>(msg);
+        static_cast<void>(field);
         field.value() = static_cast<typename Field::ValueType>(id);
     }
 
@@ -592,14 +596,11 @@ private:
         return msg.getId();
     }
 
-COMMS_MSVC_WARNING_PUSH
-COMMS_MSVC_WARNING_DISABLE(4100)
     template <typename TMsg, typename... TParams>
     static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag<TParams...>)
     {
         return msg.doGetId();
     }
-COMMS_MSVC_WARNING_POP
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternalDirect(
@@ -977,3 +978,4 @@ constexpr bool isMsgIdLayer()
 
 }  // namespace comms
 
+COMMS_MSVC_WARNING_POP

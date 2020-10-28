@@ -142,6 +142,7 @@ private:
                 field.field_flags().value() = msg->transportField_flags().value();
             }
             auto& sizeField = field.field_size();
+            static_cast<void>(sizeField);
             using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
             field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);
         }
@@ -190,6 +191,7 @@ private:
                 field.field_flags().value() = msg->transportField_flags().value();
             }
             auto& sizeField = field.field_size();
+            static_cast<void>(sizeField);
             using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
             field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);
         }
@@ -234,7 +236,7 @@ private:
 void CustomPostIdMsgSizeLayerTestSuite::test1()
 {
     static const char Buf[] = {
-        MessageType1, (char)0xf0, 0x02, 0x01, 0x02
+        MessageType1, static_cast<char>(0xf0), 0x02, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -255,7 +257,7 @@ void CustomPostIdMsgSizeLayerTestSuite::test1()
 void CustomPostIdMsgSizeLayerTestSuite::test2()
 {
     static const char Buf[] = {
-        (char)0xf0, 0x03, MessageType1, 0x01, 0x02
+        static_cast<char>(0xf0), 0x03, MessageType1, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -291,7 +293,7 @@ void CustomPostIdMsgSizeLayerTestSuite::test3()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
 
     static const char Buf[] = {
-        (char)0xf0, 0x03, MessageType1, 0x01, 0x02
+        static_cast<char>(0xf0), 0x03, MessageType1, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -302,7 +304,7 @@ void CustomPostIdMsgSizeLayerTestSuite::test3()
 void CustomPostIdMsgSizeLayerTestSuite::test4()
 {
     static const char Buf[] = {
-        (char)0xf0, 0x03, MessageType1
+        static_cast<char>(0xf0), 0x03, MessageType1
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -341,7 +343,7 @@ void CustomPostIdMsgSizeLayerTestSuite::test5()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
 
     static const char Buf[] = {
-        MessageType1, (char)0xf0, 0x02, 0x01, 0x02
+        MessageType1, static_cast<char>(0xf0), 0x02, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

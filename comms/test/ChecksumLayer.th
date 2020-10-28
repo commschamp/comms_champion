@@ -272,7 +272,7 @@ private:
 void ChecksumLayerTestSuite::test1()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -291,22 +291,27 @@ void ChecksumLayerTestSuite::test1()
     auto& syncLayer = stack.layer_sync();
     using SyncLayerType = typename std::decay<decltype(syncLayer)>::type;
     static_assert(comms::protocol::isSyncPrefixLayer<SyncLayerType>(), "Invalid layer");
+    static_cast<void>(syncLayer);
 
     auto& checksumLayer = stack.layer_checksum();
     using ChecksumLayerType = typename std::decay<decltype(checksumLayer)>::type;
     static_assert(comms::protocol::isChecksumLayer<ChecksumLayerType>(), "Invalid layer");
+    static_cast<void>(checksumLayer);
 
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -321,7 +326,7 @@ void ChecksumLayerTestSuite::test2()
     std::get<0>(msg.fields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
-        (char)0xcd, (char)0xab, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03, 0x0b
+        static_cast<char>(0xcd), static_cast<char>(0xab), 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03, 0x0b
     };
 
     static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -343,7 +348,7 @@ void ChecksumLayerTestSuite::test2()
 void ChecksumLayerTestSuite::test3()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x07, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, 0x07, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -366,7 +371,7 @@ void ChecksumLayerTestSuite::test3()
 void ChecksumLayerTestSuite::test4()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -410,7 +415,7 @@ void ChecksumLayerTestSuite::test5()
 void ChecksumLayerTestSuite::test6()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -466,7 +471,7 @@ void ChecksumLayerTestSuite::test7()
 void ChecksumLayerTestSuite::test8()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -493,7 +498,7 @@ void ChecksumLayerTestSuite::test8()
 void ChecksumLayerTestSuite::test9()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x06, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x06, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -513,22 +518,27 @@ void ChecksumLayerTestSuite::test9()
     auto& syncLayer = stack.layer_sync();
     using SyncLayerType = typename std::decay<decltype(syncLayer)>::type;
     static_assert(comms::protocol::isSyncPrefixLayer<SyncLayerType>(), "Invalid layer");
+    static_cast<void>(syncLayer);
 
     auto& checksumLayer = stack.layer_checksum();
     using ChecksumLayerType = typename std::decay<decltype(checksumLayer)>::type;
     static_assert(comms::protocol::isChecksumPrefixLayer<ChecksumLayerType>(), "Invalid layer");
+    static_cast<void>(checksumLayer);
 
     auto& sizeLayer = stack.layer_size();
     using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
     static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+    static_cast<void>(sizeLayer);
 
     auto& idLayer = stack.layer_id();
     using IdLayerType = typename std::decay<decltype(idLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+    static_cast<void>(idLayer);
 
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
     static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+    static_cast<void>(payloadLayer);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -540,7 +550,7 @@ void ChecksumLayerTestSuite::test9()
 void ChecksumLayerTestSuite::test10()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

@@ -71,12 +71,6 @@ macro (cc_compile)
             SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
         endif ()
     elseif (MSVC)
-        add_definitions("/W4" "/wd9025")
-
-        if (CC_COMPILE_WARN_AS_ERR)
-            add_definitions("/WX")
-        endif ()
-
         if (CC_COMPILE_STATIC_RUNTIME)
             foreach(flag_var 
                     CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -95,4 +89,19 @@ macro (cc_compile)
             set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
         endif(CCACHE_FOUND)
     endif ()      
+endmacro()
+
+macro (cc_msvc_force_warn_opt opt)
+    if (MSVC)
+        foreach(flag_var 
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+
+            string(REGEX REPLACE "/W1" "${opt}" ${flag_var} "${${flag_var}}")
+            string(REGEX REPLACE "/W2" "${opt}" ${flag_var} "${${flag_var}}")
+            string(REGEX REPLACE "/W3" "${opt}" ${flag_var} "${${flag_var}}")
+            string(REGEX REPLACE "/W4" "${opt}" ${flag_var} "${${flag_var}}")
+            string(REGEX REPLACE "/Wall" "${opt}" ${flag_var} "${${flag_var}}")
+        endforeach()    
+    endif ()
 endmacro()

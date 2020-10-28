@@ -1,6 +1,7 @@
 # This file contains contains a function that prefetches comms_champion project. 
 
 # ******************************************************
+# Set predefined compilation flags
 #     cc_compile(
 #         [WARN_AS_ERR]
 #         [STATIC_RUNTIME]
@@ -10,6 +11,13 @@
 # - WARN_AS_ERR - Treat warnings as errors.
 # - STATIC_RUNTIME - Static link with runtime.
 # - USE_CCACHE - Force usage of ccache
+# 
+# ******************************************************
+# Update default MSVC warning level option
+#     cc_msvc_force_warn_opt(opt)
+# 
+# Example:
+#     cc_msvc_force_warn_opt("/W4")
 #
 
 macro (cc_compile)

@@ -14,6 +14,7 @@
 #include <limits>
 #include <type_traits>
 
+#include "comms/CompileControl.h"
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/type_traits.h"
@@ -21,6 +22,9 @@
 #include "details/AdaptBasicField.h"
 #include "tag.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4127) // Disable warning about constant conditional expressions
 
 namespace comms
 {
@@ -518,5 +522,5 @@ toFieldBase(const IntValue<TFieldBase, T, TOptions...>& field)
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP
 

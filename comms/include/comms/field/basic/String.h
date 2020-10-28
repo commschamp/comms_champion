@@ -24,8 +24,8 @@
 #include "comms/details/tag.h"
 #include "CommonFuncs.h"
 
-COMMS_MSVC_WARNINGS_PUSH
-COMMS_MSVC_WARNINGS_PRAGMA(warning (disable : 4100))
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100)
 
 namespace comms
 {
@@ -304,4 +304,4 @@ private:
 
 }  // namespace comms
 
-COMMS_MSVC_WARNINGS_POP
+COMMS_MSVC_WARNING_POP

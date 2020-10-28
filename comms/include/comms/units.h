@@ -18,8 +18,8 @@
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
 
-COMMS_MSVC_WARNINGS_PUSH
-COMMS_MSVC_WARNINGS_PRAGMA(warning (disable : 4100))
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100)
 
 namespace comms
 {
@@ -2743,4 +2743,4 @@ constexpr bool isTerabytes(const TField& field)
 
 } // namespace comms
 
-COMMS_MSVC_WARNINGS_POP
+COMMS_MSVC_WARNING_POP

@@ -592,14 +592,14 @@ private:
         return msg.getId();
     }
 
-COMMS_MSVC_WARNINGS_PUSH
-COMMS_MSVC_WARNINGS_PRAGMA(warning (disable : 4100))
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100)
     template <typename TMsg, typename... TParams>
     static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag<TParams...>)
     {
         return msg.doGetId();
     }
-COMMS_MSVC_WARNINGS_POP
+COMMS_MSVC_WARNING_POP
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternalDirect(

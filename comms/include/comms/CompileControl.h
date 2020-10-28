@@ -132,14 +132,16 @@
 #if COMMS_IS_MSVC
 
 #define COMMS_MSVC_WARNING_PRAGMA(s_) __pragma(s_)
-#define COMMS_MSVC_WARNING_PUSH COMMS_MSVC_WARNING_PRAGMA( warning(push) )
-#define COMMS_MSVC_WARNING_POP COMMS_MSVC_WARNING_PRAGMA( warning(pop) )
+#define COMMS_MSVC_WARNING_PUSH __pragma(warning(push))
+#define COMMS_MSVC_WARNING_POP __pragma(warning(pop))
+#define COMMS_MSVC_WARNING_DISABLE(w_) __pragma(warning(disable:w_))
 
 #else // #if COMMS_IS_MSVC
 
-#define COMMS_MSVC_WARNINGS_PRAGMA(s_)
-#define COMMS_MSVC_WARNINGS_PUSH
-#define COMMS_MSVC_WARNINGS_POP
+#define COMMS_MSVC_WARNING_PRAGMA(s_)
+#define COMMS_MSVC_WARNING_PUSH
+#define COMMS_MSVC_WARNING_POP
+#define COMMS_MSVC_WARNING_DISABLE(w_)
 
 #endif // #if COMMS_IS_MSVC
 

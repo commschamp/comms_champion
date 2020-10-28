@@ -228,10 +228,6 @@ macro (cc_define_external_project_targets inst_dir)
 
     target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
 
-    target_compile_options(comms INTERFACE
-      $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>
-    )
-    
     while (TRUE)
         if (CC_EXT_TGT_NO_COMMS_CHAMPION OR CC_EXT_TGT_NO_TOOLS)
             break ()

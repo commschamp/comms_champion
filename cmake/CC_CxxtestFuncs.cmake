@@ -120,7 +120,9 @@ macro (cc_get_cxxtest)
         add_library("cc_cxxtest" INTERFACE)
         add_library(${CC_CXXTEST_TGT_TARGET} ALIAS ${local_cxxtest_name})
         target_compile_options(${local_cxxtest_name} INTERFACE
-            $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
+            $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast>
+            $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast>
+            $<$<CXX_COMPILER_ID:MSVC>:/wd4309 /wd5055>
         ) 
 
         target_include_directories(${local_cxxtest_name} SYSTEM INTERFACE ${CXXTEST_INCLUDE_DIR})

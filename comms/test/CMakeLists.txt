@@ -22,8 +22,8 @@ function (test_func test_suite_name)
     cc_cxxtest_add_test (NAME ${name} SRC ${tests} ${valgrand_args})
 
     target_compile_options(${name} PRIVATE
-        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast ${CC_SANITIZER_OPTS}>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast ${CC_SANITIZER_OPTS}>
+        $<$<CXX_COMPILER_ID:GNU>: ${CC_SANITIZER_OPTS}>
+        $<$<CXX_COMPILER_ID:Clang>:${CC_SANITIZER_OPTS}>
     ) 
 
     if (NOT "${CC_SANITIZER_OPTS}" STREQUAL "")

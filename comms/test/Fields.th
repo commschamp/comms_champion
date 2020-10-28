@@ -269,7 +269,7 @@ void FieldsTestSuite::test4()
     > Field;
 
     static const char Buf[] = {
-        (char)0xff, (char)0xff
+        static_cast<char>(0xff), static_cast<char>(0xff)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
@@ -286,7 +286,7 @@ void FieldsTestSuite::test5()
     > Field;
 
     static const char Buf[] = {
-        0x0, (char)0x80
+        0x0, static_cast<char>(0x80)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
@@ -304,7 +304,7 @@ void FieldsTestSuite::test6()
     > Field;
 
     static const char Buf[] = {
-        (char)0xff, 0x00
+        static_cast<char>(0xff), 0x00
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
@@ -343,7 +343,7 @@ void FieldsTestSuite::test7()
 
     field.value() = 2000 + 0x7f;
     static const char ExpectedBuf2[] = {
-        (char)0x7f
+        static_cast<char>(0x7f)
     };
     const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
     writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
@@ -427,7 +427,7 @@ void FieldsTestSuite::test10()
     TS_ASSERT_EQUALS(field.value(), 0U);
 
     static const char Buf[] = {
-        (char)0xde, (char)0xad,
+        static_cast<char>(0xde), static_cast<char>(0xad),
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
@@ -458,7 +458,7 @@ void FieldsTestSuite::test10()
     TS_ASSERT(field.valid());
 
     static const char ExpectedBuf[] = {
-        (char)0xde, (char)0xaf
+        static_cast<char>(0xde), static_cast<char>(0xaf)
     };
     const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
@@ -480,7 +480,7 @@ void FieldsTestSuite::test11()
     TS_ASSERT_EQUALS(field.value(), 0xffffff);
 
     static const char Buf[] = {
-        (char)0xde, (char)0xad, (char)0x00, (char)0xff
+        static_cast<char>(0xde), static_cast<char>(0xad), static_cast<char>(0x00), static_cast<char>(0xff)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
@@ -542,7 +542,7 @@ void FieldsTestSuite::test12()
     TS_ASSERT_EQUALS(field.value(), Enum1_NumOfValues);
 
     static const char Buf[] = {
-        (char)Enum1_Value1, (char)0x3f
+        static_cast<char>(Enum1_Value1), static_cast<char>(0x3f)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
@@ -555,7 +555,7 @@ void FieldsTestSuite::test12()
     field.value() = Enum1_Value2;
 
     static const char ExpectedBuf[] = {
-        (char)Enum1_Value2
+        static_cast<char>(Enum1_Value2)
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
@@ -579,7 +579,7 @@ void FieldsTestSuite::test13()
     TS_ASSERT_EQUALS(field.value(), Enum2::NumOfValues);
 
     static const char Buf[] = {
-        0x0, (char)Enum2::Value4, (char)0x3f
+        0x0, static_cast<char>(Enum2::Value4), static_cast<char>(0x3f)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
@@ -593,7 +593,7 @@ void FieldsTestSuite::test13()
     field.value() = Enum2::Value3;
 
     static const char ExpectedBuf[] = {
-        0x0, (char)Enum2::Value3
+        0x0, static_cast<char>(Enum2::Value3)
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
@@ -917,7 +917,7 @@ void FieldsTestSuite::test20()
         "Invalid version dependency assumption");
 
     static const char Buf[] = {
-        (char)0x81, 0x01
+        static_cast<char>(0x81), 0x01
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
@@ -929,7 +929,7 @@ void FieldsTestSuite::test20()
         field.value() = 0x7ff;
         TS_ASSERT_EQUALS(field.length(), 2U);
         static const char ExpectedBuf[] = {
-            (char)0xff, 0x0f
+            static_cast<char>(0xff), 0x0f
         };
 
         static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -940,7 +940,7 @@ void FieldsTestSuite::test20()
         field.value() = 0x0;
         TS_ASSERT_EQUALS(field.length(), 1U);
         static const char ExpectedBuf[] = {
-            (char)0x0
+            static_cast<char>(0x0)
         };
 
         static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -960,7 +960,7 @@ void FieldsTestSuite::test21()
         "Invalid version dependency assumption");
 
     static const char Buf[] = {
-        (char)0x83, 0x0f
+        static_cast<char>(0x83), 0x0f
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
@@ -971,7 +971,7 @@ void FieldsTestSuite::test21()
     field.value() = 0x7ff;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf[] = {
-        (char)0x8f, (char)0x7f
+        static_cast<char>(0x8f), static_cast<char>(0x7f)
     };
 
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -981,14 +981,14 @@ void FieldsTestSuite::test21()
     TS_ASSERT_EQUALS(field.length(), 1U);
     TS_ASSERT_EQUALS(field.value(), 0x7f);
     static const char ExpectedBuf2[] = {
-        (char)0x7f
+        static_cast<char>(0x7f)
     };
 
     static const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
     writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
 
     static const char Buf2[] = {
-        (char)0x91, (char)0xc2, (char)0x3f, (char)0xff
+        static_cast<char>(0x91), static_cast<char>(0xc2), static_cast<char>(0x3f), static_cast<char>(0xff)
     };
     static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
     field = readWriteField<Field>(Buf2, BufSize2);
@@ -1009,7 +1009,11 @@ void FieldsTestSuite::test22()
         "Invalid version dependency assumption");
 
     static const char Buf[] = {
-        (char)0x83, (char)0x8f, (char)0x8c, (char)0x3f, (char)0xff
+        static_cast<char>(0x83), 
+        static_cast<char>(0x8f), 
+        static_cast<char>(0x8c),
+        static_cast<char>(0x3f), 
+        static_cast<char>(0xff)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::ProtocolError);
@@ -1035,7 +1039,7 @@ void FieldsTestSuite::test23()
         TS_ASSERT_EQUALS(field.length(), 3U);
 
         static const char ExpectedMinValueBuf[] = {
-            (char)0x80, (char)0x80, (char)0x7f
+            static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x7f)
         };
 
         static const std::size_t ExpectedMinValueBufSize = std::extent<decltype(ExpectedMinValueBuf)>::value;
@@ -1047,7 +1051,7 @@ void FieldsTestSuite::test23()
         TS_ASSERT_EQUALS(field.length(), 2U);
 
         static const char ExpectedMinValueBuf[] = {
-            (char)0x80, (char)0x40
+            static_cast<char>(0x80), static_cast<char>(0x40)
         };
 
         static const std::size_t ExpectedMinValueBufSize = std::extent<decltype(ExpectedMinValueBuf)>::value;
@@ -1059,7 +1063,7 @@ void FieldsTestSuite::test23()
         TS_ASSERT_EQUALS(field.length(), 2U);
 
         static const char ExpectedMaxValueBuf[] = {
-            (char)0xff, (char)0x3f
+            static_cast<char>(0xff), static_cast<char>(0x3f)
         };
 
         static const std::size_t ExpectedMaxValueBufSize = std::extent<decltype(ExpectedMaxValueBuf)>::value;
@@ -1071,7 +1075,7 @@ void FieldsTestSuite::test23()
         TS_ASSERT_EQUALS(field.length(), 3U);
 
         static const char ExpectedMaxValueBuf[] = {
-            (char)0x80, (char)0xc0, (char)0x0
+            static_cast<char>(0x80), static_cast<char>(0xc0), 0x0
         };
 
         static const std::size_t ExpectedMaxValueBufSize = std::extent<decltype(ExpectedMaxValueBuf)>::value;
@@ -1140,7 +1144,7 @@ void FieldsTestSuite::test25()
     TS_ASSERT_EQUALS(field.memberBitLength<1>(), 6U);
 
     static const char Buf[] = {
-        (char)0x41, (char)0xff
+        static_cast<char>(0x41), static_cast<char>(0xff)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
@@ -1183,7 +1187,7 @@ void FieldsTestSuite::test26()
     TS_ASSERT_EQUALS(field.memberBitLength<1>(), 5U);
 
     static const char Buf[] = {
-        (char)0x09, (char)0xff
+        0x09, static_cast<char>(0xff)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
@@ -1248,7 +1252,7 @@ void FieldsTestSuite::test27()
     TS_ASSERT_EQUALS(Field::FieldIdx_typeLimit, std::numeric_limits<unsigned>::max());
 
     static const char Buf[] = {
-        (char)0x4f, (char)0xa1, (char)0xaa
+        0x4f, static_cast<char>(0xa1), static_cast<char>(0xaa)
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
@@ -1327,7 +1331,7 @@ void FieldsTestSuite::test29()
     TS_ASSERT_EQUALS(field.value(), Enum1_Value2);
 
     static const char Buf[] = {
-        0x0, (char)Enum1_Value1, (char)0x3f
+        0x0, static_cast<char>(Enum1_Value1), 0x3f
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
@@ -1336,7 +1340,7 @@ void FieldsTestSuite::test29()
     TS_ASSERT(field.valid());
 
     static const char Buf2[] = {
-        0x0, (char)Enum1_NumOfValues, (char)0x3f
+        0x0, static_cast<char>(Enum1_NumOfValues), 0x3f
     };
     static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
     readWriteField<Field>(Buf2, BufSize2, comms::ErrorStatus::ProtocolError);
@@ -1345,7 +1349,7 @@ void FieldsTestSuite::test29()
     TS_ASSERT(field.valid());
 
     static const char ExpectedBuf[] = {
-        0x0, (char)Enum1_Value3
+        0x0, static_cast<char>(Enum1_Value3)
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
@@ -1380,7 +1384,7 @@ void FieldsTestSuite::test30()
     TS_ASSERT(field.valid());
 
     static const char Buf2[] = {
-        0x00, 0x02, (char)0xff
+        0x00, 0x02, static_cast<char>(0xff)
     };
 
     static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
@@ -1413,7 +1417,7 @@ void FieldsTestSuite::test31()
     TS_ASSERT_EQUALS(field.getMode(), Mode::Tentative);
 
     static const char Buf[] = {
-        0x0f, (char)0xf0
+        0x0f, static_cast<char>(0xf0)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -1484,7 +1488,7 @@ void FieldsTestSuite::test32()
     TS_ASSERT(!field.valid());
 
     static const char Buf[] = {
-        0x00, 0x3, Enum1_Value3, (char)0xff
+        0x00, 0x3, Enum1_Value3, static_cast<char>(0xff)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -1499,7 +1503,7 @@ void FieldsTestSuite::test32()
     enumValField.value() = Enum1_Value1;
 
     static const char ExpectedBuf[] = {
-        (char)0xab, (char)0xcd, (char)Enum1_Value1
+        static_cast<char>(0xab), static_cast<char>(0xcd), static_cast<char>(Enum1_Value1)
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
@@ -1884,7 +1888,7 @@ void FieldsTestSuite::test42()
     field.value() = 127U;
     TS_ASSERT_EQUALS(field.length(), 1U);
     static const char ExpectedBuf1[] = {
-        (char)0x7f
+        static_cast<char>(0x7f)
     };
 
     static const std::size_t ExpectedBuf1Size = std::extent<decltype(ExpectedBuf1)>::value;
@@ -1893,7 +1897,7 @@ void FieldsTestSuite::test42()
     field.value() = 128U;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf2[] = {
-        (char)0x81, 0x00
+        static_cast<char>(0x81), 0x00
     };
 
     static const std::size_t ExpectedBuf2Size = std::extent<decltype(ExpectedBuf2)>::value;
@@ -1902,7 +1906,7 @@ void FieldsTestSuite::test42()
     field.value() = 0x3fff;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf3[] = {
-        (char)0xff, (char)0x7f
+        static_cast<char>(0xff), 0x7f
     };
 
     static const std::size_t ExpectedBuf3Size = std::extent<decltype(ExpectedBuf3)>::value;
@@ -1911,7 +1915,7 @@ void FieldsTestSuite::test42()
     field.value() = 0x4000;
     TS_ASSERT_EQUALS(field.length(), 3U);
     static const char ExpectedBuf4[] = {
-        (char)0x81, (char)0x80, (char)0x00
+        static_cast<char>(0x81), static_cast<char>(0x80), 0x00
     };
 
     static const std::size_t ExpectedBuf4Size = std::extent<decltype(ExpectedBuf4)>::value;
@@ -1920,7 +1924,7 @@ void FieldsTestSuite::test42()
     field.value() = 0x1fffff;
     TS_ASSERT_EQUALS(field.length(), 3U);
     static const char ExpectedBuf5[] = {
-        (char)0xff, (char)0xff, (char)0x7f
+        static_cast<char>(0xff), static_cast<char>(0xff), 0x7f
     };
 
     static const std::size_t ExpectedBuf5Size = std::extent<decltype(ExpectedBuf5)>::value;
@@ -1929,7 +1933,10 @@ void FieldsTestSuite::test42()
     field.value() = 0x200000;
     TS_ASSERT_EQUALS(field.length(), 4U);
     static const char ExpectedBuf6[] = {
-        (char)0x81, (char)0x80, (char)0x80, (char)0x00
+        static_cast<char>(0x81), 
+        static_cast<char>(0x80), 
+        static_cast<char>(0x80), 
+        0x00
     };
 
     static const std::size_t ExpectedBuf6Size = std::extent<decltype(ExpectedBuf6)>::value;
@@ -1954,7 +1961,7 @@ void FieldsTestSuite::test43()
     field.value() = 127U;
     TS_ASSERT_EQUALS(field.length(), 1U);
     static const char ExpectedBuf1[] = {
-        (char)0x7f
+        0x7f
     };
 
     static const std::size_t ExpectedBuf1Size = std::extent<decltype(ExpectedBuf1)>::value;
@@ -1963,7 +1970,7 @@ void FieldsTestSuite::test43()
     field.value() = 128U;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf2[] = {
-        (char)0x80, 0x01
+        static_cast<char>(0x80), 0x01
     };
 
     static const std::size_t ExpectedBuf2Size = std::extent<decltype(ExpectedBuf2)>::value;
@@ -1972,7 +1979,7 @@ void FieldsTestSuite::test43()
     field.value() = 0x3fff;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf3[] = {
-        (char)0xff, (char)0x7f
+        static_cast<char>(0xff), 0x7f
     };
 
     static const std::size_t ExpectedBuf3Size = std::extent<decltype(ExpectedBuf3)>::value;
@@ -1981,7 +1988,7 @@ void FieldsTestSuite::test43()
     field.value() = 0x4000;
     TS_ASSERT_EQUALS(field.length(), 3U);
     static const char ExpectedBuf4[] = {
-        (char)0x80, (char)0x80, (char)0x01
+        static_cast<char>(0x80), static_cast<char>(0x80), 0x01
     };
 
     static const std::size_t ExpectedBuf4Size = std::extent<decltype(ExpectedBuf4)>::value;
@@ -1990,7 +1997,7 @@ void FieldsTestSuite::test43()
     field.value() = 0x1fffff;
     TS_ASSERT_EQUALS(field.length(), 3U);
     static const char ExpectedBuf5[] = {
-        (char)0xff, (char)0xff, (char)0x7f
+        static_cast<char>(0xff), static_cast<char>(0xff), static_cast<char>(0x7f)
     };
 
     static const std::size_t ExpectedBuf5Size = std::extent<decltype(ExpectedBuf5)>::value;
@@ -1999,7 +2006,7 @@ void FieldsTestSuite::test43()
     field.value() = 0x200000;
     TS_ASSERT_EQUALS(field.length(), 4U);
     static const char ExpectedBuf6[] = {
-        (char)0x80, (char)0x80, (char)0x80, (char)0x01
+        static_cast<char>(0x80), static_cast<char>(0x80), static_cast<char>(0x80), 0x01
     };
 
     static const std::size_t ExpectedBuf6Size = std::extent<decltype(ExpectedBuf6)>::value;
@@ -2022,7 +2029,7 @@ void FieldsTestSuite::test44()
     TS_ASSERT_EQUALS(field.length(), 2U);
 
     static const char ExpectedBuf1[] = {
-        (char)0x80, 0x00
+        static_cast<char>(0x80), 0x00
     };
 
     static const std::size_t ExpectedBuf1Size = std::extent<decltype(ExpectedBuf1)>::value;

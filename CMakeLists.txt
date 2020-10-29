@@ -69,8 +69,7 @@ endif ()
 
 include (${CMAKE_SCRIPTS_DIR}/CC_Compile.cmake)
 cc_compile(${warn_opt} ${static_runtime_opt} ${ccache_opt})
-
-cc_msvc_force_warn_opt("/Wall")
+cc_msvc_force_warn_opt("/W4")
 
 ################################################
 

@@ -56,7 +56,6 @@ function (lib_comms_champion)
     add_library (cc::${COMMS_CHAMPION_LIB_NAME} ALIAS ${name})
 
     target_link_libraries(${name} PUBLIC cc::comms Qt5::Widgets Qt5::Core ${CC_PLATFORM_SPECIFIC})
-
     target_include_directories(${name} 
         PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -67,6 +66,9 @@ function (lib_comms_champion)
     )
 
     target_compile_definitions(${name} PRIVATE -DCC_LIB_EXPORT)    
+    target_compile_options(${name} PUBLIC
+        $<$<CXX_COMPILER_ID:MSVC>:/bigobj /wd4127 /wd5054>
+    )
     
     set_target_properties(${name} PROPERTIES VERSION ${COMMS_VERSION})
     

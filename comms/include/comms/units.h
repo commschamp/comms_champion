@@ -19,7 +19,8 @@
 #include "comms/details/tag.h"
 
 COMMS_MSVC_WARNING_PUSH
-COMMS_MSVC_WARNING_DISABLE(4100)
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable unreferenced parameter warning
+COMMS_MSVC_WARNING_DISABLE(4127) // Disable warning about constant conditional expressions
 
 namespace comms
 {

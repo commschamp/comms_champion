@@ -17,6 +17,7 @@
 #include <tuple>
 #include <limits>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/type_traits.h"
@@ -27,6 +28,9 @@
 #include "comms/protocol/details/MsgIdLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
 
 namespace comms
 {
@@ -357,6 +361,7 @@ protected:
             "Field must be of IntValue or EnumValue types");
 
         static_cast<void>(msg);
+        static_cast<void>(field);
         field.value() = static_cast<typename Field::ValueType>(id);
     }
 
@@ -973,3 +978,4 @@ constexpr bool isMsgIdLayer()
 
 }  // namespace comms
 
+COMMS_MSVC_WARNING_POP

@@ -22,14 +22,38 @@ function (test_func test_suite_name)
     cc_cxxtest_add_test (NAME ${name} SRC ${tests} ${valgrand_args})
 
     target_compile_options(${name} PRIVATE
-        $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-old-style-cast>
-    )     
+        $<$<CXX_COMPILER_ID:GNU>: ${CC_SANITIZER_OPTS}>
+        $<$<CXX_COMPILER_ID:Clang>:${CC_SANITIZER_OPTS}>
+    ) 
+
+    if (NOT "${CC_SANITIZER_OPTS}" STREQUAL "")
+        target_link_options(${name} PRIVATE
+            $<$<CXX_COMPILER_ID:GNU>:${CC_SANITIZER_OPTS}>
+            $<$<CXX_COMPILER_ID:Clang>:${CC_SANITIZER_OPTS}>
+        ) 
+    endif ()
+
 endfunction ()
 
 #################################################################
 
-if (NOT CC_NO_VALGRIND)
+set (CC_SANITIZER_OPTS)
+if (CC_UNIT_TESTS_USE_SANITIZERS AND
+    ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")))
+    set (CC_SANITIZER_OPTS 
+        -fno-omit-frame-pointer 
+        -fno-sanitize-recover=address 
+        -fsanitize=address
+        -fno-sanitize-recover=undefined
+        -fsanitize=undefined)
+endif ()
+
+if ((NOT "${CC_SANITIZER_OPTS}" STREQUAL "") AND (${CMAKE_VERSION} VERSION_LESS "3.13"))
+    message (WARNING "The CMake version is too old, expected at least 3.13, sanitizers are disabled")
+    set (CC_SANITIZER_OPTS)
+endif ()
+
+if (NOT CC_NO_VALGRIND AND ("${CC_SANITIZER_OPTS}" STREQUAL ""))
     if ("${CC_VALGRAND_EXE_NAME}" STREQUAL "")
         set (CC_VALGRAND_EXE_NAME "valgrind")
     endif ()

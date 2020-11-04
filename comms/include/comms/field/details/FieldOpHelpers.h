@@ -9,7 +9,12 @@
 
 #include <type_traits>
 #include <limits>
+
+#include "comms/CompileControl.h"
 #include "comms/ErrorStatus.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
 
 namespace comms
 {
@@ -319,5 +324,6 @@ private:
 
 } // namespace field
 
-    
 } // namespace comms
+
+COMMS_MSVC_WARNING_POP

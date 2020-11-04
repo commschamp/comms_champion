@@ -161,7 +161,7 @@ void FieldsTestSuite2::test1()
         std::get<2>(m.value()).field().value() = 0xab;
 
         static const char Buf1[] = {
-            0x2, 0x4, 0x3, 0x2, 0x1, (char)0xab
+            0x2, 0x4, 0x3, 0x2, 0x1, static_cast<char>(0xab)
         };
         static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
 
@@ -289,7 +289,7 @@ void FieldsTestSuite2::test2()
         std::get<1>(m.field_value().value()).field().value() = 0xab;
 
         static const char Buf1[] = {
-            0x2, 0x5, 0x4, 0x3, 0x2, 0x1, (char)0xab
+            0x2, 0x5, 0x4, 0x3, 0x2, 0x1, static_cast<char>(0xab)
         };
         static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
 

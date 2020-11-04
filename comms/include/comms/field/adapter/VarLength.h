@@ -17,6 +17,7 @@
 #include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 #include "comms/details/tag.h"
+#include "comms/cast.h"
 
 namespace comms
 {
@@ -295,9 +296,10 @@ private:
                 byte |= VarLengthContinueBit;
             }
 
-            unsignedValToWrite |= 
+            comms::cast_assign(unsignedValToWrite) = 
+                unsignedValToWrite | 
                 static_cast<decltype(unsignedValToWrite)>(
-                    (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte)));
+                    static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
         }           
 
         auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
@@ -332,9 +334,10 @@ private:
                 byte |= VarLengthContinueBit;
             }
 
-            unsignedValToWrite |= 
-                static_cast<UnsignedSerialisedType>(
-                    (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte)));
+            comms::cast_assign(unsignedValToWrite) = 
+                unsignedValToWrite | 
+                static_cast<decltype(unsignedValToWrite)>(
+                    static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
 
             ++bytesCount;
         }           
@@ -605,9 +608,9 @@ private:
         std::numeric_limits<std::uint8_t>::digits; 
     static const std::size_t SerLengthInBits = 
         BitsInByte * sizeof(SerialisedType);    
-    static const UnsignedSerialisedType SignExtMask = 
+    static const auto SignExtMask = 
         static_cast<UnsignedSerialisedType>(
-            static_cast<UnsignedSerialisedType>(~0) << (SerLengthInBits - VarLengthShift));
+            std::numeric_limits<UnsignedSerialisedType>::max() << (SerLengthInBits - VarLengthShift));
 
     static_assert(0 < MinLength, "MinLength is expected to be greater than 0");
     static_assert(MinLength <= MaxLength,

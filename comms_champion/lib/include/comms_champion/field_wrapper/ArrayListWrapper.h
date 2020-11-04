@@ -273,7 +273,7 @@ private:
                       "Prefix field is too big");
 
         SizeField sizeField;
-        sizeField.value() = Base::field().value().size();
+        comms::cast_assign(sizeField.value()) = Base::field().value().size();
         return std::make_pair(sizeField.value(), getPrefixFieldSerialised(sizeField));
     }
 

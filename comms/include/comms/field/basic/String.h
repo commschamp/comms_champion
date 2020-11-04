@@ -12,6 +12,7 @@
 #include <limits>
 #include <numeric>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/access.h"
@@ -22,6 +23,9 @@
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
 #include "CommonFuncs.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100)
 
 namespace comms
 {
@@ -137,7 +141,7 @@ public:
 
     static constexpr std::size_t elementLength(const ElementType& elem)
     {
-        return sizeof(elem);
+        return sizeof(typename std::decay<decltype(elem)>::type);
     }
 
     template <typename TIter>
@@ -300,4 +304,4 @@ private:
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP

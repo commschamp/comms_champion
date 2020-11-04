@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "macro_common.h"
 
 #define COMMS_WRAP_ENUM(p_, v_) COMMS_CONCATENATE(p_, v_)
@@ -65,10 +67,12 @@
 #define COMMS_CHOOSE_ENUM(N, p_, ...) COMMS_EXPAND(COMMS_CHOOSE_ENUM_(N, p_, __VA_ARGS__))
 #define COMMS_DO_ENUM(p_, ...) COMMS_EXPAND(COMMS_CHOOSE_ENUM(COMMS_NUM_ARGS(__VA_ARGS__), p_, __VA_ARGS__))
 
-#define COMMS_END_ENUM(p_) COMMS_CONCATENATE(p_, _numOfValues)
+#define COMMS_END_ENUM(p_) \
+    COMMS_CONCATENATE(p_, _numOfValues), \
+    COMMS_CONCATENATE(p_, _typeLimit) = std::numeric_limits<unsigned>::max()
 
 #define COMMS_DEFINE_ENUM(p_, ...) \
-    enum p_ { \
+    enum p_ : unsigned { \
         COMMS_EXPAND(COMMS_DO_ENUM(COMMS_CONCATENATE(p_, _), __VA_ARGS__)) \
         , COMMS_END_ENUM(p_) \
     };

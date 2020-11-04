@@ -13,6 +13,7 @@
 #include <iterator>
 #include <initializer_list>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 
 namespace comms
@@ -79,6 +80,7 @@ public:
 
     void pop_back()
     {
+        COMMS_MSVC_WARNING_SUPPRESS(4189) // MSVC claims lastElem not referenced
         auto& lastElem = back();
         lastElem.~T();
         --size_;
@@ -1495,4 +1497,3 @@ void swap(comms::util::StaticVector<T, TSize1>& v1, comms::util::StaticVector<T,
 }
 
 }
-

@@ -35,7 +35,7 @@ namespace comms_champion
 class CC_API MessageHandler
 {
 public:
-    /// @brief Pinter to @ref FieldWrapper object
+    /// @brief Pinter to @ref field_wrapper::FieldWrapper object
     using FieldWrapperPtr = field_wrapper::FieldWrapperPtr;
 
     /// @brief Destructor

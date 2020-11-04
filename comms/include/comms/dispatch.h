@@ -9,10 +9,14 @@
 
 #include <type_traits>
 
+#include "comms/CompileControl.h"
 #include "comms/Message.h"
 #include "comms/details/dispatch_impl.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
 
 namespace comms
 {
@@ -848,3 +852,5 @@ constexpr bool dispatchMsgIsStaticBinSearch(TMsg&& msg, THandler&& handler)
 }
 
 } // namespace comms
+
+COMMS_MSVC_WARNING_POP

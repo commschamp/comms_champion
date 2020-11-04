@@ -30,7 +30,7 @@ function (cc_plugin_raw_data_protocol)
     )
     
     add_library (${name} MODULE ${src} ${moc})
-    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
+    target_link_libraries(${name} PRIVATE cc::${COMMS_CHAMPION_LIB_NAME})
     
     install (
         TARGETS ${name}

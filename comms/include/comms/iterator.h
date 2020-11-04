@@ -35,6 +35,7 @@ template <typename TMessage, typename TIter>
 auto readIteratorFor(TMessage&& msg, TIter&& iter) ->
     decltype(details::ReadIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter)))
 {
+    static_cast<void>(msg);
     return details::ReadIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter));
 }
 
@@ -57,6 +58,7 @@ template <typename TMessage, typename TIter>
 auto writeIteratorFor(TMessage&& msg, TIter&& iter) ->
     decltype(details::WriteIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter)))
 {
+    static_cast<void>(msg);
     return details::WriteIteratorHelper<>::template get<typename std::decay<decltype(msg)>::type>(std::forward<TIter>(iter));
 }
 

@@ -5,7 +5,7 @@ function (test_func_catch2 test_suite_name)
     set (name "${COMPONENT_NAME}.${test_suite_name}Catch2")
 
     add_executable(${name} ${src})
-    target_link_libraries(${name} cc::comms Catch2::Catch2)
+    target_link_libraries(${name} INTERFACE cc::comms Catch2::Catch2)
 
     target_compile_options(${name} PRIVATE
       $<$<CXX_COMPILER_ID:MSVC>:/bigobj>

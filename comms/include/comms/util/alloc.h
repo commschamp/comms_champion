@@ -121,6 +121,7 @@ private:
     template <typename TObj, typename... TParams>
     void handleInternal(TObj& obj, NoDefaultCastTag<TParams...>) const
     {
+        static_cast<void>(obj);
         obj.~TObj();
     }
 

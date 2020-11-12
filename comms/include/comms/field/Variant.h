@@ -89,8 +89,8 @@ class Variant : private
         "TMembers is expected to be a tuple of std::tuple<...>");
 
     static_assert(
-        1U < std::tuple_size<TMembers>::value,
-        "Number of members is expected to be at least 2.");
+        1U <= std::tuple_size<TMembers>::value,
+        "Number of members is expected to be at least 1.");
 
 public:
     /// @brief Endian used for serialisation.

@@ -499,6 +499,246 @@
 #define COMMS_FIELD_TYPEDEF_48(T_, P_, pref_, n_, ...) \
     COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
     COMMS_EXPAND(COMMS_FIELD_TYPEDEF_47(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_49(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_48(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_50(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_49(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_51(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_50(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_52(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_51(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_53(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_52(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_54(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_53(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_55(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_54(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_56(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_55(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_57(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_56(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_58(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_57(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_59(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_58(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_60(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_59(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_61(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_60(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_62(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_61(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_63(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_62(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_64(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_63(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_65(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_64(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_66(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_65(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_67(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_66(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_68(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_67(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_69(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_68(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_70(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_69(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_71(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_70(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_72(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_71(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_73(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_72(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_74(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_73(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_75(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_74(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_76(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_75(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_77(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_76(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_78(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_77(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_79(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_78(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_80(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_79(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_81(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_80(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_82(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_81(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_83(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_82(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_84(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_83(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_85(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_84(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_86(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_85(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_87(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_86(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_88(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_87(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_89(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_88(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_90(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_89(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_91(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_90(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_92(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_91(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_93(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_92(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_94(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_93(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_95(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_94(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_96(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_95(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_97(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_96(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_98(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_97(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_99(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_98(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_100(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_99(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_101(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_100(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_102(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_101(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_103(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_102(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_104(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_103(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_105(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_104(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_106(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_105(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_107(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_106(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_108(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_107(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_109(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_108(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_110(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_109(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_111(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_110(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_112(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_111(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_113(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_112(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_114(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_113(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_115(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_114(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_116(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_115(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_117(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_116(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_118(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_117(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_119(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_118(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_120(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_119(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_121(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_120(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_122(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_121(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_123(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_122(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_124(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_123(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_125(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_124(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_126(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_125(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_127(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_126(T_, P_, pref_, __VA_ARGS__))
+#define COMMS_FIELD_TYPEDEF_128(T_, P_, pref_, n_, ...) \
+    COMMS_FIELD_TYPEDEF(T_, P_, pref_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_TYPEDEF_127(T_, P_, pref_, __VA_ARGS__))
 
 #define COMMS_CHOOSE_FIELD_TYPEDEF_(N, T_, P_, pref_, ...) COMMS_EXPAND(COMMS_FIELD_TYPEDEF_ ## N(T_, P_, pref_, __VA_ARGS__))
 #define COMMS_CHOOSE_FIELD_TYPEDEF(N, T_, P_, pref_, ...) COMMS_EXPAND(COMMS_CHOOSE_FIELD_TYPEDEF_(N, T_, P_, pref_, __VA_ARGS__))

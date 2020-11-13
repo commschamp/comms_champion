@@ -25,10 +25,17 @@
 
 #define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 
+#define COMMS_GNU_WARNING_PUSH GCC_DIAG_PRAGMA(push)
+#define COMMS_GNU_WARNING_DISABLE(x_) GCC_DIAG_PRAGMA(ignored x_)
+#define COMMS_GNU_WARNING_POP GCC_DIAG_PRAGMA(pop)
+
 #else
 
 #define CC_DISABLE_WARNINGS()
 #define CC_ENABLE_WARNINGS()
+#define COMMS_GNU_WARNING_PUSH
+#define COMMS_GNU_WARNING_DISABLE(x_)
+#define COMMS_GNU_WARNING_POP
 
 #endif
 
@@ -62,6 +69,7 @@
 #define COMMS_IS_GCC_47_OR_BELOW (COMMS_IS_GCC && (__GNUC__ == 4) && (__GNUC_MINOR__ < 8))
 #define COMMS_IS_GCC_9 (COMMS_IS_GCC && (__GNUC__ == 9))
 #define COMMS_IS_GCC_9_OR_BELOW (COMMS_IS_GCC_9 && (__GNUC__ <= 9))
+#define COMMS_IS_GCC_10 (COMMS_IS_GCC && (__GNUC__ == 10))
 #define COMMS_IS_GCC_10_OR_ABOVE (COMMS_IS_GCC && (__GNUC__ >= 10))
 #define COMMS_IS_CLANG_7_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 7))
 #define COMMS_IS_CLANG_8 (COMMS_IS_CLANG && (__clang_major__ == 8))
@@ -146,4 +154,7 @@
 #define COMMS_MSVC_WARNING_SUPPRESS(w_)
 
 #endif // #if COMMS_IS_MSVC
+
+
+
 

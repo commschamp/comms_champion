@@ -124,6 +124,7 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
             return elem1.first < elem2.first;
         });
 
+    m_ui.m_memberComboBox->blockSignals(true);
     m_ui.m_memberComboBox->clear(); 
     m_ui.m_memberComboBox->addItem(InvalidMemberComboText, QVariant(-1));
     m_ui.m_memberComboBox->insertSeparator(1);
@@ -131,6 +132,7 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     for (auto& i : membersInfo) {
         m_ui.m_memberComboBox->addItem(i.first, QVariant(i.second));
     }
+    m_ui.m_memberComboBox->blockSignals(false);
        
     updateIndexDisplay();
 }
@@ -148,6 +150,7 @@ void VariantFieldWidget::memberFieldUpdated()
 
 void VariantFieldWidget::indexUpdated(int value)
 {
+    assert(isEditEnabled());
     if (value == m_wrapper->getCurrentIndex()) {
         return;
     }

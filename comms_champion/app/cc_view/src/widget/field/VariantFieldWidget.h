@@ -54,6 +54,9 @@ protected:
 private slots:
     void memberFieldUpdated();
     void indexUpdated(int value);
+    void memberComboUpdated(int value);
+    void destroyMemberWidget();
+    void createMemberWidget();
 
 private:
     using WrapperType = WrapperPtr::element_type;
@@ -61,7 +64,9 @@ private:
     void refreshInternal();
     void refreshMember();
     void updateMemberProps();
-    void updateIndexInfo();
+    void updateIndexDisplay();
+    void updateIndexValue();
+    void updateMemberCombo();
 
     Ui::VariantFieldWidget m_ui;
     WrapperPtr m_wrapper;

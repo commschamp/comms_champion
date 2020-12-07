@@ -135,6 +135,7 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     m_ui.m_memberComboBox->blockSignals(false);
        
     updateIndexDisplay();
+    updateMemberCombo();
 }
 
 void VariantFieldWidget::memberFieldUpdated()

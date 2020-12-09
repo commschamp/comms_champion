@@ -185,6 +185,13 @@
 #define COMMS_FIELD_ACC_FUNC_48(T_, t_, n_, ...) \
     COMMS_FIELD_ACC_FUNC(T_, t_, n_) \
     COMMS_EXPAND(COMMS_FIELD_ACC_FUNC_47(T_, t_, __VA_ARGS__))
+#define COMMS_FIELD_ACC_FUNC_49(T_, t_, n_, ...) \
+    COMMS_FIELD_ACC_FUNC(T_, t_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_ACC_FUNC_48(T_, t_, __VA_ARGS__))
+#define COMMS_FIELD_ACC_FUNC_50(T_, t_, n_, ...) \
+    COMMS_FIELD_ACC_FUNC(T_, t_, n_) \
+    COMMS_EXPAND(COMMS_FIELD_ACC_FUNC_49(T_, t_, __VA_ARGS__))
+
 
 #define COMMS_CHOOSE_FIELD_ACC_FUNC_(N, T_, t_, ...) COMMS_EXPAND(COMMS_FIELD_ACC_FUNC_ ## N(T_, t_, __VA_ARGS__))
 #define COMMS_CHOOSE_FIELD_ACC_FUNC(N, T_, t_, ...) COMMS_EXPAND(COMMS_CHOOSE_FIELD_ACC_FUNC_(N, T_, t_, __VA_ARGS__))

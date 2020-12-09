@@ -38,7 +38,9 @@
 #         * CMAKE_TOOLCHAIN_FILE
 #         * CMAKE_GENERATOR
 #         * CMAKE_BUILD_TYPE
-#         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+#         * CMAKE_CXX_STANDARD
+#         * CMAKE_MODULE_PATH
+#         * CMAKE_PREFIX_PATH
 #       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
 #       some of the default values.
 #
@@ -76,7 +78,9 @@
 #         * CMAKE_TOOLCHAIN_FILE
 #         * CMAKE_GENERATOR
 #         * CMAKE_BUILD_TYPE
-#         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+#         * CMAKE_CXX_STANDARD
+#         * CMAKE_MODULE_PATH
+#         * CMAKE_PREFIX_PATH
 #       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
 #       some of the copied values.
 #
@@ -187,6 +191,8 @@ function (cc_build_during_config)
             -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+            -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         )
     endif ()
 
@@ -350,6 +356,8 @@ function (cc_build_as_external_project)
             -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+            -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         )
     endif ()
 

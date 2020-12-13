@@ -38,6 +38,11 @@ details::ValueAssignWrapper<T> cast_assign(T& value)
 ///     @code
 ///     SomeFieldType someField = comms::field_cast<SomeFieldType>(someOtherField);
 ///     @endcode
+///     The function will perform some compile time analysis and will do a simple
+///     static_cast between the contained values if they are convertible. Otherwise
+///     the write + read operations will be performed, i.e. the source field will 
+///     be written into a temporary buffer, and the target field will perform a 
+///     read operation from that buffer.
 /// @tparam TFieldTo Type to cast to.
 /// @tparam TFieldFrom Type to cast from.
 /// @param[in] field Original field

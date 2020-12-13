@@ -11,10 +11,14 @@
 #include <type_traits>
 #include <limits>
 #include <algorithm>
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/field/OptionalMode.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+
+COMMS_GNU_WARNING_PUSH
+COMMS_GNU_WARNING_DISABLE("-Wtype-limits")
 
 namespace comms
 {
@@ -146,3 +150,4 @@ private:
 
 }  // namespace comms
 
+COMMS_GNU_WARNING_POP

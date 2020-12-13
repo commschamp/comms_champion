@@ -1,0 +1,167 @@
+name: Github Actions Build
+
+on: [push]
+
+jobs:
+  build_gcc_ubuntu_16_04:
+    runs-on: ubuntu-16.04
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [Debug, Release, MinSizeRel]
+        cc_ver: [4.8, 5, 6]
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Packages
+      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 gcc-${{matrix.cc_ver}} g++-${{matrix.cc_ver}}
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
+      env:
+        CC: gcc-${{matrix.cc_ver}}
+        CXX: g++-${{matrix.cc_ver}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target install
+      env:
+        VERBOSE: 1 
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest 
+
+  build_gcc_ubuntu_20_04:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [Debug, Release, MinSizeRel]
+        cc_ver: [7, 8, 9, 10]
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Packages
+      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 doxygen dia
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      env:
+        CC: gcc-${{matrix.cc_ver}}
+        CXX: g++-${{matrix.cc_ver}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target install
+      env:
+        VERBOSE: 1 
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest 
+
+    - name: Documentation
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: make doc_comms && make doc_commschampion
+      
+  build_clang_ubuntu_18_04:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [Debug, Release, MinSizeRel]
+        cc_ver: ["4.0", "5.0", "6.0", 7, 8, 9]
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Packages
+      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 doxygen dia clang-${{matrix.cc_ver}}
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      env:
+        CC: clang-${{matrix.cc_ver}}
+        CXX: clang++-${{matrix.cc_ver}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target install
+      env:
+        VERBOSE: 1 
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest 
+
+    - name: Documentation
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: make doc_comms && make doc_commschampion      
+      
+  build_clang_ubuntu_20_04:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [Debug, Release, MinSizeRel]
+        cc_ver: [10]
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Install Packages
+      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 doxygen dia clang-${{matrix.cc_ver}}
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      env:
+        CC: clang-${{matrix.cc_ver}}
+        CXX: clang++-${{matrix.cc_ver}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target install
+      env:
+        VERBOSE: 1 
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: ctest 
+
+    - name: Documentation
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: make doc_comms && make doc_commschampion            

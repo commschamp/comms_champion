@@ -79,7 +79,7 @@ private:
     template <typename TFieldTo, typename TFieldFrom, typename... TParams>
     static TFieldTo castInternal(const TFieldFrom& field, WriteReadTag<TParams...>)
     {
-        static_assert(TFieldFrom::minLength() == TFieldTo::maxLength(), "Casting between different fields of variable sizes is not supported.");
+        static_assert(TFieldFrom::minLength() <= TFieldTo::maxLength(), "Casting between specified fields will fail .");
 
         static const auto MaxBufSize = TFieldFrom::maxLength();
         std::uint8_t buf[MaxBufSize] = {0};

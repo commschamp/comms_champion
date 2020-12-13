@@ -15,6 +15,9 @@
 #include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 
+COMMS_GNU_WARNING_PUSH
+COMMS_GNU_WARNING_DISABLE("-Wtype-limits")
+
 namespace comms
 {
 
@@ -994,3 +997,5 @@ constexpr bool tupleTypeIsAnyOf(TFunc&& func)
 }  // namespace util
 
 }  // namespace comms
+
+COMMS_GNU_WARNING_POP

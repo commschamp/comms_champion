@@ -34,6 +34,7 @@ public:
     void test7();
     void test8();
     void test9();
+    void test10();
 
 private:
 
@@ -796,6 +797,70 @@ void FieldsTestSuite2::test9()
 
     field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
     TS_ASSERT_EQUALS(field.value(), "foo");
+}
+
+using Test10_FieldBase = comms::Field<comms::option::BigEndian>;
+
+class Test10_Mem1 : public
+    comms::field::Bundle<
+        Test10_FieldBase,
+        std::tuple<
+            Test1_IntKeyField<1>,
+            comms::field::IntValue<Test1_FieldBase, std::uint16_t>
+        >
+    >
+{
+    using Base = 
+        comms::field::Bundle<
+            Test10_FieldBase,
+            std::tuple<
+                Test1_IntKeyField<1>,
+                comms::field::IntValue<Test1_FieldBase, std::uint16_t>
+            >
+        >;            
+public:
+    COMMS_FIELD_MEMBERS_NAMES(key, val);
+};
+
+class Test10_Field : public
+    comms::field::Variant<
+        Test10_FieldBase,
+        std::tuple<
+            Test10_Mem1
+        >
+    >
+{
+    using Base = 
+        comms::field::Variant<
+            Test10_FieldBase,
+            std::tuple<
+                Test10_Mem1
+            >
+        >;
+public:
+    COMMS_VARIANT_MEMBERS_NAMES(mem1);        
+};
+
+void FieldsTestSuite2::test10()
+{
+    static_assert(!Test10_Field::isVersionDependent(), "Mustn't be version dependent");
+    Test10_Field field;
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Test10_Field::Members>::value);
+
+    do {
+        static const char Buf1[] = {
+            0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 0U);
+        TS_ASSERT_EQUALS(field.accessField_mem1().field_key().value(), 1U);
+        TS_ASSERT_EQUALS(field.accessField_mem1().field_val().value(), 0x0203);
+        TS_ASSERT_EQUALS(field.length(), 3U);
+    } while (false);
 }
 
 template <typename TField>

@@ -53,6 +53,11 @@ if ((NOT "${CC_SANITIZER_OPTS}" STREQUAL "") AND (${CMAKE_VERSION} VERSION_LESS 
     set (CC_SANITIZER_OPTS)
 endif ()
 
+if ((NOT "${CC_SANITIZER_OPTS}" STREQUAL "") AND (CMAKE_COMPILER_IS_GNUCC) AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0"))
+    message (WARNING "Compliler version is too old, sanitizers are disabled")
+    set (CC_SANITIZER_OPTS)
+endif ()
+
 if (NOT CC_NO_VALGRIND AND ("${CC_SANITIZER_OPTS}" STREQUAL ""))
     if ("${CC_VALGRAND_EXE_NAME}" STREQUAL "")
         set (CC_VALGRAND_EXE_NAME "valgrind")

@@ -51,6 +51,12 @@ jobs:
       matrix:
         type: [Debug, Release, MinSizeRel]
         cc_ver: [7, 8, 9, 10]
+        cpp: [11, 14, 17, 20]
+        exclude:
+          - cc_ver: 7
+            cpp: 20
+          - cc_ver: 8
+            cpp: 20
 
     steps:
     - uses: actions/checkout@v2
@@ -64,7 +70,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_CXX_STANDARD=${{matrix.cpp}}
       env:
         CC: gcc-${{matrix.cc_ver}}
         CXX: g++-${{matrix.cc_ver}}
@@ -93,6 +99,16 @@ jobs:
       matrix:
         type: [Debug, Release, MinSizeRel]
         cc_ver: ["4.0", "5.0", "6.0", 7, 8, 9]
+        cpp: [11, 14, 17, 20]
+        exclude:
+          - cc_ver: "4.0"
+            cpp: 17
+          - cc_ver: "4.0"
+            cpp: 20
+          - cc_ver: "5.0"
+            cpp: 20
+          - cc_ver: "6.0"
+            cpp: 20
 
     steps:
     - uses: actions/checkout@v2
@@ -106,7 +122,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_CXX_STANDARD=${{matrix.cpp}}
       env:
         CC: clang-${{matrix.cc_ver}}
         CXX: clang++-${{matrix.cc_ver}}
@@ -135,6 +151,7 @@ jobs:
       matrix:
         type: [Debug, Release, MinSizeRel]
         cc_ver: [10]
+        cpp: [11, 14, 17, 20]
 
     steps:
     - uses: actions/checkout@v2
@@ -148,7 +165,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_CXX_STANDARD=${{matrix.cpp}}
       env:
         CC: clang-${{matrix.cc_ver}}
         CXX: clang++-${{matrix.cc_ver}}

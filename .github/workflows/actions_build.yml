@@ -109,6 +109,8 @@ jobs:
             cpp: 20
           - cc_ver: "6.0"
             cpp: 20
+          - cc_ver: 7
+            cpp: 20
 
     steps:
     - uses: actions/checkout@v2

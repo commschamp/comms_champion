@@ -10,6 +10,10 @@ jobs:
       matrix:
         type: [Debug, Release, MinSizeRel]
         cc_ver: [4.8, 5, 6]
+        cpp: [11, 14]
+        exclude:
+          - cc_ver: 4.8
+            cpp: 14
 
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +27,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=gold -DCMAKE_CXX_STANDARD=${{matrix.cpp}}
       env:
         CC: gcc-${{matrix.cc_ver}}
         CXX: g++-${{matrix.cc_ver}}

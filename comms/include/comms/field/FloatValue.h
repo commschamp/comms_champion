@@ -271,7 +271,7 @@ private:
 template <typename TFieldBase, typename T, typename... TOptions>
 bool operator==(
     const FloatValue<TFieldBase, T, TOptions...>& field1,
-    const FloatValue<TFieldBase, T, TOptions...>& field2)
+    const FloatValue<TFieldBase, T, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -284,7 +284,7 @@ bool operator==(
 template <typename TFieldBase, typename T, typename... TOptions>
 bool operator!=(
     const FloatValue<TFieldBase, T, TOptions...>& field1,
-    const FloatValue<TFieldBase, T, TOptions...>& field2)
+    const FloatValue<TFieldBase, T, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -297,7 +297,7 @@ bool operator!=(
 template <typename TFieldBase, typename T, typename... TOptions>
 bool operator<(
     const FloatValue<TFieldBase, T, TOptions...>& field1,
-    const FloatValue<TFieldBase, T, TOptions...>& field2)
+    const FloatValue<TFieldBase, T, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }

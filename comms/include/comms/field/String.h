@@ -517,7 +517,7 @@ private:
 template <typename TFieldBase, typename... TOptions>
 bool operator==(
     const String<TFieldBase, TOptions...>& field1,
-    const String<TFieldBase, TOptions...>& field2)
+    const String<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -530,7 +530,7 @@ bool operator==(
 template <typename TFieldBase, typename... TOptions>
 bool operator!=(
     const String<TFieldBase, TOptions...>& field1,
-    const String<TFieldBase, TOptions...>& field2)
+    const String<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -544,7 +544,7 @@ bool operator!=(
 template <typename TFieldBase, typename... TOptions>
 bool operator<(
     const String<TFieldBase, TOptions...>& field1,
-    const String<TFieldBase, TOptions...>& field2)
+    const String<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }

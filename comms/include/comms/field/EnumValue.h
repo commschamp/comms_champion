@@ -297,7 +297,7 @@ private:
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator==(
     const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
-    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -310,7 +310,7 @@ bool operator==(
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator!=(
     const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
-    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -323,7 +323,7 @@ bool operator!=(
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator<(
     const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
-    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }

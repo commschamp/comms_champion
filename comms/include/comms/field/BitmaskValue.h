@@ -403,7 +403,7 @@ private:
 template <typename TFieldBase, typename... TOptions>
 bool operator==(
     const BitmaskValue<TFieldBase, TOptions...>& field1,
-    const BitmaskValue<TFieldBase, TOptions...>& field2)
+    const BitmaskValue<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -416,7 +416,7 @@ bool operator==(
 template <typename TFieldBase, typename... TOptions>
 bool operator!=(
     const BitmaskValue<TFieldBase, TOptions...>& field1,
-    const BitmaskValue<TFieldBase, TOptions...>& field2)
+    const BitmaskValue<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -429,7 +429,7 @@ bool operator!=(
 template <typename TFieldBase, typename... TOptions>
 bool operator<(
     const BitmaskValue<TFieldBase, TOptions...>& field1,
-    const BitmaskValue<TFieldBase, TOptions...>& field2)
+    const BitmaskValue<TFieldBase, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }

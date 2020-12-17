@@ -495,7 +495,7 @@ private:
 template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator<(
     const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
 {
     return std::lexicographical_compare(
                 field1.value().begin(), field1.value().end(),
@@ -510,7 +510,7 @@ bool operator<(
 template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator!=(
     const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
 {
     return (field1 < field2) || (field2 < field1);
 }
@@ -523,7 +523,7 @@ bool operator!=(
 template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator==(
     const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
 {
     return !(field1 != field2);
 }

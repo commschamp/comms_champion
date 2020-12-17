@@ -278,7 +278,7 @@ private:
 /// @brief Lexicographical compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator<(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator<(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return std::lexicographical_compare(view1.begin(), view1.end(), view2.begin(), view2.end());
 }
@@ -286,7 +286,7 @@ bool operator<(const ArrayView<T>& view1, const ArrayView<T>& view2)
 /// @brief Lexicographical compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator<=(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator<=(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return !(view2 < view1);
 }
@@ -294,7 +294,7 @@ bool operator<=(const ArrayView<T>& view1, const ArrayView<T>& view2)
 /// @brief Lexicographical compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator>(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator>(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return (view2 < view1);
 }
@@ -302,7 +302,7 @@ bool operator>(const ArrayView<T>& view1, const ArrayView<T>& view2)
 /// @brief Lexicographical compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator>=(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator>=(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return !(view1 < view2);
 }
@@ -310,7 +310,7 @@ bool operator>=(const ArrayView<T>& view1, const ArrayView<T>& view2)
 /// @brief Equality compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator==(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator==(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return
         (view1.size() == view2.size()) &&
@@ -320,7 +320,7 @@ bool operator==(const ArrayView<T>& view1, const ArrayView<T>& view2)
 /// @brief Inequality compare between the views.
 /// @related ArrayView
 template<typename T>
-bool operator!=(const ArrayView<T>& view1, const ArrayView<T>& view2)
+bool operator!=(const ArrayView<T>& view1, const ArrayView<T>& view2) noexcept
 {
     return !(view1 == view2);
 }

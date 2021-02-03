@@ -13,6 +13,7 @@
 #include <tuple>
 #include <utility>
 #include <algorithm>
+#include <iterator>
 
 #include "comms/CompileControl.h"
 #include "comms/ErrorStatus.h"

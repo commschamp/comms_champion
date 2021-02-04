@@ -514,9 +514,9 @@ private:
 };
 
 template <typename TVar>
-VariantEqualityCompHelper<TVar> makeVariantLessCompHelper(TVar& other, bool& result)
+VariantLessCompHelper<TVar> makeVariantLessCompHelper(TVar& other, bool& result)
 {
-    return VariantEqualityCompHelper<TVar>(other, result);
+    return VariantLessCompHelper<TVar>(other, result);
 }
 
 } // namespace details

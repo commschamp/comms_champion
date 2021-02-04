@@ -951,11 +951,7 @@ void FieldsTestSuite2::test11()
     field.value()[1].initField_mem2().field_val().value() = 0x87654321;
 
     Field field2(field);
-    TS_ASSERT_EQUALS(field.value()[0], field2.value()[0]); 
-    TS_ASSERT(!(field.value()[0].accessField_mem1() < field2.value()[0].accessField_mem1())); 
-    TS_ASSERT(!(field.value()[0] < field2.value()[0])); 
-
-    //TS_ASSERT_EQUALS(field, field2); 
+    TS_ASSERT_EQUALS(field, field2); 
 }
 
 

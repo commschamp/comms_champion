@@ -35,6 +35,7 @@ public:
     void test8();
     void test9();
     void test10();
+    void test11();
 
 private:
 
@@ -862,6 +863,101 @@ void FieldsTestSuite2::test10()
         TS_ASSERT_EQUALS(field.length(), 3U);
     } while (false);
 }
+
+using Test11_FieldBase = Test1_FieldBase;
+
+template <std::uint8_t TVal>
+using Test11_IntKeyField = Test1_IntKeyField<TVal>;
+
+struct Test11_Mem1 : public
+    comms::field::Bundle<
+        Test11_FieldBase,
+        std::tuple<
+            Test11_IntKeyField<1>,
+            comms::field::IntValue<Test11_FieldBase, std::uint16_t>
+        >
+    >
+{
+    using Base = 
+        comms::field::Bundle<
+            Test11_FieldBase,
+            std::tuple<
+                Test11_IntKeyField<1>,
+                comms::field::IntValue<Test11_FieldBase, std::uint16_t>
+            >
+        >;
+public:
+    COMMS_FIELD_MEMBERS_NAMES(key, val);
+
+};
+
+struct Test11_Mem2 : public
+    comms::field::Bundle<
+        Test11_FieldBase,
+        std::tuple<
+            Test11_IntKeyField<2>,
+            comms::field::IntValue<Test11_FieldBase, std::uint32_t>
+        >
+    >
+{
+    using Base = 
+        comms::field::Bundle<
+            Test11_FieldBase,
+            std::tuple<
+                Test11_IntKeyField<2>,
+                comms::field::IntValue<Test11_FieldBase, std::uint32_t>
+            >
+        >;
+public:
+    COMMS_FIELD_MEMBERS_NAMES(key, val);
+
+};
+
+class Test11_Variant : public
+    comms::field::Variant<
+        Test11_FieldBase,
+        std::tuple<
+            Test11_Mem1,
+            Test11_Mem2
+        >
+    >
+{
+    using Base = 
+        comms::field::Variant<
+            Test11_FieldBase,
+            std::tuple<
+                Test11_Mem1,
+                Test11_Mem2
+            >
+        >;
+public:
+    COMMS_VARIANT_MEMBERS_NAMES(mem1, mem2);        
+};
+
+void FieldsTestSuite2::test11()
+{
+    // Testing equality between lists of variants, used to fail
+    using Field =
+        comms::field::ArrayList<
+            Test11_FieldBase,
+            Test11_Variant
+        >;
+
+    static_assert(!Field::isVersionDependent(), "Must be version dependent");
+    Field field;
+
+    field.value().resize(2);
+    field.value()[0].initField_mem1().field_val().value() = 0x1234;
+    field.value()[1].initField_mem2().field_val().value() = 0x87654321;
+
+    Field field2(field);
+    TS_ASSERT_EQUALS(field.value()[0], field2.value()[0]); 
+    TS_ASSERT(!(field.value()[0].accessField_mem1() < field2.value()[0].accessField_mem1())); 
+    TS_ASSERT(!(field.value()[0] < field2.value()[0])); 
+
+    //TS_ASSERT_EQUALS(field, field2); 
+}
+
 
 template <typename TField>
 void FieldsTestSuite2::writeField(

@@ -493,6 +493,32 @@ VariantEqualityCompHelper<TVar> makeVariantEqualityCompHelper(TVar& other, bool&
     return VariantEqualityCompHelper<TVar>(other, result);
 }
 
+template <typename TVar>
+class VariantLessCompHelper
+{
+public:
+    VariantLessCompHelper(const TVar& other, bool& result)
+      : other_(other),
+        result_(result)
+    {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()(const TField& field)
+    {
+        result_ = (field < other_.template accessField<TIdx>());
+    }
+
+private:
+    const TVar& other_;
+    bool& result_;
+};
+
+template <typename TVar>
+VariantEqualityCompHelper<TVar> makeVariantLessCompHelper(TVar& other, bool& result)
+{
+    return VariantEqualityCompHelper<TVar>(other, result);
+}
+
 } // namespace details
 
 /// @brief Equality comparison operator.
@@ -536,7 +562,35 @@ bool operator!=(
     const Variant<TFieldBase, TMembers, TOptions...>& field1,
     const Variant<TFieldBase, TMembers, TOptions...>& field2)
 {
-    return field1.value() != field2.value();
+    return !(field1 == field2);
+}
+
+/// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
+/// @related Variant
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+bool operator<(
+    const Variant<TFieldBase, TMembers, TOptions...>& field1,
+    const Variant<TFieldBase, TMembers, TOptions...>& field2)
+{
+    if (field1.currentField() < field2.currentField()) {
+        return true;
+    }
+
+    if (field1.currentField() != field2.currentField()) {
+        return false;
+    }
+
+    if (&field1 == &field2) {
+        return false;
+    }    
+
+    bool result = false;
+    field1.currentFieldExec(details::makeVariantLessCompHelper(field2, result));
+    return result;
+    return true;
 }
 
 /// @brief Compile time check function of whether a provided type is any

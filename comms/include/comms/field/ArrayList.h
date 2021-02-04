@@ -495,24 +495,11 @@ private:
 template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator<(
     const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
 {
     return std::lexicographical_compare(
                 field1.value().begin(), field1.value().end(),
                 field2.value().begin(), field2.value().end());
-}
-
-/// @brief Non-equality comparison operator.
-/// @param[in] field1 First field.
-/// @param[in] field2 Second field.
-/// @return true in case fields are NOT equal, false otherwise.
-/// @related ArrayList
-template <typename TFieldBase, typename TElement, typename... TOptions>
-bool operator!=(
-    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
-{
-    return (field1 < field2) || (field2 < field1);
 }
 
 /// @brief Equality comparison operator.
@@ -523,9 +510,33 @@ bool operator!=(
 template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator==(
     const ArrayList<TFieldBase, TElement, TOptions...>& field1,
-    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
 {
-    return !(field1 != field2);
+    auto& vec1 = field1.value();
+    auto& vec2 = field2.value();
+    if (vec1.size() != vec2.size()) {
+        return false;
+    }
+
+    for (auto idx = 0U; idx < vec1.size(); ++idx) {
+        if (vec1[idx] != vec2[idx]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
+/// @related ArrayList
+template <typename TFieldBase, typename TElement, typename... TOptions>
+bool operator!=(
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2) noexcept
+{
+    return !(field1 == field2);
 }
 
 /// @brief Compile time check function of whether a provided type is any

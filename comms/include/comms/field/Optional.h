@@ -350,7 +350,7 @@ private:
 template <typename TField, typename... TOptions>
 bool operator==(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     if (field1.getMode() != field2.getMode()) {
         return false;
@@ -371,7 +371,7 @@ bool operator==(
 template <typename TField, typename... TOptions>
 bool operator!=(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     return !(field1 == field2);
 }
@@ -384,7 +384,7 @@ bool operator!=(
 template <typename TField, typename... TOptions>
 bool operator<(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     if (field1.isMissing()) {
         return !field2.isMissing();
@@ -405,7 +405,7 @@ bool operator<(
 template <typename TField, typename... TOptions>
 bool operator>(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     return (field2 < field1);
 }
@@ -418,7 +418,7 @@ bool operator>(
 template <typename TField, typename... TOptions>
 bool operator<=(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     return (field1 < field2) || (field1 == field2);
 }
@@ -431,7 +431,7 @@ bool operator<=(
 template <typename TField, typename... TOptions>
 bool operator>=(
     const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
+    const Optional<TField, TOptions...>& field2) noexcept
 {
     return field2 <= field1;
 }

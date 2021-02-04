@@ -755,7 +755,7 @@ protected:
 /// @details Messages are considered equal if all their fields are considered equal
 /// @related MessageBase
 template <typename TMessage1, typename TMessage2, typename... TOptions>
-bool operator==(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2)
+bool operator==(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2) noexcept
 {
     return msg1.fields() == msg2.fields();
 }
@@ -764,11 +764,10 @@ bool operator==(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBa
 /// @details Messages are considered not equal if any their fields are considered inequal.
 /// @related MessageBase
 template <typename TMessage1, typename TMessage2, typename... TOptions>
-bool operator!=(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2)
+bool operator!=(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2) noexcept
 {
     return !(msg1 == msg2);
 }
-
 
 /// @brief Upcast type of the message object to comms::MessageBase in order to have
 ///     access to its internal types.

@@ -671,7 +671,7 @@ private:
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -684,7 +684,7 @@ bool operator==(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -696,7 +696,7 @@ bool operator!=(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator<(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }
@@ -708,7 +708,7 @@ bool operator<(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator<=(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() <= field2.value();
 }
@@ -720,7 +720,7 @@ bool operator<=(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator>(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() > field2.value();
 }
@@ -732,7 +732,7 @@ bool operator>(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator>=(
     const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() >= field2.value();
 }

@@ -216,7 +216,7 @@ private:
 /// @return Always true.
 /// @related NoValue
 template <typename TFieldBase>
-bool operator==(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2)
+bool operator==(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2) noexcept
 {
     static_cast<void>(field1);
     static_cast<void>(field2);
@@ -230,7 +230,7 @@ bool operator==(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& fi
 /// @return Always false.
 /// @related NoValue
 template <typename TFieldBase>
-bool operator!=(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2)
+bool operator!=(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2) noexcept
 {
     return !(field1 == field2);
 }
@@ -242,7 +242,7 @@ bool operator!=(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& fi
 /// @return Always false.
 /// @related NoValue
 template <typename TFieldBase>
-bool operator<(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2)
+bool operator<(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& field2) noexcept
 {
     static_cast<void>(field1);
     static_cast<void>(field2);

@@ -69,6 +69,7 @@
 #define COMMS_IS_GCC_47_OR_BELOW (COMMS_IS_GCC && (__GNUC__ == 4) && (__GNUC_MINOR__ < 8))
 #define COMMS_IS_GCC_9 (COMMS_IS_GCC && (__GNUC__ == 9))
 #define COMMS_IS_GCC_9_OR_BELOW (COMMS_IS_GCC_9 && (__GNUC__ <= 9))
+#define COMMS_IS_GCC_9_OR_ABOVE (COMMS_IS_GCC_9 && (__GNUC__ >= 9))
 #define COMMS_IS_GCC_10 (COMMS_IS_GCC && (__GNUC__ == 10))
 #define COMMS_IS_GCC_10_OR_ABOVE (COMMS_IS_GCC && (__GNUC__ >= 10))
 #define COMMS_IS_CLANG_7_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 7))
@@ -105,7 +106,7 @@
 #endif
 
 #define COMMS_CLANG_HAS_STRING_VIEW false
-#define COMMS_CLANG_HAS_SPAN false
+#define COMMS_CLANG_HAS_VERSION_HEADER false
 
 #if COMMS_IS_CLANG
 
@@ -115,12 +116,28 @@
 #undef COMMS_CLANG_HAS_STRING_VIEW
 #define COMMS_CLANG_HAS_STRING_VIEW (__has_include(<string_view>))
 
-#undef COMMS_CLANG_HAS_SPAN
-#define COMMS_CLANG_HAS_SPAN (__has_include(<span>))
+#undef COMMS_CLANG_HAS_VERSION_HEADER
+#define COMMS_CLANG_HAS_VERSION_HEADER (__has_include(<version>))
 
 #endif // #if COMMS_IS_CLANG
 
 
+#define COMMS_HAS_CPP20_VERSION_HEADER \
+    COMMS_IS_CPP20 && \
+    (\
+        (COMMS_IS_USING_GNUC && (__GNUC__ >= 9)) || \
+        (COMMS_IS_CLANG && COMMS_CLANG_HAS_VERSION_HEADER) || \
+        (COMMS_IS_MSVC && (_MSC_VER >= 1922)) \
+    )
+
+#if COMMS_HAS_CPP20_VERSION_HEADER
+#include <version>
+#endif
+
+#define COMMS_HAS_CPP17_STRING_VIEW  false
+
+#ifndef COMMS_NO_CPP17_STRING_VIEW 
+#undef COMMS_HAS_CPP17_STRING_VIEW
 #define COMMS_HAS_CPP17_STRING_VIEW \
     COMMS_IS_CPP17 && \
     (\
@@ -129,13 +146,13 @@
         (COMMS_IS_MSVC && (_MSC_VER >= 1910)) \
     )
 
-#define COMMS_HAS_CPP20_SPAN \
-    COMMS_IS_CPP20 && \
-    (\
-        (COMMS_IS_USING_GNUC && (__GNUC__ >= 10)) || \
-        (COMMS_IS_CLANG && COMMS_CLANG_HAS_SPAN) || \
-        (COMMS_IS_MSVC && (_MSC_VER >= 1926)) \
-    )
+#endif // #ifndef COMMS_NO_CPP17_STRING_VIEW 
+
+#define COMMS_HAS_CPP20_SPAN false
+#if !defined(COMMS_NO_CPP20_SPAN) && COMMS_IS_CPP20 && defined(__cpp_lib_span)
+#undef COMMS_HAS_CPP20_SPAN
+#define COMMS_HAS_CPP20_SPAN true
+#endif // #if COMMS_IS_CPP20 && defined(__cpp_lib_span)
 
 #if COMMS_IS_MSVC
 

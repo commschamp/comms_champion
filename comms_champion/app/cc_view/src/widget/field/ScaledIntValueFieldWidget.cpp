@@ -123,7 +123,7 @@ void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)
     handleNumericSerialisedValueUpdate(
         value,
         *m_wrapper,
-        [this]()
+        [this]() noexcept
         {
             m_ui.m_valueSpinBox->blockSignals(false);
         });

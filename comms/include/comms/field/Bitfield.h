@@ -351,7 +351,7 @@ private:
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
     const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
-    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() == field2.value();
 }
@@ -364,7 +364,7 @@ bool operator==(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
     const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
-    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() != field2.value();
 }
@@ -377,7 +377,7 @@ bool operator!=(
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator<(
     const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
-    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2) noexcept
 {
     return field1.value() < field2.value();
 }

@@ -11,7 +11,7 @@
 /// However, since @b v1.2 COMMS library provides an ability to extend the existing
 /// definition of @ref comms::protocol::MsgSizeLayer and customize some bits
 /// and pieces. Let's implement the mentioned example of sharing the same byte
-/// for numeric ID and some flags.
+/// for message length and some flags.
 ///
 /// For this example the protocol framing is defined to be
 /// @code

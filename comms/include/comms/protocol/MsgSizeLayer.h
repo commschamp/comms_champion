@@ -304,6 +304,7 @@ protected:
     /// @param[in, out] msg Pointer to message object, either interface
     ///     class or message object itself (depending on how doRead() was invoked).
     ///     Can be @b nullptr in case message object hasn't been created yet
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void beforeRead(const Field& field, TMsg* msg)
     {
@@ -318,6 +319,7 @@ protected:
     /// @param[in] msg Pointer to message object being written, maybe nullptr (in case invoked
     ///     from @ref comms::protocol::MsgSizeLayer::doUpdate "doUpdate()")
     /// @param[out] field Field, value of which needs to be populated
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
     {

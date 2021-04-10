@@ -322,6 +322,7 @@ protected:
     /// @brief Retrieve message id from the field.
     /// @details May be overridden by the extending class
     /// @param[in] field Field for this layer.
+    /// @note May be non-static in the extending class
     static MsgIdType getMsgIdFromField(const Field& field)
     {
         static_assert(
@@ -340,6 +341,7 @@ protected:
     /// @param[in] field Field of the layer that was successfully read.
     /// @param[in, out] msg Reference to message object, either interface
     ///     class or message object itself (depending on how doRead() was invoked).
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void beforeRead(const Field& field, TMsg& msg)
     {
@@ -353,6 +355,7 @@ protected:
     /// @param[in] id ID of the message
     /// @param[in] msg Reference to message object being written
     /// @param[out] field Field, value of which needs to be populated
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void prepareFieldForWrite(MsgIdParamType id, const TMsg& msg, Field& field)
     {

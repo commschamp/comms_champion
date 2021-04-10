@@ -11,10 +11,12 @@
 #pragma once
 
 #include "ProtocolLayerBase.h"
-#include "details/TransportValueLayerAdapter.h"
 #include "comms/cast.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+#include "comms/protocol/details/TransportValueLayerAdapter.h"
+#include "comms/protocol/details/TransportValueLayerAdapter.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms
 {
@@ -42,6 +44,8 @@ namespace protocol
 /// @tparam TOptions Extending functionality options. Supported options are:
 ///     @li @ref comms::option::def::PseudoValue - Mark the handled value to be "pseudo"
 ///         one, i.e. the field is not getting serialised.
+///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
 template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>
@@ -50,23 +54,35 @@ class TransportValueLayer : public
             ProtocolLayerBase<
                 TField,
                 TNextLayer,
-                TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
+                details::ProtocolLayerExtendingClassT<
+                    TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
+                    details::TransportValueLayerOptionsParser<TOptions...>
+                >,
                 comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >
 {
+    using ThisClass = TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>;
     using BaseImpl =
         details::TransportValueLayerAdapterT<
             ProtocolLayerBase<
                 TField,
                 TNextLayer,
-                TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
+                details::ProtocolLayerExtendingClassT<
+                    ThisClass,
+                    details::TransportValueLayerOptionsParser<TOptions...>
+                >,
                 comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >;
 
+    using ExtendingClass = 
+        details::ProtocolLayerExtendingClassT<
+            ThisClass,
+            details::TransportValueLayerOptionsParser<TOptions...>
+        >;
 public:
     /// @brief Type of the field object used to read/write "sync" value.
     using Field = typename BaseImpl::Field;
@@ -135,20 +151,12 @@ public:
 
         es = nextLayerReader.read(msg, iter, size, extraValues...);
 
-        using Tag =
-            typename comms::util::LazyShallowConditional<
-                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>()
-            >::template Type<
-                MsgObjTag,
-                SmartPtrTag
-            >;
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using Tag = MsgTypeTag<MsgType>;
 
         if (validMsg(msg, Tag())) {
-            auto& allTransportFields = transportFields(msg, Tag());
-            auto& transportField = std::get<TIdx>(allTransportFields);
-
-            using FieldType = typename std::decay<decltype(transportField)>::type;
-            transportField = comms::field_cast<FieldType>(field);
+            auto& msgRef = accessMsgObj(msg, Tag());
+            static_cast<ExtendingClass*>(this)->reassignFieldValue(msgRef, field);
         }
         return es;
     }
@@ -178,15 +186,7 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        static_assert(MsgType::hasTransportFields(),
-            "Message interface class hasn't defined transport fields, "
-            "use comms::option::def::ExtraTransportFields option.");
-        static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
-            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
-
-        auto& transportField = std::get<TIdx>(msg.transportFields());
-        field = comms::field_cast<Field>(transportField);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(msg, field);
 
         auto es = writeFieldInternal(field, iter, size, ValueTag<>());
         if (es != ErrorStatus::Success) {
@@ -224,6 +224,54 @@ public:
     ///     option has been used.
     const Field& pseudoField() const;
 #endif
+
+protected:
+    /// @brief Re-assign the value from the input field to appropriate transport field
+    ///     in the message object.
+    /// @details Default implementation just assigns to the field accessed using
+    ///     @b TIdx index passed as the template argument to the class definition.@n
+    ///     May be overridden by the extending class if some complex functionality is required.
+    /// @param[out] msg Reference to the created message object
+    /// @param[in] field Field, value of which needs to be re-assigned
+    /// @note May be non-static in the extending class
+    template <typename TMsg>
+    static void reassignFieldValue(TMsg& msg, const Field& field)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(MsgType::hasTransportFields(),
+            "Message interface class hasn't defined transport fields, "
+            "use comms::option::def::ExtraTransportFields option.");
+        static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
+            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
+
+        auto& allTransportFields = msg.transportFields();
+        auto& transportField = std::get<TIdx>(allTransportFields);
+
+        using FieldType = typename std::decay<decltype(transportField)>::type;
+        transportField = comms::field_cast<FieldType>(field);
+    }
+
+    /// @brief Prepare field for writing.
+    /// @details Copies the field value from the appropriate transport field of the 
+    ///     message object and assigns it to the provided output field. @n
+    ///     May be overridden by the extending class if some complex functionality is required.
+    /// @param[in] msg Reference to message object being written
+    /// @param[out] field Field, value of which needs to be populated
+    /// @note May be non-static in the extending class
+    template <typename TMsg>
+    static void prepareFieldForWrite(const TMsg& msg, Field& field)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(MsgType::hasTransportFields(),
+            "Message interface class hasn't defined transport fields, "
+            "use comms::option::def::ExtraTransportFields option.");        
+        static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
+            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
+
+        auto& transportField = std::get<TIdx>(msg.transportFields());
+        field = comms::field_cast<Field>(transportField);
+    }    
+
 private:
     template <typename... TParams>
     using SmartPtrTag = comms::details::tag::Tag1<>;
@@ -247,6 +295,17 @@ private:
         >;
 
     template <typename TMsg, typename... TParams>
+    using MsgTypeTag =
+        typename comms::util::LazyShallowConditional<
+            BaseImpl::template isMessageObjRef<TMsg>()
+        >::template Type<
+            MsgObjTag,
+            SmartPtrTag,
+            TParams...
+        >;
+
+
+    template <typename TMsg, typename... TParams>
     static bool validMsg(TMsg& msgPtr, SmartPtrTag<TParams...>)
     {
         using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
@@ -254,9 +313,6 @@ private:
         static_assert(MessageInterfaceType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
             "use comms::option::def::ExtraTransportFields option.");
-        static_assert(TIdx < std::tuple_size<typename MessageInterfaceType::TransportFields>::value,
-            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
-
         return static_cast<bool>(msgPtr);
     }
 
@@ -268,8 +324,6 @@ private:
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
             "use comms::option::def::ExtraTransportFields option.");
-        static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
-            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
         return true;
     }
@@ -284,6 +338,18 @@ private:
     static auto transportFields(TMsg& msg, MsgObjTag<TParams...>) -> decltype(msg.transportFields())
     {
         return msg.transportFields();
+    }
+
+    template <typename TMsg, typename... TParams>
+    static auto accessMsgObj(TMsg& msgPtr, SmartPtrTag<TParams...>) -> decltype(*msgPtr)
+    {
+        return *msgPtr;
+    }
+
+    template <typename TMsg, typename... TParams>
+    static auto accessMsgObj(TMsg& msg, MsgObjTag<TParams...>) -> decltype(msg)
+    {
+        return msg;
     }
 
     template <typename... TParams>

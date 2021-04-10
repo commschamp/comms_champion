@@ -151,12 +151,14 @@ public:
 
         es = nextLayerReader.read(msg, iter, size, extraValues...);
 
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        using Tag = MsgTypeTag<MsgType>;
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        if (msgPtr != nullptr) {
+            using MsgType = typename std::decay<decltype(*msgPtr)>::type;    
+            static_assert(MsgType::hasTransportFields(),
+                "Message interface class hasn't defined transport fields, "
+                "use comms::option::def::ExtraTransportFields option.");            
 
-        if (validMsg(msg, Tag())) {
-            auto& msgRef = accessMsgObj(msg, Tag());
-            static_cast<ExtendingClass*>(this)->reassignFieldValue(msgRef, field);
+            static_cast<ExtendingClass*>(this)->reassignFieldValue(*msgPtr, field);
         }
         return es;
     }
@@ -273,17 +275,12 @@ protected:
     }    
 
 private:
-    template <typename... TParams>
-    using SmartPtrTag = comms::details::tag::Tag1<>;
 
     template <typename... TParams>
-    using MsgObjTag = comms::details::tag::Tag2<>;   
+    using PseudoValueTag = comms::details::tag::Tag1<>;   
 
     template <typename... TParams>
-    using PseudoValueTag = comms::details::tag::Tag3<>;   
-
-    template <typename... TParams>
-    using NormalValueTag = comms::details::tag::Tag4<>;          
+    using NormalValueTag = comms::details::tag::Tag2<>;          
 
     template <typename...>
     using ValueTag =
@@ -294,63 +291,6 @@ private:
             NormalValueTag
         >;
 
-    template <typename TMsg, typename... TParams>
-    using MsgTypeTag =
-        typename comms::util::LazyShallowConditional<
-            BaseImpl::template isMessageObjRef<TMsg>()
-        >::template Type<
-            MsgObjTag,
-            SmartPtrTag,
-            TParams...
-        >;
-
-
-    template <typename TMsg, typename... TParams>
-    static bool validMsg(TMsg& msgPtr, SmartPtrTag<TParams...>)
-    {
-        using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
-        using MessageInterfaceType = typename MsgPtrType::element_type;
-        static_assert(MessageInterfaceType::hasTransportFields(),
-            "Message interface class hasn't defined transport fields, "
-            "use comms::option::def::ExtraTransportFields option.");
-        return static_cast<bool>(msgPtr);
-    }
-
-    template <typename TMsg, typename... TParams>
-    static bool validMsg(TMsg& msg, MsgObjTag<TParams...>)
-    {
-        static_cast<void>(msg);
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        static_assert(MsgType::hasTransportFields(),
-            "Message interface class hasn't defined transport fields, "
-            "use comms::option::def::ExtraTransportFields option.");
-
-        return true;
-    }
-
-    template <typename TMsg, typename... TParams>
-    static auto transportFields(TMsg& msgPtr, SmartPtrTag<TParams...>) -> decltype(msgPtr->transportFields())
-    {
-        return msgPtr->transportFields();
-    }
-
-    template <typename TMsg, typename... TParams>
-    static auto transportFields(TMsg& msg, MsgObjTag<TParams...>) -> decltype(msg.transportFields())
-    {
-        return msg.transportFields();
-    }
-
-    template <typename TMsg, typename... TParams>
-    static auto accessMsgObj(TMsg& msgPtr, SmartPtrTag<TParams...>) -> decltype(*msgPtr)
-    {
-        return *msgPtr;
-    }
-
-    template <typename TMsg, typename... TParams>
-    static auto accessMsgObj(TMsg& msg, MsgObjTag<TParams...>) -> decltype(msg)
-    {
-        return msg;
-    }
 
     template <typename... TParams>
     static constexpr std::size_t doFieldLengthInternal(PseudoValueTag<TParams...>)

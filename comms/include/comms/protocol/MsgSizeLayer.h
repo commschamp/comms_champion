@@ -185,9 +185,7 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        using MsgPtrTag = MsgTypeTag<MsgType>;
-        static_cast<ExtendingClass*>(this)->beforeRead(field, getPtrToMsgInternal(msg, MsgPtrTag()));
+        static_cast<ExtendingClass*>(this)->beforeRead(field, BaseImpl::toMsgPtr(msg));
         es = nextLayerReader.read(msg, iter, requiredRemainingSize, extraValues...);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
@@ -362,21 +360,6 @@ private:
             MsgNoLengthTag
         >;
 
-    template <typename... TParams>
-    using PtrToMsgTag = comms::details::tag::Tag7<>;   
-
-    template <typename... TParams>
-    using DirectMsgTag = comms::details::tag::Tag8<>;             
-
-    template <typename TMsg>
-    using MsgTypeTag =
-        typename comms::util::LazyShallowConditional<
-            comms::isMessage<TMsg>()
-        >::template Type<
-            DirectMsgTag,
-            PtrToMsgTag
-        >;
-
     template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalHasLength(
         Field& field,
@@ -528,18 +511,6 @@ private:
         Field fieldTmp;
         static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, &msg, fieldTmp);
         return fieldTmp.length();
-    }
-
-    template <typename TMsg, typename... TParams>
-    auto getPtrToMsgInternal(TMsg& msg, PtrToMsgTag<TParams...>) -> decltype (msg.get())
-    {
-        return msg.get();
-    }
-
-    template <typename TMsg, typename... TParams>
-    auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag<TParams...>) -> decltype (&msg)
-    {
-        return &msg;
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerUpdater>

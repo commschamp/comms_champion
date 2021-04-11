@@ -65,7 +65,7 @@ jobs:
       run: sudo apt-get update --fix-missing    
       
     - name: Install Packages
-      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 doxygen dia
+      run: sudo apt install libqt5gui5 libqt5serialport5-dev libqt5network5 doxygen dia gcc-${{matrix.cc_ver}} g++-${{matrix.cc_ver}}
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build

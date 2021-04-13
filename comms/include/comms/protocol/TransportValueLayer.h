@@ -1,5 +1,5 @@
 //
-// Copyright 2017 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -46,6 +46,7 @@ namespace protocol
 ///         one, i.e. the field is not getting serialised.
 ///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_transport_value_layer tutorial page.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
 template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>

@@ -20,7 +20,7 @@ enum class ErrorStatus {
                     /// call to update(...) is required.
     NotEnoughData, ///< Used to indicate that stream buffer didn't contain
                    /// enough data to complete read operation.
-    ProtocolError, ///< Used to indicate that any of the used protocols
+    ProtocolError, ///< Used to indicate that any of the used protocol layers
                    /// encountered an error while processing the data.
     BufferOverflow, ///< Used to indicate that stream buffer was overflowed
                     /// when attempting to write data.

@@ -161,6 +161,8 @@ class String : private details::StringBase<TFieldBase, TOptions...>
 {
     using BaseImpl = details::StringBase<TFieldBase, TOptions...>;
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;

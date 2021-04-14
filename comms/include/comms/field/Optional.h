@@ -45,7 +45,6 @@ class Optional : private details::AdaptBasicFieldT<basic::Optional<TField>, TOpt
 {
     using BaseImpl = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
 public:
-
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
 

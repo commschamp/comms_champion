@@ -114,6 +114,8 @@ class BitmaskValue : public TFieldBase
         >;
 
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;

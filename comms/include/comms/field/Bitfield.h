@@ -104,6 +104,9 @@ class Bitfield : private
     using BaseImpl = details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>;
 
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
+
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
 

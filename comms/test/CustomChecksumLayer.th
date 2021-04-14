@@ -192,10 +192,63 @@ private:
 
         using Field = typename Base::Field;
 
-        template <typename TMsg, typename TIter>
-        static typename Field::ValueType calculateChecksum(const TMsg* msg, TIter& iter, std::size_t len, bool& checksumValid)
+        template <typename TMsg>
+        static std::size_t doFieldLength(const TMsg& msg)
         {
-            if (msg == nullptr) {
+            auto checksumType = msg.transportField_checksumType().value();
+            if (checksumType == ChecksumType::Sum) {
+                return sizeof(std::uint8_t);
+            }
+
+            return Base::doFieldLength(msg);
+        }
+
+
+        template <typename TMsg, typename TIter>
+        static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+        {
+            if (msgPtr == nullptr) {
+                return comms::ErrorStatus::ProtocolError;
+            }
+
+            auto checksumType = msgPtr->transportField_checksumType().value();
+            if (checksumType != ChecksumType::Sum) {
+                return Base::readField(msgPtr, field, iter, len);
+            }
+
+            using FieldTmp = comms::field::IntValue<typename Field::FieldBase, std::uint8_t>;
+            FieldTmp fieldTmp;
+            auto es = fieldTmp.read(iter, len);
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            field = comms::field_cast<Field>(fieldTmp);
+            return es;
+        }
+
+        template <typename TMsg, typename TIter>
+        static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+        {
+            if (msgPtr == nullptr) {
+                return comms::ErrorStatus::ProtocolError;
+            }
+
+            auto checksumType = msgPtr->transportField_checksumType().value();
+            if (checksumType != ChecksumType::Sum) {
+                return Base::writeField(msgPtr, field, iter, len);
+            }
+
+            using FieldTmp = comms::field::IntValue<typename Field::FieldBase, std::uint8_t>;
+            auto fieldTmp = comms::field_cast<FieldTmp>(field);
+            return fieldTmp.write(iter, len);
+        }
+
+
+        template <typename TMsg, typename TIter>
+        static typename Field::ValueType calculateChecksum(const TMsg* msgPtr, TIter& iter, std::size_t len, bool& checksumValid)
+        {
+            if (msgPtr == nullptr) {
                 static constexpr bool Should_not_happen = false;
                 COMMS_ASSERT(Should_not_happen);
                 checksumValid = false;
@@ -203,9 +256,9 @@ private:
             }
 
             checksumValid = true;
-            auto checksumType = msg->transportField_checksumType().value();
+            auto checksumType = msgPtr->transportField_checksumType().value();
             if (checksumType == ChecksumType::Sum) {
-                using Calc = comms::protocol::checksum::BasicSum<std::uint16_t>;
+                using Calc = comms::protocol::checksum::BasicSum<std::uint8_t>;
                 return Calc()(iter, len);
             }
 
@@ -287,7 +340,7 @@ void ChecksumLayerTestSuite::test1()
         MessageType1, // id
         static_cast<char>(ChecksumType::Sum), // checksum type
         0x01, 0x02, // payload
-        0x0, 0x07 // checksum
+        0x07 // checksum
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

@@ -76,6 +76,8 @@ class EnumValue : private details::AdaptBasicFieldT<basic::EnumValue<TFieldBase,
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
 
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;

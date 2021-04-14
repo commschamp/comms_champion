@@ -250,6 +250,7 @@ private:
         {
             if (msgPtr == nullptr) {
                 static constexpr bool Should_not_happen = false;
+                static_cast<void>(Should_not_happen);
                 COMMS_ASSERT(Should_not_happen);
                 checksumValid = false;
                 return static_cast<typename Field::ValueType>(0);

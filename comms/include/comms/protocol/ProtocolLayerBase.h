@@ -721,6 +721,11 @@ public:
     }
 
     /// @brief Default implementation of field length retrieval.
+    /// @details Default implementation returns
+    ///     @code
+    ///     Field::minLength();
+    ///     @endcode
+    /// @note Can be overriden by the extending class.
     static constexpr std::size_t doFieldLength()
     {
         return Field::minLength();
@@ -728,6 +733,11 @@ public:
 
     /// @brief Default implementation of field length retrieval when
     ///     message is known.
+    /// @details Default implementation returns
+    ///     @code
+    ///     Field::minLength();
+    ///     @endcode
+    /// @note Can be overriden by the extending class.    
     template <typename TMsg>
     static constexpr std::size_t doFieldLength(const TMsg&)
     {

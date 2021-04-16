@@ -134,7 +134,7 @@
 ///             return Calc()(iter, len);
 ///         }        
 ///     
-///         if (checksumType == ChecksumType::Crc_32) {
+///         if (checksumType == ChecksumType::Crc32) {
 ///             using Calc = comms::protocol::checksum::Crc_32;
 ///             return Calc()(iter, len);
 ///         }        
@@ -198,7 +198,7 @@
 ///     template <typename TMsg>
 ///     static std::size_t doFieldLength(const TMsg& msg)
 ///     {
-///         auto checksumType = msgPtr.transportField_checksumType().value();
+///         auto checksumType = msg.transportField_checksumType().value();
 ///         if (checksumType == ChecksumType::Sum8) {
 ///             return sizeof(std::uint8_t);
 ///         }

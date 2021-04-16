@@ -1,0 +1,306 @@
+/// @page page_custom_checksum_layer Defining Custom Checksum Protocol Stack Layer
+/// @tableofcontents
+/// The @b COMMS library provides default @ref comms::protocol::ChecksumLayer protocol 
+/// stack layer to handle extra value in transport framing and re-assigning it to the 
+/// message object. 
+/// However, it may be insufficient (or incorrect) for some particular use cases. For example
+/// the protocol may support multiple checksum algorithms usage of which is determined
+/// at runtime.
+/// The @ref page_prot_stack_tutorial_new_layers section of the 
+/// @ref page_prot_stack_tutorial page explains how to define new (custom)
+/// protocol layer. 
+///
+/// However, since @b v3.2 COMMS library provides an ability to extend the existing
+/// definition of @ref comms::protocol::ChecksumLayer and customize some bits
+/// and pieces. Let's implement the mentioned above example of supporting 
+/// multiple checksum algorithms.
+///
+/// For this example the protocol framing is defined to be
+/// @code
+/// SIZE | ID | PROTOCOL_TYPE | PAYLOAD | CHECKSUM
+/// @endcode
+///
+/// First of all let's define the @ref page_define_prot_interface, which
+/// holds the protocol type information as data member of every message object.
+/// @code
+/// namespace my_prot
+/// {
+///
+/// // Enum used for numeric message IDs
+/// enum MsgId
+/// {
+///     MsgId_Message1,
+///     MsgId_Message2,
+///     ...
+/// };
+///
+/// // Base class for all the fields defining serialization endian
+/// using FieldBase = comms::field::Field<comms::option::def::BigEndian>;
+///
+/// Definition of the checksum type
+/// enum ChecksumTypeVal : std::uint8_t
+/// {
+///     Sum8,
+///     Crc16,
+///     Crc32
+/// };
+///
+/// // Definition of the checksum type field
+/// class ChecksumType : public
+///     comms::field::EnumValue<
+///         FieldBase,
+///         ChecksumTypeVal>
+/// {
+/// };
+///
+/// // Definition of the extensible common message interface
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         TOptions...,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<
+///             std::tuple<
+///                 ChecksumType
+///             > 
+///         >
+///     >
+/// {
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::Message<...>;
+/// public:
+///     //  Allow access to extra transport fields.
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(checksumType);
+/// };
+///
+/// } // namespace my_prot
+/// @endcode
+/// Just to refresh the reader's memory: the usage of @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES()
+/// macro for the interface definition will generate 
+/// @b transportField_checksumType() 
+/// convenience member function to access the stored checksum type field.
+///
+/// When implementing the transport framing (protocol stack) the handling of 
+/// `PROTOCOL_TYPE` can be done using regular @ref comms::protocol::TransportValueLayer
+/// (see @ref page_prot_stack_tutorial_transport_value).
+///
+/// Now it's time to actually extend the provided definition of 
+/// the @ref comms::protocol::ChecksumLayer and support usage of multiple checksum
+/// algorithms.
+/// @code
+/// namespace my_prot
+/// {
+///
+/// // Field to contain all possible checksums
+/// using ChecksumField = comms::field::IntValue<FieldBase, std::uint32_t>;
+/// 
+/// template <typename TNextLayer>
+/// class MyChecksumLayer : public
+///     comms::protocol::ChecksumLayer<
+///         ChecksumField,   
+///         comms::protocol::checksum::Crc_32, // Not really important for this example, 
+///                                            // but template parameter type needs to be populated
+///         TNextLayer,          // Next layer in the protocol stack
+///         comms::option::def::ExtendingClass<MyChecksumLayer<TNextLayer> >
+///                              // Make the comms::protocol::ChecksumLayer aware of it being extended
+///     >
+/// {
+///     // Repeat definition of the base class
+///     using Base = comms::protocol::ChecksumLayer<...>;
+///
+/// public:
+///     // Repeat types defined in the base class (not visible by default)
+///     using Field = typename Base::Field; // same as ChecksumField
+///
+///     // Override default way of calculating checksum
+///     template <typename TMsg, typename TIter>
+///     static typename Field::ValueType calculateChecksum(const TMsg* msgPtr, TIter& iter, std::size_t len, bool& checksumValid)
+///     {
+///         if (msgPtr == nullptr) {
+///             checksumValid = false;
+///             return static_cast<typename Field::ValueType>(0);
+///         }
+///     
+///         checksumValid = true;
+///         auto checksumType = msgPtr->transportField_checksumType().value();
+///         if (checksumType == ChecksumTypeVal::Sum8) {
+///             using Calc = comms::protocol::checksum::BasicSum<std::uint8_t>;
+///             return Calc()(iter, len);
+///         }
+///     
+///         if (checksumType == ChecksumType::Crc16) {
+///             using Calc = comms::protocol::checksum::Crc_16;
+///             return Calc()(iter, len);
+///         }        
+///     
+///         if (checksumType == ChecksumType::Crc_32) {
+///             using Calc = comms::protocol::checksum::Crc_32;
+///             return Calc()(iter, len);
+///         }        
+///     
+///         checksumValid = false;
+///         return static_cast<typename Field::ValueType>(0);
+///     }    
+///
+///     // Due to the fact that the used checksums have different lengths, the
+///     // functionality of reading a field's value also needs to be customized.
+///     template <typename TMsg, typename TIter>
+///     static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+///     {
+///         if (msgPtr == nullptr) {
+///             return comms::ErrorStatus::ProtocolError;
+///         }
+///     
+///         auto checksumType = msgPtr->transportField_checksumType().value();
+///         if (checksumType == ChecksumType::Sum8) {
+///             return readFieldInternal<std::uint8_t>(field, iter, len);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc16) {
+///             return readFieldInternal<std::uint16_t>(field, iter, len);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc32) {
+///             return readFieldInternal<std::uint32_t>(field, iter, len);
+///         }
+///
+///         return comms::ErrorStatus::ProtocolError;
+///     }
+///
+///     // Due to the fact that the used checksums have different lengths, the
+///     // functionality of reading a field's value also needs to be customized.
+///     template <typename TMsg, typename TIter>
+///     static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+///     {
+///         if (msgPtr == nullptr) {
+///             return comms::ErrorStatus::ProtocolError;
+///         }
+///     
+///         auto checksumType = msgPtr->transportField_checksumType().value();
+///         if (checksumType == ChecksumType::Sum8) {
+///             return writeFieldInternal<std::uint8_t>(field, iter, len);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc16) {
+///             return writeFieldInternal<std::uint16_t>(field, iter, len);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc32) {
+///             return writeFieldInternal<std::uint32_t>(field, iter, len);
+///         }
+///
+///         return comms::ErrorStatus::ProtocolError;
+///     }
+///
+///     // Due to the fact that the used checksums have different lengths, the
+///     // functionality of calculating the field's length needs to be overriden
+///     template <typename TMsg>
+///     static std::size_t doFieldLength(const TMsg& msg)
+///     {
+///         auto checksumType = msgPtr.transportField_checksumType().value();
+///         if (checksumType == ChecksumType::Sum8) {
+///             return sizeof(std::uint8_t);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc16) {
+///             return sizeof(std::uint16_t);
+///         }
+///
+///         if (checksumType == ChecksumType::Crc32) {
+///             return sizeof(std::uint32_t);
+///         }
+///
+///         COMMS_ASSERT(!"Should not happen");
+///         return 0;
+///     }
+///
+/// private:
+///     template <typename TTmpType, typename TIter>
+///     static comms::ErrorStatus readFieldInternal(Field& field, TIter& iter, std::size_t len)
+///     {
+///         using FieldTmp = comms::field::IntValue<typename Field::FieldBase, TTmpType>;
+///         FieldTmp fieldTmp;
+///         auto es = fieldTmp.read(iter, len);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
+///     
+///         field = comms::field_cast<Field>(fieldTmp);
+///         return es;
+///     }
+///
+///     template <typename TTmpType, typename TIter>
+///     static comms::ErrorStatus writeFieldInternal(const Field& field, TIter& iter, std::size_t len)
+///     {
+///         using FieldTmp = comms::field::IntValue<typename Field::FieldBase, TTmpType>;
+///         auto fieldTmp = comms::field_cast<FieldTmp>(field); // Re-assign the field's value
+///         return fieldTmp.write(iter, len);
+///     }
+/// };
+///
+///
+/// } // namespace my_prot
+/// @endcode
+/// The @ref comms::protocol::ChecksumLayer doesn't have any virtual functions and
+/// as the result not able to provide any polymorphic behavior. In order to be
+/// able to extend its default functionality there is a need to use 
+/// <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously Recurring Template Pattern</a>.
+/// It is done by passing @ref comms::option::def::ExtendingClass extension option with
+/// the type of the layer class being defined to the @ref comms::protocol::ChecksumLayer.
+///
+/// The extending class is expected to define the listed below functions. They do not
+/// necessarily need to be @b static, accessing inner private state of the layer object
+/// is also acceptable.
+/// @li @ref comms::protocol::ChecksumLayer::calculateChecksum() "calculateChecksum()" - 
+/// Member function that is responsible to calculate a checksum on provided range.
+/// @li @ref comms::protocol::ChecksumLayer::readField() "readField()" - Member function 
+/// that is responsible to read field's value. Needs to be overridden in case the 
+/// possible checksum values can have different lengths.
+/// @li @ref comms::protocol::ChecksumLayer::writeField() "writeField()" - Member function 
+/// that is responsible to write field's value. Needs to be overridden in case the 
+/// possible checksum values can have different lengths.
+/// @li @ref comms::protocol::ChecksumLayer::doFieldLength() "doFieldLength()" - 
+/// Member function used to calculate serialization length of the checksum field.
+///
+/// @b NOTE, that overriding of @ref comms::protocol::ChecksumLayer::readField() "readField()",
+/// @ref comms::protocol::ChecksumLayer::writeField() "writeField()", and
+/// @ref comms::protocol::ChecksumLayer::doFieldLength() "doFieldLength()" is not necessary
+/// in case all of the used checksum types are of the same length, i.e. use the 
+/// same field abstraction to read/write checksum values. In this case the default
+/// implementation provided by the @ref comms::protocol::ChecksumLayer is enough.
+/// 
+/// The newly defined custom protocol stack layer can be used instead of
+/// @ref comms::protocol::ChecksumLayer when defining 
+/// @ref page_prot_stack_tutorial "protocol stack" (framing) of the protocol.
+/// For example:
+/// @code
+/// namespace my_prot
+/// {
+/// 
+/// template <typename TMessage, typename TAllMessages>
+/// struct Frame1 : public 
+///     MyChecksumLayer<
+///         comms::protocol::MsgSizeLayer<                   // SIZE
+///             common::field::IntValue<FieldBase, std::uint16_t>,
+///             comms::protocol::MsgIdLayer<                 // ID
+///                 comms::feild::EnumValue<FieldBase, MsgId>,
+///                 TMessage,
+///                 TAllMessages,
+///                 comms::field::TransportValueLayer<       // CHECKSUM_TYPE
+///                     ChecksumType,
+///                     Message::TransportFieldIdx_checksumType,
+///                     comms::protocol::MsgDataLayer<>      // PAYLOAD
+///                 >
+///             >
+///         >
+///     >
+/// {
+///     // Generate convenience access functions for various layers
+///     COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(checksum, size, size, checksumType, payload);
+/// };
+///
+/// } // namespace my_prot
+/// @endcode
+///
+

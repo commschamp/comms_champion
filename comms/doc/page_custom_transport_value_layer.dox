@@ -181,10 +181,12 @@
 /// The extending class is expected to define the listed below functions. They do not
 /// necessarily need to be @b static, accessing inner private state of the layer object
 /// is also acceptable.
-/// @li @b reassignFieldValue() - Member function that is infoked right before reading
+/// @li @ref comms::protocol::TransportValueLayer::reassignFieldValue() "reassignFieldValue()" -
+/// Member function that is invoked right before reading
 /// message payload. It's responsibility is to re-assign the transport field value to 
 /// the appropriate transport field(s) in the message object.
-/// @li @b prepareFieldForWrite() - Member function that is invoked to prepare
+/// @li @ref comms::protocol::TransportValueLayer::prepareFieldForWrite() "prepareFieldForWrite()" - 
+/// Member function that is invoked to prepare
 /// the field value before its write (serialization). After the function returns,
 /// the @ref comms::protocol::TransportValueLayer will invoke @b write member function
 /// of the passed field in order to serialize it. 

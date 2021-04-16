@@ -49,6 +49,7 @@ namespace protocol
 ///         prior to invocation of @b read operation in the wrapped layer(s).
 ///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_checksum_layer tutorial page.
 /// @headerfile comms/protocol/ChecksumLayer.h
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumLayer : public

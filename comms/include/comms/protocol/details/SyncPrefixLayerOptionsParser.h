@@ -1,5 +1,5 @@
 //
-// Copyright 2017 - 2021 (C). Alex Robenko. All rights reserved.
+// Copyright 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,31 +20,21 @@ namespace details
 
 
 template <typename... TOptions>
-class ChecksumLayerOptionsParser;
+class SyncPrefixLayerOptionsParser;
 
 template <>
-class ChecksumLayerOptionsParser<>
+class SyncPrefixLayerOptionsParser<>
 {
 public:
-    static constexpr bool HasVerifyBeforeRead = false;
     static constexpr bool HasExtendingClass = false;
 
     template <typename TLayer>
     using DefineExtendingClass = TLayer;
-
-};
-
-template <typename... TOptions>
-class ChecksumLayerOptionsParser<comms::option::def::ChecksumLayerVerifyBeforeRead, TOptions...> :
-        public ChecksumLayerOptionsParser<TOptions...>
-{
-public:
-    static constexpr bool HasVerifyBeforeRead = true;
 };
 
 template <typename T, typename... TOptions>
-class ChecksumLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...> :
-        public ChecksumLayerOptionsParser<TOptions...>
+class SyncPrefixLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...> :
+        public SyncPrefixLayerOptionsParser<TOptions...>
 {
 public:
     static constexpr bool HasExtendingClass = true;
@@ -55,16 +45,16 @@ public:
 };
 
 template <typename... TOptions>
-class ChecksumLayerOptionsParser<
+class SyncPrefixLayerOptionsParser<
     comms::option::app::EmptyOption,
-    TOptions...> : public ChecksumLayerOptionsParser<TOptions...>
+    TOptions...> : public SyncPrefixLayerOptionsParser<TOptions...>
 {
 };
 
 template <typename... TBundledOptions, typename... TOptions>
-class ChecksumLayerOptionsParser<
+class SyncPrefixLayerOptionsParser<
     std::tuple<TBundledOptions...>,
-    TOptions...> : public ChecksumLayerOptionsParser<TBundledOptions..., TOptions...>
+    TOptions...> : public SyncPrefixLayerOptionsParser<TBundledOptions..., TOptions...>
 {
 };
 

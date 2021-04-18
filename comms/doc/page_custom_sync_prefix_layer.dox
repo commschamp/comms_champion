@@ -1,0 +1,131 @@
+/// @page page_custom_sync_prefix_layer Defining Custom Sync Prefix Protocol Stack Layer
+/// @tableofcontents
+/// The @b COMMS library provides default @ref comms::protocol::SyncPrefixLayer protocol 
+/// stack layer to handle predefined protocol synchronization prefix. 
+/// However, it may be insufficient (or incorrect) for some particular use cases, such as
+/// using alternating bytes. For example, every first message has `0xabcd` prefix while
+/// every second is expected to be `0xdead`.
+/// The @ref page_prot_stack_tutorial_new_layers section of the 
+/// @ref page_prot_stack_tutorial page explains how to define new (custom)
+/// protocol layer.
+///
+/// However, since @b v3.2 COMMS library provides an ability to extend the existing
+/// definition of @ref comms::protocol::SyncPrefixLayer and customize some bits
+/// and pieces. Let's implement the mentioned example of alternating synchronization prefix.
+///
+/// For this example the protocol framing is defined to be
+/// @code
+/// SYNC | SIZE | ID | PAYLOAD
+/// @endcode
+///
+/// Such synchronization prefix handling layer may be defined in the following way.
+/// @code
+/// namespace my_prot
+/// {
+///
+/// // Base class for all the fields defining serialization endian
+/// using FieldBase = comms::field::Field<comms::option::def::BigEndian>;
+///
+/// // Definition of the synchronization prefix field
+/// using SyncField = common::field::IntValue<FieldBase, std::uint16_t>;
+/// 
+/// template <typename TNextLayer>
+/// class AlternatingPrefixLayer : public
+///     comms::protocol::SyncPrefixLayer<
+///         SyncField,   
+///         TNextLayer,          // Next layer in the protocol stack
+///         comms::option::def::ExtendingClass<AlternatingPrefixLayer<TNextLayer> >
+///                              // Make the comms::protocol::SyncPrefixLayer aware of it being extended
+///     >
+/// {
+///     // Repeat definition of the base class
+///     using Base = comms::protocol::SyncPrefixLayer<...>;
+///
+/// public:
+///     // Repeat types defined in the base class (not visible by default)
+///     using Field = typename Base::Field; // same as SyncField
+///     
+///     // Verify the field's value.
+///     bool verifyFieldValue(const Field& field)
+///     {
+///         bool valid = (field.value() == getPrefix(m_inputCount));
+///         if (valid) {
+///             ++m_inputCount;
+///         }
+///         return valid;
+///     } 
+/// 
+///     // Prepare field to be written
+///     void prepareFieldForWrite(Field& field) const
+///     {
+///         field.value() = getPrefix(m_outputCount);
+///         ++m_outputCount;
+///     }
+/// 
+/// private:
+///     static typename TField::ValueType getPrefix(unsigned count)
+///     {
+///         static const typename TField::ValueType Map[] = {
+///             0xabcd,
+///             0xdead
+///         };
+///         static const std::size_t MapSize = std::extent<decltype(Map)>::value;
+/// 
+///         auto idx = (count % MapSize);
+///         return Map[idx];
+///     }
+/// 
+///     unsigned m_inputCount = 0;
+///     mutable unsigned m_outputCount = 0; // Updated in the const function
+/// };
+///
+/// } // namespace my_prot
+/// @endcode
+/// The @ref comms::protocol::SyncPrefixLayer doesn't have any virtual functions and
+/// as the result not able to provide any polymorphic behavior. In order to be
+/// able to extend its default functionality there is a need to use 
+/// <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously Recurring Template Pattern</a>.
+/// It is done by passing @ref comms::option::def::ExtendingClass extension option with
+/// the type of the layer class being defined to the @ref comms::protocol::SyncPrefixLayer.
+///
+/// The extending class is expected to define the listed below functions. 
+/// @li @ref comms::protocol::SyncPrefixLayer::verifyFieldValue() "verifyFieldValue()" -
+/// Member function that is invoked to check the validity of the read prefix.
+/// @li @ref comms::protocol::SyncPrefixLayer::prepareFieldForWrite() "prepareFieldForWrite()" - 
+/// Member function that is invoked to prepare
+/// the field value before its write (serialization). The function is invoked from 
+/// @ref comms::protocol::SyncPrefixLayer::doWrite() "doWrite()", which is const. 
+/// That's the reason why @ref comms::protocol::SyncPrefixLayer::prepareFieldForWrite() "prepareFieldForWrite()"
+/// also needs to be const. Any variables it updates must be declared as `mutable`.
+///
+/// The newly defined custom protocol stack layer can be used instead of
+/// @ref comms::protocol::SyncPrefixLayer when defining 
+/// @ref page_prot_stack_tutorial "protocol stack" (framing) of the protocol.
+/// For example:
+/// @code
+/// namespace my_prot
+/// {
+/// 
+/// template <typename TMessage, typename TAllMessages>
+/// struct Frame1 : public 
+///     AlternatingPrefixLayer<                              // SYNC
+///         comms::protocol::MsgSizeLayer<                   // SIZE
+///             common::field::IntValue<FieldBase, std::uint16_t>,
+///             comms::protocol::MsgIdLayer<                 // ID
+///                 comms::feild::EnumValue<FieldBase, MsgId>,
+///                 TMessage,
+///                 TAllMessages,
+///                 comms::protocol::MsgDataLayer<>          // PAYLOAD
+///             >
+///         >
+///     >
+/// {
+///     // Generate convenience access functions for various layers
+///     COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(sync, size, size, payload);
+/// };
+///
+/// } // namespace my_prot
+/// @endcode
+///
+
+

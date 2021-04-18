@@ -15,7 +15,7 @@
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
 #include "comms/protocol/details/TransportValueLayerAdapter.h"
-#include "comms/protocol/details/TransportValueLayerAdapter.h"
+#include "comms/protocol/details/TransportValueLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms

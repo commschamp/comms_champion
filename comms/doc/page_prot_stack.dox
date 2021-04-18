@@ -667,6 +667,9 @@
 /// Pleases check the following tutorial pages. In most cases it will be sufficient.
 /// @li @ref page_custom_id_layer
 /// @li @ref page_custom_size_layer
+/// @li @ref page_custom_transport_value_layer
+/// @li @ref page_custom_checksum_layer
+/// @li @ref page_custom_sync_prefix_layer
 ///
 /// In case absolutely new and independent protocol stack layer needs to be
 /// implemented, please follow the instructions below.

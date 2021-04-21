@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,6 +15,7 @@
 #include "comms/field/IntValue.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/ChecksumLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 #include "comms/util/type_traits.h"
 
 namespace comms
@@ -48,13 +49,19 @@ namespace protocol
 ///         checksum value. Usage of @ref comms::option::def::ChecksumLayerVerifyBeforeRead
 ///         modifies the default behaviour by forcing the checksum verification
 ///         prior to invocation of @b read operation in the wrapped layer(s).
+///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_checksum_layer tutorial page.
 /// @headerfile comms/protocol/ChecksumPrefixLayer.h
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumPrefixLayer : public
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
+            details::ProtocolLayerExtendingClassT<
+                ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
+                details::ChecksumLayerOptionsParser<TOptions...>
+            >,            
             comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
@@ -62,8 +69,17 @@ class ChecksumPrefixLayer : public
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
+            details::ProtocolLayerExtendingClassT<
+                ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
+                details::ChecksumLayerOptionsParser<TOptions...>
+            >,            
             comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+        >;
+
+    using ExtendingClass =
+        details::ProtocolLayerExtendingClassT<
+            ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
+            details::ChecksumLayerOptionsParser<TOptions...>
         >;
 public:
     /// @brief Parsed options
@@ -133,12 +149,11 @@ public:
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
             "The read operation is expected to use random access iterator");
 
-        if (size < Field::minLength()) {
-            return ErrorStatus::NotEnoughData;
-        }
-
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto beforeFieldReadIter = iter;
-        auto checksumEs = field.read(iter, Field::minLength());
+        auto checksumEs = 
+            static_cast<ExtendingClass*>(this)->readField(
+                    msgPtr, field, iter, size);        
         if (checksumEs == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -155,7 +170,7 @@ public:
                 VerifyAfterReadTag
             >;        
 
-        std::size_t fieldLen = static_cast<std::size_t>(std::distance(beforeFieldReadIter, iter));
+        auto fieldLen = static_cast<std::size_t>(std::distance(beforeFieldReadIter, iter));
         return
             readInternal(
                 field,
@@ -234,7 +249,8 @@ public:
             return es;
         }
 
-        return fieldUpdateInternal(checksumIter, fromIter, iter, size, field);
+        auto* msgPtr = static_cast<typename BaseImpl::MsgPtr::element_type*>(nullptr);
+        return fieldUpdateInternal(msgPtr, checksumIter, fromIter, iter, size, field);
     }
 
     /// @brief Customized update functionality, invoked by @ref update().
@@ -257,16 +273,68 @@ public:
         TNextLayerUpdater&& nextLayerUpdater) const
     {
         auto checksumIter = iter;
-        std::advance(iter, Field::maxLength());
+        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(msg);
+        std::advance(iter, fieldLen);
 
         auto fromIter = iter;
-        auto es = nextLayerUpdater.update(msg, iter, size - Field::maxLength());
+        auto es = nextLayerUpdater.update(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        return fieldUpdateInternal(checksumIter, fromIter, iter, size, field);
+        return fieldUpdateInternal(&msg, checksumIter, fromIter, iter, size, field);
     }
+
+protected:
+    /// @brief Read the checksum field.
+    /// @details The default implementation invokes @b read() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be populated
+    /// @param[in, out] iter Iterator used for reading, expected to be advanced
+    /// @param[in] len Length of the input buffer
+    /// @note May be non-static in the extending class
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.read(iter, len);
+    }
+
+    /// @brief Write the checksum field.
+    /// @details The default implementation invokes @b write() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be written
+    /// @param[in, out] iter Iterator used for writing, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.write(iter, len);
+    }
+
+    /// @brief Calculate checksum.
+    /// @details The default implementation invokes @b operator() of provided
+    ///     calculation algorithm (@b TCalc template parameter). 
+    ///     The function can be overriden by the extending class.
+    /// @param[in] msg Pointer to message object (if available), can be nullptr.
+    /// @param[in, out] iter Iterator used for reading data, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @param[out] checksumValid Indication of whether the return checksum is valid, 
+    ///     must be populated.
+    /// @return The checksum value, can be of any type, but should field 
+    ///     into @b Field::ValueType.
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static auto calculateChecksum(const TMsg* msg, TIter& iter, std::size_t len, bool& checksumValid) -> decltype(TCalc()(iter, len))
+    {
+        static_cast<void>(msg);
+        checksumValid = true;
+        return TCalc()(iter, len);
+    }    
 
 private:
     static_assert(comms::field::isIntValue<Field>(),
@@ -291,8 +359,20 @@ private:
         TExtraValues... extraValues)
     {
         auto fromIter = iter;
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
 
-        auto checksum = TCalc()(fromIter, size);
+        bool checksumValid = false;
+        auto checksum = 
+            static_cast<ExtendingClass*>(this)->calculateChecksum(
+                msgPtr,
+                fromIter,
+                size,
+                checksumValid);
+
+        if (!checksumValid) {
+            return comms::ErrorStatus::ProtocolError;
+        }
+
         auto expectedValue = field.value();
 
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
@@ -320,8 +400,20 @@ private:
             return es;
         }
 
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        auto checksum = TCalc()(fromIter, len);
+        bool checksumValid = false;
+        auto checksum = 
+            static_cast<ExtendingClass*>(this)->calculateChecksum(
+                msgPtr,
+                fromIter,
+                len,
+                checksumValid);
+
+        if (!checksumValid) {
+            return comms::ErrorStatus::ProtocolError;
+        }
+
         auto expectedValue = field.value();
 
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
@@ -381,7 +473,9 @@ private:
         TWriter&& nextLayerWriter) const
     {
         auto checksumIter = iter;
-        auto es = field.write(iter, size);
+        auto es =
+            static_cast<const ExtendingClass*>(this)->writeField(
+                &msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -399,10 +493,23 @@ private:
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
 
         using FieldValueType = typename Field::ValueType;
-        auto checksum = TCalc()(fromIter, len);
-        field.value() = static_cast<FieldValueType>(checksum);
+        bool checksumValid = false;
+        auto checksum = 
+            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+                &msg,
+                fromIter,
+                len,
+                checksumValid);
 
-        auto checksumEs = field.write(checksumIter, checksumLen);
+        if (!checksumValid) {
+            return comms::ErrorStatus::ProtocolError;
+        }
+
+        field.value() = static_cast<FieldValueType>(checksum);
+        auto checksumEs = 
+            static_cast<const ExtendingClass*>(this)->writeField(
+                &msg, field, checksumIter, checksumLen);
+
         static_cast<void>(checksumEs);
         COMMS_ASSERT(checksumEs == comms::ErrorStatus::Success);
         return es;
@@ -416,12 +523,15 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        auto es = field.write(iter, size);
+        auto es = 
+            static_cast<const ExtendingClass*>(this)->writeField(
+                &msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        es = nextLayerWriter.write(msg, iter, size - Field::maxLength());
+        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(&msg);
+        es = nextLayerWriter.write(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -453,16 +563,39 @@ private:
         return writeInternalOutput(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TIter>
-    static ErrorStatus fieldUpdateInternal(TIter checksumIter, TIter from, TIter to, std::size_t size, Field& field)
+    template <typename TMsg, typename TIter>
+    ErrorStatus fieldUpdateInternal(
+        const TMsg* msgPtr, 
+        TIter checksumIter, 
+        TIter from, 
+        TIter to, 
+        std::size_t size, 
+        Field& field) const
     {
         static_cast<void>(size);
         COMMS_ASSERT(from <= to);
         auto len = static_cast<std::size_t>(std::distance(from, to));
-        COMMS_ASSERT(len == (size - Field::maxLength()));
+        auto fieldLen = Field::maxLength();
+        if (msgPtr != nullptr) {
+            fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr);
+        }
+        COMMS_ASSERT(len == (size - fieldLen));
+        
+        bool checksumValid = false;
+        auto checksum = 
+            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+                msgPtr,
+                from,
+                len,
+                checksumValid);
+
+        if (!checksumValid) {
+            return comms::ErrorStatus::ProtocolError;
+        }
+
         using FieldValueType = typename Field::ValueType;
-        field.value() = static_cast<FieldValueType>(TCalc()(from, len));
-        return field.write(checksumIter, Field::maxLength());
+        field.value() = static_cast<FieldValueType>(checksum);
+        return field.write(checksumIter, fieldLen);
     }
 };
 

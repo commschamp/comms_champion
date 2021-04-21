@@ -1,9 +1,9 @@
 /// @page page_custom_checksum_layer Defining Custom Checksum Protocol Stack Layer
 /// @tableofcontents
-/// The @b COMMS library provides default @ref comms::protocol::ChecksumLayer protocol 
-/// stack layer to handle extra value in transport framing and re-assigning it to the 
-/// message object. 
-/// However, it may be insufficient (or incorrect) for some particular use cases. For example
+/// The @b COMMS library provides default @ref comms::protocol::ChecksumLayer 
+/// and @ref comms::protocol::ChecksumPrefixLayer protocol 
+/// stack layer to handle transport framing checksum. 
+/// However, they may be insufficient (or incorrect) for some particular use cases. For example
 /// the protocol may support multiple checksum algorithms usage of which is determined
 /// at runtime.
 /// The @ref page_prot_stack_tutorial_new_layers section of the 
@@ -11,17 +11,22 @@
 /// protocol layer. 
 ///
 /// However, since @b v3.2 COMMS library provides an ability to extend the existing
-/// definition of @ref comms::protocol::ChecksumLayer and customize some bits
+/// definition of @ref comms::protocol::ChecksumLayer as well as 
+/// @ref comms::protocol::ChecksumPrefixLayer and customize some bits
 /// and pieces. Let's implement the mentioned above example of supporting 
 /// multiple checksum algorithms.
 ///
+/// This tutorial page focuses on the customization of @ref comms::protocol::ChecksumLayer,
+/// but all the listed customization points are also applicable to 
+/// @ref comms::protocol::ChecksumPrefixLayer.
+///
 /// For this example the protocol framing is defined to be
 /// @code
-/// SIZE | ID | PROTOCOL_TYPE | PAYLOAD | CHECKSUM
+/// SIZE | ID | CHECKSUM_TYPE | PAYLOAD | CHECKSUM
 /// @endcode
 ///
 /// First of all let's define the @ref page_define_prot_interface, which
-/// holds the protocol type information as data member of every message object.
+/// holds the checksum type information as data member of every message object.
 /// @code
 /// namespace my_prot
 /// {
@@ -49,7 +54,8 @@
 /// class ChecksumType : public
 ///     comms::field::EnumValue<
 ///         FieldBase,
-///         ChecksumTypeVal>
+///         ChecksumTypeVal
+///     >
 /// {
 /// };
 ///
@@ -82,7 +88,7 @@
 /// convenience member function to access the stored checksum type field.
 ///
 /// When implementing the transport framing (protocol stack) the handling of 
-/// `PROTOCOL_TYPE` can be done using regular @ref comms::protocol::TransportValueLayer
+/// `CHECKSUM_TYPE` can be done using regular @ref comms::protocol::TransportValueLayer
 /// (see @ref page_prot_stack_tutorial_transport_value).
 ///
 /// Now it's time to actually extend the provided definition of 
@@ -280,7 +286,7 @@
 /// 
 /// template <typename TMessage, typename TAllMessages>
 /// struct Frame1 : public 
-///     MyChecksumLayer<
+///     MyChecksumLayer<                                     // CHECKSUM
 ///         comms::protocol::MsgSizeLayer<                   // SIZE
 ///             common::field::IntValue<FieldBase, std::uint16_t>,
 ///             comms::protocol::MsgIdLayer<                 // ID

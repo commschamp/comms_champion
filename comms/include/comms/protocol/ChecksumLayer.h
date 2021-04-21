@@ -262,7 +262,6 @@ public:
     }
 
 protected:
-
     /// @brief Read the checksum field.
     /// @details The default implementation invokes @b read() operation of the 
     ///     passed field object. The function can be overriden by the extending class.
@@ -339,8 +338,7 @@ private:
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto fieldLen = Field::minLength();
         if (msgPtr != nullptr) {
-            static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr);
-            
+            fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr);
         }
         auto toIter = fromIter + (size - fieldLen);
         auto len = static_cast<std::size_t>(std::distance(fromIter, toIter));

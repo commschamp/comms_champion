@@ -160,7 +160,7 @@ jobs:
       fail-fast: false
       matrix:
         type: [Debug, Release, MinSizeRel]
-        cc_ver: [10]
+        cc_ver: [10, 11]
         cpp: [11, 14, 17, 20]
 
     steps:

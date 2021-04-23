@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include "comms/comms.h"
+#include "CommsTestCommon.h"
 
 CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
@@ -3857,6 +3858,7 @@ void FieldsTestSuite::test75()
         0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(field.valid());
@@ -3901,7 +3903,7 @@ void FieldsTestSuite::test76()
     TS_ASSERT_EQUALS(field.value().size(), 10U);
     TS_ASSERT_EQUALS(&(*field.value().begin()), reinterpret_cast<const std::uint8_t*>(&Buf[2]));
 
-    field.value().remove_suffix(5);
+    field.value() = Field::ValueType(field.value().begin(), field.value().size() - 5U);
     TS_ASSERT(field.valid());
     static const char ExpectedBuf[] = {
         0x0, 0x5, 0x0, 0x1, 0x2, 0x3, 0x4
@@ -3943,7 +3945,7 @@ void FieldsTestSuite::test77()
     TS_ASSERT_EQUALS((field.value())[1], 0x1);
     TS_ASSERT_EQUALS(&(*field.value().begin()), reinterpret_cast<const std::uint8_t*>(&Buf[0]));
 
-    field.value().remove_prefix(3);
+    field.value() = Field::ValueType(field.value().begin() + 3, field.value().size() - 3);
     TS_ASSERT_EQUALS(field.value().size(), 3U);
     TS_ASSERT_EQUALS((field.value())[0], 0x3);
     TS_ASSERT_EQUALS((field.value())[1], 0x4);
@@ -5671,6 +5673,7 @@ void FieldsTestSuite::writeReadField(
         auto readEs = newField.read(readIter, size);
         TS_ASSERT_EQUALS(readEs, comms::ErrorStatus::Success);
         TS_ASSERT_EQUALS(field, newField);
-        TS_ASSERT_EQUALS(field.value(), newField.value());
+        bool eq = field.value() == newField.value();
+        TS_ASSERT(eq);
     }
 }

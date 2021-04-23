@@ -93,6 +93,13 @@ constexpr bool hasPtrSizeConstructor()
     return details::HasPtrSizeConstructor<T>::Value;
 }
 
+/// @brief Detect whether provided type is std::span
+template <typename T>
+constexpr bool isStdSpan()
+{
+    return details::IsStdSpan<T>::Value;
+}
+
 } // namespace detect
 
 } // namespace util

@@ -17,6 +17,24 @@
 static_assert(0U < comms::version(), "Invalid version definition");
 static_assert(0U < COMMS_MAKE_VERSION(0, 29, 0), "Invalid version definition");
 
+#if COMMS_HAS_CPP20_SPAN
+template <typename T, std::size_t TExt>
+bool operator==(const std::span<T, TExt>& val1, const std::span<T, TExt>& val2)
+{
+    if (val1.size() != val2.size()) {
+        return false;
+    }
+
+    for (auto idx = 0U; idx < val1.size(); ++idx) {
+        if (!(val1[idx] == val2[idx])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+#endif
+
 enum MessageType {
     MessageType1,
     MessageType2,
@@ -1130,4 +1148,3 @@ void commonReadWriteMsgDirectTest(
     TS_ASSERT_EQUALS(fields, writtenFields);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
 }
-

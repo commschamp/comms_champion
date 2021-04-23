@@ -983,8 +983,8 @@ void UtilTestSuite::test24()
             "std::span mustn't have assign()");
 
     static_assert(
-        comms::util::detect::hasPtrSizeConstructor<SpanType>(), 
-            "std::span must have ptr + size constructor");     
+        comms::util::detect::isStdSpan<SpanType>(), 
+            "std::span is not detected correctly");     
 
     static_assert(!comms::util::detect::hasClearFunc<SpanType>(),
             "std::span mustn't have clear");            

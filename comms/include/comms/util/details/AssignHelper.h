@@ -47,7 +47,10 @@ private:
     using UsePtrSizeConstructorTag = comms::details::tag::Tag2<>;
 
     template <typename... TParams>
-    using UnknownTag = comms::details::tag::Tag3<>;   
+    using StdSpanTag = comms::details::tag::Tag3<>;
+
+    template <typename... TParams>
+    using UnknownTag = comms::details::tag::Tag4<>;   
 
     template <typename T>
     using ConstructorTag = 
@@ -56,7 +59,17 @@ private:
         >::template Type<
             UsePtrSizeConstructorTag,
             UnknownTag
-        >;
+        >;    
+
+    template <typename T>
+    using SpanConstructorTag = 
+        typename comms::util::LazyShallowConditional<
+            comms::util::detect::details::IsStdSpan<T>::Value
+        >::template Type<
+            StdSpanTag,
+            ConstructorTag,
+            T
+        >;    
 
     template <typename T>
     using Tag =
@@ -64,7 +77,7 @@ private:
             comms::util::detect::hasAssignFunc<T>()
         >::template Type<
             UseAssignTag,
-            ConstructorTag,
+            SpanConstructorTag,
             T
         >;    
 
@@ -92,7 +105,18 @@ private:
 
         using ObjType = typename std::decay<decltype(obj)>::type;
         obj = ObjType(&(*from), static_cast<std::size_t>(diff));
-    }    
+    } 
+
+    template <typename T, typename TIter, typename... TParams>
+    static void assignInternal(T& obj, TIter from, TIter to, StdSpanTag<TParams...>)
+    {
+        using ObjType = typename std::decay<decltype(obj)>::type;
+        using ConstPointerType = typename ObjType::const_pointer;
+        using PointerType = typename ObjType::pointer;
+        auto fromPtr = const_cast<PointerType>(reinterpret_cast<ConstPointerType>(&(*from)));
+        auto toPtr = const_cast<PointerType>(reinterpret_cast<ConstPointerType>(&(*to)));
+        assignInternal(obj, fromPtr, toPtr, UsePtrSizeConstructorTag<TParams...>());
+    }          
 };
 
 } // namespace details

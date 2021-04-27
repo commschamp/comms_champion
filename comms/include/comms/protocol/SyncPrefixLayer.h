@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,8 @@
 #pragma once
 
 #include "comms/protocol/details/ProtocolLayerBase.h"
+#include "comms/protocol/details/SyncPrefixLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms
 {
@@ -28,21 +30,37 @@ namespace protocol
 ///     field type definition must use options (@ref comms::option::def::DefaultNumValue)
 ///     to specify its default value to be equal to the expected "sync" value.
 /// @tparam TNextLayer Next transport layer in protocol stack.
+/// @tparam TOptions Extending functionality options. Supported options are:
+///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_sync_prefix_layer.
 /// @headerfile comms/protocol/SyncPrefixLayer.h
-template <typename TField, typename TNextLayer>
+template <typename TField, typename TNextLayer, typename... TOptions>
 class SyncPrefixLayer : public
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            SyncPrefixLayer<TField, TNextLayer>
+            details::ProtocolLayerExtendingClassT<
+                SyncPrefixLayer<TField, TNextLayer, TOptions...>,
+                details::SyncPrefixLayerOptionsParser<TOptions...>
+            >            
         >
 {
     using BaseImpl =
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            SyncPrefixLayer<TField, TNextLayer>
+            details::ProtocolLayerExtendingClassT<
+                SyncPrefixLayer<TField, TNextLayer, TOptions...>,
+                details::SyncPrefixLayerOptionsParser<TOptions...>
+            >            
         >;
+
+    using ExtendingClass =
+        details::ProtocolLayerExtendingClassT<
+            SyncPrefixLayer<TField, TNextLayer, TOptions...>,
+            details::SyncPrefixLayerOptionsParser<TOptions...>
+        >  ;        
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
@@ -107,8 +125,10 @@ public:
             return es;
         }
 
-        if (field != Field()) {
-            // doesn't match expected
+        bool verified = 
+            static_cast<ExtendingClass*>(this)->verifyFieldValue(field);
+
+        if (!verified) {
             return comms::ErrorStatus::ProtocolError;
         }
 
@@ -141,6 +161,7 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(field);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -148,6 +169,30 @@ public:
 
         COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
+    }
+
+protected:
+    /// @brief Verify the validity of the field.
+    /// @details Default implementation compares read field with default constructed Field type. @n
+    ///     May be overridden by the extending class in case
+    ///     more complex logic is required.
+    /// @param[out] field Field that has been read.
+    /// @note May be non-static in the extending class
+    static bool verifyFieldValue(const Field& field)
+    {
+        return field == Field();
+    }    
+
+    /// @brief Prepare field for writing.
+    /// @details Default implementation does nothing. @n
+    ///     May be overridden by the extending class in case
+    ///     more complex logic is required.
+    /// @param[out] field Field, default value of which needs to be (re)populated
+    /// @note May be non-static in the extending class, but must be const, use
+    ///     mutable member data in case it needs to be updated.
+    static void prepareFieldForWrite(Field& field)
+    {
+        static_cast<void>(field);
     }
 };
 

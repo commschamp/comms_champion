@@ -1,5 +1,5 @@
 //
-// Copyright 2018 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2018 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,10 +14,10 @@
 #define COMMS_MAJOR_VERSION 3U
 
 /// @brief Minor verion of the library
-#define COMMS_MINOR_VERSION 1U
+#define COMMS_MINOR_VERSION 2U
 
 /// @brief Patch level of the library
-#define COMMS_PATCH_VERSION 4U
+#define COMMS_PATCH_VERSION 0U
 
 /// @brief Macro to create numeric version as single unsigned number
 #define COMMS_MAKE_VERSION(major_, minor_, patch_) \

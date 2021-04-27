@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -72,6 +72,7 @@
 #define COMMS_IS_GCC_9_OR_ABOVE (COMMS_IS_GCC_9 && (__GNUC__ >= 9))
 #define COMMS_IS_GCC_10 (COMMS_IS_GCC && (__GNUC__ == 10))
 #define COMMS_IS_GCC_10_OR_ABOVE (COMMS_IS_GCC && (__GNUC__ >= 10))
+#define COMMS_IS_GCC_10_OR_BELOW (COMMS_IS_GCC && (__GNUC__ <= 10))
 #define COMMS_IS_CLANG_7_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 7))
 #define COMMS_IS_CLANG_8 (COMMS_IS_CLANG && (__clang_major__ == 8))
 #define COMMS_IS_CLANG_8_OR_BELOW (COMMS_IS_CLANG && (__clang_major__ <= 8))
@@ -93,6 +94,11 @@
 #if COMMS_IS_MSVC_2019_OR_BELOW // Visual Studio 2019
 #undef COMMS_IS_CPP20
 #define COMMS_IS_CPP20 (__cplusplus >= 201704L)
+#endif
+
+#if COMMS_IS_GCC_10_OR_BELOW
+#undef COMMS_IS_CPP20
+#define COMMS_IS_CPP20 (__cplusplus >= 201709L)
 #endif
 
 #if COMMS_IS_CLANG_9_OR_BELOW

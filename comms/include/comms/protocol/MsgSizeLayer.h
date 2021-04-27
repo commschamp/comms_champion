@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -185,9 +185,7 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        using MsgPtrTag = MsgTypeTag<MsgType>;
-        static_cast<ExtendingClass*>(this)->beforeRead(field, getPtrToMsgInternal(msg, MsgPtrTag()));
+        static_cast<ExtendingClass*>(this)->beforeRead(field, BaseImpl::toMsgPtr(msg));
         es = nextLayerReader.read(msg, iter, requiredRemainingSize, extraValues...);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
@@ -304,6 +302,7 @@ protected:
     /// @param[in, out] msg Pointer to message object, either interface
     ///     class or message object itself (depending on how doRead() was invoked).
     ///     Can be @b nullptr in case message object hasn't been created yet
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void beforeRead(const Field& field, TMsg* msg)
     {
@@ -318,6 +317,7 @@ protected:
     /// @param[in] msg Pointer to message object being written, maybe nullptr (in case invoked
     ///     from @ref comms::protocol::MsgSizeLayer::doUpdate "doUpdate()")
     /// @param[out] field Field, value of which needs to be populated
+    /// @note May be non-static in the extending class
     template <typename TMsg>
     static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
     {
@@ -358,21 +358,6 @@ private:
         >::template Type<
             MsgHasLengthTag,
             MsgNoLengthTag
-        >;
-
-    template <typename... TParams>
-    using PtrToMsgTag = comms::details::tag::Tag7<>;   
-
-    template <typename... TParams>
-    using DirectMsgTag = comms::details::tag::Tag8<>;             
-
-    template <typename TMsg>
-    using MsgTypeTag =
-        typename comms::util::LazyShallowConditional<
-            comms::isMessage<TMsg>()
-        >::template Type<
-            DirectMsgTag,
-            PtrToMsgTag
         >;
 
     template <typename TMsg, typename TIter, typename TWriter>
@@ -526,18 +511,6 @@ private:
         Field fieldTmp;
         static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, &msg, fieldTmp);
         return fieldTmp.length();
-    }
-
-    template <typename TMsg, typename... TParams>
-    auto getPtrToMsgInternal(TMsg& msg, PtrToMsgTag<TParams...>) -> decltype (msg.get())
-    {
-        return msg.get();
-    }
-
-    template <typename TMsg, typename... TParams>
-    auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag<TParams...>) -> decltype (&msg)
-    {
-        return &msg;
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerUpdater>

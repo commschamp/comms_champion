@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -45,7 +45,6 @@ class Optional : private details::AdaptBasicFieldT<basic::Optional<TField>, TOpt
 {
     using BaseImpl = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
 public:
-
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
 

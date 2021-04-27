@@ -169,13 +169,16 @@
 /// The extending class is expected to define the listed below functions. They do not
 /// necessarily need to be @b static, accessing inner private state of the layer object
 /// is also acceptable.
-/// @li @b getMsgIdFromField() - Member function that is invoked to retrieve the
+/// @li @ref comms::protocol::MsgIdLayer::getMsgIdFromField() "getMsgIdFromField()" - 
+/// Member function that is invoked to retrieve the
 /// numeric message ID out of the provided field object.
-/// @li @b beforeRead() - Member function that is invoked after appropriate
+/// @li @ref comms::protocol::MsgIdLayer::beforeRead() "beforeRead()" - 
+/// Member function that is invoked after appropriate
 /// message object has been created but the read operation has @b NOT yet been
 /// forwarded to the next protocol layer. It gives the developer a chance to
 /// update some extra transport fields accessible via message interface class.
-/// @li @b prepareFieldForWrite() - Member function that is invoked to prepare
+/// @li @ref comms::protocol::MsgIdLayer::prepareFieldForWrite() "prepareFieldForWrite()" - 
+/// Member function that is invoked to prepare
 /// the field value before its write (serialization). After the function returns,
 /// the @ref comms::protocol::MsgIdLayer will invoke @b write member function
 /// of the passed field in order to serialize it.

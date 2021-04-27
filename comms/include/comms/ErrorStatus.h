@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,7 +20,7 @@ enum class ErrorStatus {
                     /// call to update(...) is required.
     NotEnoughData, ///< Used to indicate that stream buffer didn't contain
                    /// enough data to complete read operation.
-    ProtocolError, ///< Used to indicate that any of the used protocols
+    ProtocolError, ///< Used to indicate that any of the used protocol layers
                    /// encountered an error while processing the data.
     BufferOverflow, ///< Used to indicate that stream buffer was overflowed
                     /// when attempting to write data.

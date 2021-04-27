@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,6 +38,8 @@ class NoValue : private details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {
     using BaseImpl = details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >;
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;

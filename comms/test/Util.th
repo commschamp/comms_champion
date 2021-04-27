@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -983,8 +983,8 @@ void UtilTestSuite::test24()
             "std::span mustn't have assign()");
 
     static_assert(
-        comms::util::detect::hasPtrSizeConstructor<SpanType>(), 
-            "std::span must have ptr + size constructor");     
+        comms::util::detect::isStdSpan<SpanType>(), 
+            "std::span is not detected correctly");     
 
     static_assert(!comms::util::detect::hasClearFunc<SpanType>(),
             "std::span mustn't have clear");            

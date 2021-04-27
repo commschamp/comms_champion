@@ -1,5 +1,5 @@
 //
-// Copyright 2017 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,6 +27,11 @@ class ChecksumLayerOptionsParser<>
 {
 public:
     static constexpr bool HasVerifyBeforeRead = false;
+    static constexpr bool HasExtendingClass = false;
+
+    template <typename TLayer>
+    using DefineExtendingClass = TLayer;
+
 };
 
 template <typename... TOptions>
@@ -35,6 +40,18 @@ class ChecksumLayerOptionsParser<comms::option::def::ChecksumLayerVerifyBeforeRe
 {
 public:
     static constexpr bool HasVerifyBeforeRead = true;
+};
+
+template <typename T, typename... TOptions>
+class ChecksumLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...> :
+        public ChecksumLayerOptionsParser<TOptions...>
+{
+public:
+    static constexpr bool HasExtendingClass = true;
+    using ExtendingClass = T;
+
+    template <typename TLayer>
+    using DefineExtendingClass = ExtendingClass;    
 };
 
 template <typename... TOptions>

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -721,6 +721,11 @@ public:
     }
 
     /// @brief Default implementation of field length retrieval.
+    /// @details Default implementation returns
+    ///     @code
+    ///     Field::minLength();
+    ///     @endcode
+    /// @note Can be overriden by the extending class.
     static constexpr std::size_t doFieldLength()
     {
         return Field::minLength();
@@ -728,6 +733,11 @@ public:
 
     /// @brief Default implementation of field length retrieval when
     ///     message is known.
+    /// @details Default implementation returns
+    ///     @code
+    ///     Field::minLength();
+    ///     @endcode
+    /// @note Can be overriden by the extending class.    
     template <typename TMsg>
     static constexpr std::size_t doFieldLength(const TMsg&)
     {
@@ -767,6 +777,7 @@ public:
     }
 
 protected:
+
     /// @brief Detect whether type is actual message object
     /// @tparam T Type of the object
     /// @return @b true if @b T type is extending @b comms::MessageBase,
@@ -783,15 +794,47 @@ protected:
     template <typename TMsg>
     static void resetMsg(TMsg& msg)
     {
-        using Tag =
-            typename comms::util::LazyShallowConditional<
-                isMessageObjRef<typename std::decay<decltype(msg)>::type>()
-            >::template Type<
-                MessageObjTag,
-                SmartPtrTag
-            >;
-        resetMsgInternal(msg, Tag());
+        resetMsgInternal(msg, MsgTypeTag<typename std::decay<decltype(msg)>::type>());
     }
+
+private:
+    template <typename... TParams>
+    using MessageObjTag = comms::details::tag::Tag5<>;  
+
+    template <typename... TParams>
+    using SmartPtrTag = comms::details::tag::Tag6<>;     
+
+    template <typename TMsg>
+    using MsgTypeTag =
+        typename comms::util::LazyShallowConditional<
+            comms::details::hasImplOptions<TMsg>()
+        >::template Type<
+            MessageObjTag,
+            SmartPtrTag
+        >;  
+
+    template <typename TMsg, typename... TParams>
+    static auto toMsgPtrInternal(TMsg& msg, MessageObjTag<TParams...>) -> decltype(&msg)
+    {
+        return &msg;
+    }
+
+    template <typename TMsg, typename... TParams>
+    static auto toMsgPtrInternal(TMsg& msg, SmartPtrTag<TParams...>) -> decltype(msg.get())
+    {
+        return msg.get();
+    }      
+
+protected:
+    /// @brief Get a pointer to the message object.
+    /// @details The function works seamlessly for both smart pointer and reference
+    ///     to the real object
+    /// @see @ref isMessageObjRef().
+    template <typename TMsg>
+    static auto toMsgPtr(TMsg& msg) -> decltype(toMsgPtrInternal(msg, MsgTypeTag<typename std::decay<decltype(msg)>::type>()))
+    {
+        return toMsgPtrInternal(msg, MsgTypeTag<typename std::decay<decltype(msg)>::type>());
+    }    
 
     /// @brief Update the missing size information if such is requested.
     /// @details Calculates the minimal required length to be yet read.
@@ -1155,12 +1198,6 @@ private:
 
     template <typename... TParams>
     using SplitReadTag = comms::details::tag::Tag4<>;
-
-    template <typename... TParams>
-    using MessageObjTag = comms::details::tag::Tag5<>;  
-
-    template <typename... TParams>
-    using SmartPtrTag = comms::details::tag::Tag6<>;       
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(

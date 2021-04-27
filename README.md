@@ -41,7 +41,7 @@ it altogether if required, which may be needed when developing **bare-metal**
 embedded systems. 
 
 Core ideas and architecture of the **COMMS** library is described in
-[Guide to Implementing Communication Protocols in C++](https://www.gitbook.com/book/arobenko/comms-protocols-cpp/details) free e-book.
+[Guide to Implementing Communication Protocols in C++](https://commschamp.github.io/comms_protocols_cpp/) free e-book.
 However, at this stage the library internals are much more advanced and sophisticated, than
 examples in the e-book, please don't treat the latter as a guide to library's internals.
 

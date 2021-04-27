@@ -1,5 +1,5 @@
 //
-// Copyright 2017 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,6 +12,10 @@
 
 #include "comms/CompileControl.h"
 #include "comms/util/type_traits.h"
+
+#if COMMS_HAS_CPP20_SPAN
+#include <span>
+#endif // #if COMMS_HAS_CPP20_SPAN
 
 namespace comms
 {
@@ -55,6 +59,19 @@ namespace details
 // template <typename T>
 // using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
 
+template <typename T>
+struct IsStdSpan
+{
+    static constexpr bool Value = false;
+};
+
+#if COMMS_HAS_CPP20_SPAN
+template <typename T, std::size_t TExt>
+struct IsStdSpan<std::span<T, TExt> >
+{
+    static constexpr bool Value = true;
+};
+#endif // #if COMMS_HAS_CPP20_SPAN
 
 template <typename T>
 class HasClearFunc

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2021 (C). Alex Robenko. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -76,6 +76,8 @@ class EnumValue : private details::AdaptBasicFieldT<basic::EnumValue<TFieldBase,
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
 
 public:
+    /// @brief Base class provided in the first template parameter.
+    using FieldBase = TFieldBase;
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;

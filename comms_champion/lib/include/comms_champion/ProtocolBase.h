@@ -281,7 +281,10 @@ protected:
                 data.max_size());
         if (es == comms::ErrorStatus::UpdateRequired) {
             auto updateIter = &data[0];
-            es = m_protStack.update(updateIter, data.size());
+            es = m_protStack.update(
+                static_cast<const ProtocolMessage&>(msg), 
+                updateIter, 
+                data.size());
         }
 
         if (es != comms::ErrorStatus::Success) {
@@ -316,7 +319,10 @@ protected:
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
                 auto updateIter = &data[0];
-                es = m_protStack.update(updateIter, data.size());
+                es = m_protStack.update(
+                    static_cast<const ProtocolMessage&>(msg),
+                    updateIter, 
+                    data.size());
             }
 
             if (es != comms::ErrorStatus::Success) {

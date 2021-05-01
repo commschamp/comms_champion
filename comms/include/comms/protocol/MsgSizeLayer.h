@@ -67,20 +67,16 @@ class MsgSizeLayer : public
             comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
-    using ExtendingClass = 
-            details::ProtocolLayerExtendingClassT<
-                MsgSizeLayer<TField, TNextLayer, TOptions...>, 
-                details::MsgSizeLayerOptionsParser<TOptions...>
-            >;
-
     using BaseImpl =
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            ExtendingClass,
+            details::ProtocolLayerExtendingClassT<
+                MsgSizeLayer<TField, TNextLayer, TOptions...>, 
+                details::MsgSizeLayerOptionsParser<TOptions...>
+            >,
             comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >;
-
 public:
     /// @brief Type of the field object used to read/write remaining size value.
     using Field = typename BaseImpl::Field;
@@ -165,7 +161,9 @@ public:
             "Current implementation of MsgSizeLayer requires iterator used for reading to be random-access one.");
 
         auto begIter = iter;
-        auto es = field.read(iter, size);
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto es = thisObj.readField(msgPtr, field, iter, size);        
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -177,15 +175,14 @@ public:
         auto fromIter = iter;
         auto readFieldLength = static_cast<std::size_t>(std::distance(begIter, iter));
         std::size_t actualRemainingSize = (size - readFieldLength);
-        std::size_t requiredRemainingSize = 
-            static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
+        std::size_t requiredRemainingSize = thisObj.getRemainingSizeFromField(field);
 
         if (actualRemainingSize < requiredRemainingSize) {
             BaseImpl::setMissingSize(requiredRemainingSize - actualRemainingSize, extraValues...);
             return ErrorStatus::NotEnoughData;
         }
 
-        static_cast<ExtendingClass*>(this)->beforeRead(field, BaseImpl::toMsgPtr(msg));
+        thisObj.beforeRead(field, msgPtr);
         es = nextLayerReader.read(msg, iter, requiredRemainingSize, extraValues...);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
@@ -284,6 +281,36 @@ public:
     }
 
 protected:
+    /// @brief Read the message size field.
+    /// @details The default implementation invokes @b read() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be populated
+    /// @param[in, out] iter Iterator used for reading, expected to be advanced
+    /// @param[in] len Length of the input buffer
+    /// @note May be non-static in the extending class
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.read(iter, len);
+    }
+
+    /// @brief Write the message size field.
+    /// @details The default implementation invokes @b write() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be written
+    /// @param[in, out] iter Iterator used for writing, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.write(iter, len);
+    }    
+
     /// @brief Retrieve remaining size (length) from the field.
     /// @details May be overridden by the extending class
     /// @param[in] field Field for this layer.
@@ -369,8 +396,10 @@ private:
         TWriter&& nextLayerWriter) const
     {
         std::size_t lenValue = BaseImpl::nextLayer().length(msg);
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, &msg, field);
-        auto es = field.write(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+
+        thisObj.prepareFieldForWrite(lenValue, &msg, field);
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -388,8 +417,9 @@ private:
         TWriter&& nextLayerWriter) const
     {
         auto valueIter = iter;
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(0U, &msg, field);
-        auto es = field.write(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(0U, &msg, field);
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -402,11 +432,10 @@ private:
             return es;
         }
 
-        auto dist = 
-            static_cast<std::size_t>(std::distance(dataIter, iter));
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(dist, &msg, field);
+        auto dist = static_cast<std::size_t>(std::distance(dataIter, iter));
+        thisObj.prepareFieldForWrite(dist, &msg, field);
         COMMS_ASSERT(field.length() == sizeLen);
-        return field.write(valueIter, sizeLen);
+        return thisObj.writeField(&msg, field, valueIter, sizeLen);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>
@@ -417,8 +446,9 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(0U, &msg, field);
-        auto es = field.write(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(0U, &msg, field);
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -507,9 +537,10 @@ private:
     template <typename TMsg, typename... TParams>
     std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag<TParams...>) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         auto remSize = BaseImpl::nextLayer().length(msg);
         Field fieldTmp;
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, &msg, fieldTmp);
+        thisObj.prepareFieldForWrite(remSize, &msg, fieldTmp);
         return fieldTmp.length();
     }
 
@@ -522,14 +553,15 @@ private:
         TNextLayerUpdater&& nextLayerUpdater) const
     {
         std::size_t lenValue = size - Field::maxLength();
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(lenValue, msg, field);
 
         if (field.length() != Field::maxLength()) {
             lenValue = size - field.length();
-            static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
+            thisObj.prepareFieldForWrite(lenValue, msg, field);
         }
 
-        auto es = field.write(iter, size);
+        auto es = thisObj.writeField(msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }

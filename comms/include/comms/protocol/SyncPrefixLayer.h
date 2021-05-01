@@ -56,12 +56,6 @@ class SyncPrefixLayer : public
             >            
         >;
 
-    using ExtendingClass =
-        details::ProtocolLayerExtendingClassT<
-            SyncPrefixLayer<TField, TNextLayer, TOptions...>,
-            details::SyncPrefixLayerOptionsParser<TOptions...>
-        >  ;        
-
 public:
     /// @brief Type of the field object used to read/write "sync" value.
     using Field = typename BaseImpl::Field;
@@ -115,8 +109,11 @@ public:
         TNextLayerReader&& nextLayerReader,
         TExtraValues... extraValues)
     {
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto beforeReadIter = iter;
-        auto es = field.read(iter, size);
+
+        auto es = thisObj.readField(msgPtr, field, iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -125,9 +122,7 @@ public:
             return es;
         }
 
-        bool verified = 
-            static_cast<ExtendingClass*>(this)->verifyFieldValue(field);
-
+        bool verified = thisObj.verifyFieldValue(field);
         if (!verified) {
             return comms::ErrorStatus::ProtocolError;
         }
@@ -161,8 +156,9 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(field);
-        auto es = field.write(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(field);
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -172,6 +168,36 @@ public:
     }
 
 protected:
+    /// @brief Read the sumc field.
+    /// @details The default implementation invokes @b read() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be populated
+    /// @param[in, out] iter Iterator used for reading, expected to be advanced
+    /// @param[in] len Length of the input buffer
+    /// @note May be non-static in the extending class
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.read(iter, len);
+    }
+
+    /// @brief Write the sync field.
+    /// @details The default implementation invokes @b write() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be written
+    /// @param[in, out] iter Iterator used for writing, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.write(iter, len);
+    }    
+
     /// @brief Verify the validity of the field.
     /// @details Default implementation compares read field with default constructed Field type. @n
     ///     May be overridden by the extending class in case

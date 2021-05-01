@@ -74,11 +74,6 @@ class ChecksumLayer : public
             comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >;
 
-    using ExtendingClass =
-        details::ProtocolLayerExtendingClassT<
-            ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
-            details::ChecksumLayerOptionsParser<TOptions...>
-        >;
 public:
     /// @brief Parsed options
     using ParsedOptions = details::ChecksumLayerOptionsParser<TOptions...>;
@@ -252,7 +247,8 @@ public:
         TNextLayerUpdater&& nextLayerUpdater) const
     {
         auto fromIter = iter;
-        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(msg);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto fieldLen = thisObj.doFieldLength(msg);
         auto es = nextLayerUpdater.update(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -337,22 +333,21 @@ private:
         auto fromIter = iter;
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto fieldLen = Field::minLength();
+        auto& thisObj = BaseImpl::thisLayer();
         if (msgPtr != nullptr) {
-            fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr);
+            fieldLen = thisObj.doFieldLength(*msgPtr);
         }
         auto toIter = fromIter + (size - fieldLen);
         auto len = static_cast<std::size_t>(std::distance(fromIter, toIter));
         
-        auto checksumEs = 
-            static_cast<ExtendingClass*>(this)->readField(
-                    msgPtr, field, toIter, fieldLen);
+        auto checksumEs = thisObj.readField(msgPtr, field, toIter, fieldLen);
         if (checksumEs != ErrorStatus::Success) {
             return checksumEs;
         }
 
         bool checksumValid = false;
         auto checksum = 
-            static_cast<ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 msgPtr,
                 fromIter,
                 len,
@@ -398,8 +393,8 @@ private:
         COMMS_ASSERT(len <= size);
         auto remSize = size - len;
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
-        auto checksumEs = 
-            static_cast<ExtendingClass*>(this)->readField(msgPtr, field, iter, remSize);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto checksumEs = thisObj.readField(msgPtr, field, iter, remSize);
         if (checksumEs == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, remSize, extraValues...);
         }
@@ -411,7 +406,7 @@ private:
 
         bool checksumValid = false;
         auto checksum = 
-            static_cast<ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 BaseImpl::toMsgPtr(msg),
                 fromIter,
                 len,
@@ -489,12 +484,10 @@ private:
         COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         auto remSize = size - len;
+        auto& thisObj = BaseImpl::thisLayer();
 
         if (es == comms::ErrorStatus::UpdateRequired) {
-            auto esTmp = 
-                static_cast<const ExtendingClass*>(this)->writeField(
-                    &msg, field, iter, remSize);
-
+            auto esTmp = thisObj.writeField(&msg, field, iter, remSize);
             if (esTmp != comms::ErrorStatus::Success) {
                 return esTmp;
             }
@@ -504,7 +497,7 @@ private:
 
         bool checksumValid = false;
         auto checksum = 
-            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 &msg,
                 fromIter,
                 len,
@@ -516,9 +509,7 @@ private:
 
         using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(checksum);
-        return 
-            static_cast<const ExtendingClass*>(this)->writeField(
-                &msg, field, iter, remSize);
+        return thisObj.writeField(&msg, field, iter, remSize);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>
@@ -529,16 +520,15 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(msg);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto fieldLen = thisObj.doFieldLength(msg);
         auto es = nextLayerWriter.write(msg, iter, size - fieldLen);
         if ((es != comms::ErrorStatus::Success) &&
             (es != comms::ErrorStatus::UpdateRequired)) {
             return es;
         }
 
-        auto esTmp = 
-            static_cast<const ExtendingClass*>(this)->writeField(
-                &msg, field, iter, fieldLen);
+        auto esTmp = thisObj.writeField(&msg, field, iter, fieldLen);
         static_cast<void>(esTmp);
         COMMS_ASSERT(esTmp == comms::ErrorStatus::Success);
         return comms::ErrorStatus::UpdateRequired;
@@ -573,8 +563,9 @@ private:
     {
         COMMS_ASSERT(from <= to);
         auto len = static_cast<std::size_t>(std::distance(from, to));
+        auto& thisObj = BaseImpl::thisLayer();
         if (msgPtr != nullptr) {
-            COMMS_ASSERT(len == (size - static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr)));    
+            COMMS_ASSERT(len == (size - thisObj.doFieldLength(*msgPtr)));    
         }
         else {
             COMMS_ASSERT(len == (size - Field::maxLength()));    
@@ -583,7 +574,7 @@ private:
 
         bool checksumValid = false;
         auto checksum = 
-            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 msgPtr,
                 from,
                 len,
@@ -595,9 +586,7 @@ private:
 
         using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(checksum);
-        return 
-            static_cast<const ExtendingClass*>(this)->writeField(
-                msgPtr, field, to, remSize);
+        return thisObj.writeField(msgPtr, field, to, remSize);
     }
 };
 

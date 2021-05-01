@@ -78,12 +78,6 @@ class TransportValueLayer : public
             >,
             TOptions...
         >;
-
-    using ExtendingClass = 
-        details::ProtocolLayerExtendingClassT<
-            ThisClass,
-            details::TransportValueLayerOptionsParser<TOptions...>
-        >;
 public:
     /// @brief Type of the field object used to read/write "sync" value.
     using Field = typename BaseImpl::Field;
@@ -145,7 +139,7 @@ public:
         TNextLayerReader&& nextLayerReader,
         TExtraValues... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, ValueTag<>(), extraValues...);
+        auto es = readFieldInternal(field, msg, iter, size, ValueTag<>(), extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -159,7 +153,8 @@ public:
                 "Message interface class hasn't defined transport fields, "
                 "use comms::option::def::ExtraTransportFields option.");            
 
-            static_cast<ExtendingClass*>(this)->reassignFieldValue(*msgPtr, field);
+            auto& thisObj = BaseImpl::thisLayer();
+            thisObj.reassignFieldValue(*msgPtr, field);
         }
         return es;
     }
@@ -189,9 +184,10 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(msg, field);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(msg, field);
 
-        auto es = writeFieldInternal(field, iter, size, ValueTag<>());
+        auto es = writeFieldInternal(field, msg, iter, size, ValueTag<>());
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -229,6 +225,36 @@ public:
 #endif
 
 protected:
+    /// @brief Read the transport value field.
+    /// @details The default implementation invokes @b read() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be populated
+    /// @param[in, out] iter Iterator used for reading, expected to be advanced
+    /// @param[in] len Length of the input buffer
+    /// @note May be non-static in the extending class
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.read(iter, len);
+    }
+
+    /// @brief Write the transport value field.
+    /// @details The default implementation invokes @b write() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
+    /// @param[out] field Field object value of which needs to be written
+    /// @param[in, out] iter Iterator used for writing, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msgPtr);
+        return field.write(iter, len);
+    } 
+
     /// @brief Re-assign the value from the input field to appropriate transport field
     ///     in the message object.
     /// @details Default implementation just assigns to the field accessed using
@@ -305,30 +331,36 @@ private:
         return BaseImpl::doFieldLength();
     }
 
-    template <typename TIter, typename... TExtraValues>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
+        TMsg& msg,
         TIter& iter,
         std::size_t& len,
         PseudoValueTag<>,
         TExtraValues...)
     {
+        static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(len);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter, typename... TExtraValues>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
+        TMsg& msg,
         TIter& iter,
         std::size_t& len,
         NormalValueTag<>,
         TExtraValues... extraValues)
     {
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto beforeReadIter = iter;
-        auto es = field.read(iter, len);
+        
+        auto es = thisObj.readField(msgPtr, field, iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, len, extraValues...);
         }
@@ -339,27 +371,31 @@ private:
         return es;
     }
 
-    template <typename TIter, typename... TParams>
+    template <typename TMsg, typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
+        const TMsg& msg,
         TIter& iter,
         std::size_t& len,
         PseudoValueTag<TParams...>) const
     {
+        static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(len);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter, typename... TParams>
+    template <typename TMsg, typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
+        const TMsg& msg,
         TIter& iter,
         std::size_t& len,
         NormalValueTag<TParams...>) const
     {
-        auto es = field.write(iter, len);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto es = thisObj.writeField(&msg, field, iter, len);
         if (es == comms::ErrorStatus::Success) {
             COMMS_ASSERT(field.length() <= len);
             len -= field.length();

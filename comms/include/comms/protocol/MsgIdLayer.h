@@ -74,17 +74,14 @@ class MsgIdLayer : public
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
 
-    using ExtendingClass = 
-            details::ProtocolLayerExtendingClassT<
-                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
-                details::MsgIdLayerOptionsParser<TOptions...>
-            >;
-
     using BaseImpl =
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            ExtendingClass
+            details::ProtocolLayerExtendingClassT<
+                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
+                details::MsgIdLayerOptionsParser<TOptions...>
+            >
         >;
 
     /// @brief Parsed options
@@ -193,7 +190,8 @@ public:
         TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
-        auto es = field.read(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto es = thisObj.readField(field, iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -257,13 +255,14 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         using MsgType = typename std::decay<decltype(msg)>::type;
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(
+        thisObj.prepareFieldForWrite(
             getMsgId(msg, IdRetrieveTag<MsgType>()), 
             msg, 
             field);
 
-        auto es = field.write(iter, size);
+        auto es = thisObj.writeField(msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -318,6 +317,34 @@ public:
     }
 
 protected:
+
+    /// @brief Read the message ID field.
+    /// @details The default implementation invokes @b read() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[out] field Field object value of which needs to be populated
+    /// @param[in, out] iter Iterator used for reading, expected to be advanced
+    /// @param[in] len Length of the input buffer
+    /// @note May be non-static in the extending class
+    template <typename TIter>
+    static comms::ErrorStatus readField(Field& field, TIter& iter, std::size_t len)
+    {
+        return field.read(iter, len);
+    }
+
+    /// @brief Write the message ID field.
+    /// @details The default implementation invokes @b write() operation of the 
+    ///     passed field object. The function can be overriden by the extending class.
+    /// @param[in] msg Reference to message object being written.
+    /// @param[out] field Field object value of which needs to be written
+    /// @param[in, out] iter Iterator used for writing, expected to be advanced
+    /// @param[in] len Length of the output buffer
+    /// @note May be non-static in the extending class, but needs to be const.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus writeField(const TMsg& msg, const Field& field, TIter& iter, std::size_t len)
+    {
+        static_cast<void>(msg);
+        return field.write(iter, len);
+    }
 
     /// @brief Retrieve message id from the field.
     /// @details May be overridden by the extending class
@@ -619,13 +646,14 @@ private:
                 "Explicit message type is expected to expose compile type message ID by "
                 "using \"StaticNumIdImpl\" option");
 
-        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto id = thisObj.getMsgIdFromField(field);
         BaseImpl::setMsgId(id, extraValues...);
         if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
-        static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
+        thisObj.beforeRead(field, msg);
         return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
@@ -693,7 +721,8 @@ private:
                 StaticBinSearchOpTag
             >;
 
-        const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        const auto id = thisObj.getMsgIdFromField(field);
         BaseImpl::setMsgId(id, extraValues...);
 
         auto es = comms::ErrorStatus::InvalidMsgId;
@@ -711,7 +740,7 @@ private:
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;                
 
-            static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
+            thisObj.beforeRead(field, *msg);
             es = doReadInternal(id, idx, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), extraValues...);
             if (es == comms::ErrorStatus::Success) {
                 BaseImpl::setMsgIndex(idx, extraValues...);
@@ -843,13 +872,14 @@ private:
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
-        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto id = thisObj.getMsgIdFromField(field);
         msg = createGenericMsgInternal(id, msgIdx);
         if (!msg) {
             return es;
         }
 
-        static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
+        thisObj.beforeRead(field, *msg);
 
         using Tag = 
             typename comms::util::LazyShallowConditional<
@@ -938,8 +968,9 @@ private:
         TNextLayerWriter&& nextLayerWriter,
         StaticBinSearchOpTag<TParams...>) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
-        auto id = static_cast<const ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto id = thisObj.getMsgIdFromField(field);
         return comms::dispatchMsgStaticBinSearch(id, msg, handler);
     }
 

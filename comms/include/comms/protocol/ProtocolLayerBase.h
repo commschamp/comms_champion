@@ -140,6 +140,7 @@ public:
     {
         return static_cast<const ThisLayer&>(*this);
     }
+    
 
     /// @brief Compile time check whether split read "until" and "from" data
     ///     layer is allowed.
@@ -529,7 +530,7 @@ public:
     /// @return length of the field + length reported by the next layer.
     constexpr std::size_t length() const
     {
-        return static_cast<const ThisLayer&>(*this).doFieldLength() + nextLayer_.length();
+        return thisLayer().doFieldLength() + nextLayer_.length();
     }
 
     /// @brief Get remaining length of wrapping transport information + length
@@ -547,7 +548,7 @@ public:
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
     {
-        return static_cast<const ThisLayer&>(*this).doFieldLength(msg) + nextLayer_.length(msg);
+        return thisLayer().doFieldLength(msg) + nextLayer_.length(msg);
     }
 
     /// @brief Update recently written (using write()) message contents data.

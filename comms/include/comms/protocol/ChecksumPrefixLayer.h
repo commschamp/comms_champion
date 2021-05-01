@@ -76,11 +76,6 @@ class ChecksumPrefixLayer : public
             comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >;
 
-    using ExtendingClass =
-        details::ProtocolLayerExtendingClassT<
-            ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
-            details::ChecksumLayerOptionsParser<TOptions...>
-        >;
 public:
     /// @brief Parsed options
     using ParsedOptions = details::ChecksumLayerOptionsParser<TOptions...>;
@@ -150,10 +145,9 @@ public:
             "The read operation is expected to use random access iterator");
 
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        auto& thisObj = BaseImpl::thisLayer();
         auto beforeFieldReadIter = iter;
-        auto checksumEs = 
-            static_cast<ExtendingClass*>(this)->readField(
-                    msgPtr, field, iter, size);        
+        auto checksumEs = thisObj.readField(msgPtr, field, iter, size);        
         if (checksumEs == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -272,8 +266,9 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         auto checksumIter = iter;
-        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(msg);
+        auto fieldLen = thisObj.doFieldLength(msg);
         std::advance(iter, fieldLen);
 
         auto fromIter = iter;
@@ -359,11 +354,12 @@ private:
         TExtraValues... extraValues)
     {
         auto fromIter = iter;
+        auto& thisObj = BaseImpl::thisLayer();
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
 
         bool checksumValid = false;
         auto checksum = 
-            static_cast<ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 msgPtr,
                 fromIter,
                 size,
@@ -401,10 +397,11 @@ private:
         }
 
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        auto& thisObj = BaseImpl::thisLayer();
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         bool checksumValid = false;
         auto checksum = 
-            static_cast<ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 msgPtr,
                 fromIter,
                 len,
@@ -472,10 +469,9 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         auto checksumIter = iter;
-        auto es =
-            static_cast<const ExtendingClass*>(this)->writeField(
-                &msg, field, iter, size);
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -495,7 +491,7 @@ private:
         using FieldValueType = typename Field::ValueType;
         bool checksumValid = false;
         auto checksum = 
-            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 &msg,
                 fromIter,
                 len,
@@ -506,10 +502,7 @@ private:
         }
 
         field.value() = static_cast<FieldValueType>(checksum);
-        auto checksumEs = 
-            static_cast<const ExtendingClass*>(this)->writeField(
-                &msg, field, checksumIter, checksumLen);
-
+        auto checksumEs = thisObj.writeField(&msg, field, checksumIter, checksumLen);
         static_cast<void>(checksumEs);
         COMMS_ASSERT(checksumEs == comms::ErrorStatus::Success);
         return es;
@@ -523,14 +516,13 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        auto es = 
-            static_cast<const ExtendingClass*>(this)->writeField(
-                &msg, field, iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        auto fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(&msg);
+        auto fieldLen = thisObj.doFieldLength(&msg);
         es = nextLayerWriter.write(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -574,16 +566,17 @@ private:
     {
         static_cast<void>(size);
         COMMS_ASSERT(from <= to);
+        auto& thisObj = BaseImpl::thisLayer();
         auto len = static_cast<std::size_t>(std::distance(from, to));
         auto fieldLen = Field::maxLength();
         if (msgPtr != nullptr) {
-            fieldLen = static_cast<const ExtendingClass*>(this)->doFieldLength(*msgPtr);
+            fieldLen = thisObj.doFieldLength(*msgPtr);
         }
         COMMS_ASSERT(len == (size - fieldLen));
         
         bool checksumValid = false;
         auto checksum = 
-            static_cast<const ExtendingClass*>(this)->calculateChecksum(
+            thisObj.calculateChecksum(
                 msgPtr,
                 from,
                 len,

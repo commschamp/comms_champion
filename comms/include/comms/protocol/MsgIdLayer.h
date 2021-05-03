@@ -191,7 +191,8 @@ public:
     {
         auto beforeReadIter = iter;
         auto& thisObj = BaseImpl::thisLayer();
-        auto es = thisObj.readField(field, iter, size);
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        auto es = thisObj.doReadField(msgPtr, field, iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -262,7 +263,7 @@ public:
             msg, 
             field);
 
-        auto es = thisObj.writeField(msg, field, iter, size);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -317,34 +318,6 @@ public:
     }
 
 protected:
-
-    /// @brief Read the message ID field.
-    /// @details The default implementation invokes @b read() operation of the 
-    ///     passed field object. The function can be overriden by the extending class.
-    /// @param[out] field Field object value of which needs to be populated
-    /// @param[in, out] iter Iterator used for reading, expected to be advanced
-    /// @param[in] len Length of the input buffer
-    /// @note May be non-static in the extending class
-    template <typename TIter>
-    static comms::ErrorStatus readField(Field& field, TIter& iter, std::size_t len)
-    {
-        return field.read(iter, len);
-    }
-
-    /// @brief Write the message ID field.
-    /// @details The default implementation invokes @b write() operation of the 
-    ///     passed field object. The function can be overriden by the extending class.
-    /// @param[in] msg Reference to message object being written.
-    /// @param[out] field Field object value of which needs to be written
-    /// @param[in, out] iter Iterator used for writing, expected to be advanced
-    /// @param[in] len Length of the output buffer
-    /// @note May be non-static in the extending class, but needs to be const.
-    template <typename TMsg, typename TIter>
-    static comms::ErrorStatus writeField(const TMsg& msg, const Field& field, TIter& iter, std::size_t len)
-    {
-        static_cast<void>(msg);
-        return field.write(iter, len);
-    }
 
     /// @brief Retrieve message id from the field.
     /// @details May be overridden by the extending class

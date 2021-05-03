@@ -163,7 +163,7 @@ public:
         auto begIter = iter;
         auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto& thisObj = BaseImpl::thisLayer();
-        auto es = thisObj.readField(msgPtr, field, iter, size);        
+        auto es = thisObj.doReadField(msgPtr, field, iter, size);        
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -281,36 +281,6 @@ public:
     }
 
 protected:
-    /// @brief Read the message size field.
-    /// @details The default implementation invokes @b read() operation of the 
-    ///     passed field object. The function can be overriden by the extending class.
-    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
-    /// @param[out] field Field object value of which needs to be populated
-    /// @param[in, out] iter Iterator used for reading, expected to be advanced
-    /// @param[in] len Length of the input buffer
-    /// @note May be non-static in the extending class
-    template <typename TMsg, typename TIter>
-    static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
-    {
-        static_cast<void>(msgPtr);
-        return field.read(iter, len);
-    }
-
-    /// @brief Write the message size field.
-    /// @details The default implementation invokes @b write() operation of the 
-    ///     passed field object. The function can be overriden by the extending class.
-    /// @param[in] msgPtr Pointer to message object (if available), can be nullptr.
-    /// @param[out] field Field object value of which needs to be written
-    /// @param[in, out] iter Iterator used for writing, expected to be advanced
-    /// @param[in] len Length of the output buffer
-    /// @note May be non-static in the extending class, but needs to be const.
-    template <typename TMsg, typename TIter>
-    static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
-    {
-        static_cast<void>(msgPtr);
-        return field.write(iter, len);
-    }    
-
     /// @brief Retrieve remaining size (length) from the field.
     /// @details May be overridden by the extending class
     /// @param[in] field Field for this layer.
@@ -399,7 +369,7 @@ private:
         auto& thisObj = BaseImpl::thisLayer();
 
         thisObj.prepareFieldForWrite(lenValue, &msg, field);
-        auto es = thisObj.writeField(&msg, field, iter, size);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -419,7 +389,7 @@ private:
         auto valueIter = iter;
         auto& thisObj = BaseImpl::thisLayer();
         thisObj.prepareFieldForWrite(0U, &msg, field);
-        auto es = thisObj.writeField(&msg, field, iter, size);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -435,7 +405,7 @@ private:
         auto dist = static_cast<std::size_t>(std::distance(dataIter, iter));
         thisObj.prepareFieldForWrite(dist, &msg, field);
         COMMS_ASSERT(field.length() == sizeLen);
-        return thisObj.writeField(&msg, field, valueIter, sizeLen);
+        return thisObj.doWriteField(&msg, field, valueIter, sizeLen);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>
@@ -448,7 +418,7 @@ private:
     {
         auto& thisObj = BaseImpl::thisLayer();
         thisObj.prepareFieldForWrite(0U, &msg, field);
-        auto es = thisObj.writeField(&msg, field, iter, size);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -561,7 +531,7 @@ private:
             thisObj.prepareFieldForWrite(lenValue, msg, field);
         }
 
-        auto es = thisObj.writeField(msg, field, iter, size);
+        auto es = thisObj.doWriteField(msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }

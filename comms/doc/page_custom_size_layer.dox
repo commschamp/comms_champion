@@ -166,9 +166,16 @@
 /// It is done by passing @ref comms::option::def::ExtendingClass extension option with
 /// the type of the layer class being defined to the @ref comms::protocol::MsgSizeLayer.
 ///
-/// The extending class is expected to define the listed below functions. They do not
+/// The extending class can customize the default behavior by overriding 
+/// the listed below functions. They do not
 /// necessarily need to be @b static, accessing inner private state of the layer object
 /// is also acceptable.
+/// @li @ref comms::protocol::MsgSizeLayer::doReadField() "doReadField()" - Member
+/// function that is invoked to read field's value.
+/// @li @ref comms::protocol::MsgSizeLayer::doWriteField() "doWriteField()" - Member
+/// function that is invoked to write field's value.
+/// @li @ref comms::protocol::MsgSizeLayer::doFieldLength() "doFieldLength()" - Member
+/// function that is invoked to calculate serialization length of the field.
 /// @li @ref comms::protocol::MsgSizeLayer::getRemainingSizeFromField() "getRemainingSizeFromField()" - 
 /// Member function that is invoked to retrieve the
 /// remaining length out of the provided field object.

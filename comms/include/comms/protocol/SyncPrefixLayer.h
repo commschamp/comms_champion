@@ -10,9 +10,13 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/SyncPrefixLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4189) // Disable erroneous initialized but not referenced variable warning
 
 namespace comms
 {
@@ -221,4 +225,4 @@ constexpr bool isSyncPrefixLayer()
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP

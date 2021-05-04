@@ -12,12 +12,17 @@
 
 #include <iterator>
 #include <type_traits>
+
+#include "comms/CompileControl.h"
 #include "comms/field/IntValue.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/ChecksumLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4189) // Disable erroneous initialized but not referenced variable warning
 
 namespace comms
 {
@@ -621,4 +626,4 @@ constexpr bool isChecksumLayer()
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP

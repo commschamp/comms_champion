@@ -38,7 +38,9 @@ namespace protocol
 ///     @endcode
 ///     It is up to the checksum calculator to choose the "ResultType" it
 ///     returns. The falue is going to be casted to Field::ValueType before
-///     assigning it as a value of the check field being read and/or written.
+///     assigning it as a value of the check field being read and/or written.@n
+///     Available checksum algorithms provided by the COMMS library reside in
+///     @ref comms::protocol::checksum namespace (`comms/protocol/checkum` folder).
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
 ///     @li @ref comms::option::def::ChecksumLayerVerifyBeforeRead - By default, the

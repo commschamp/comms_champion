@@ -39,6 +39,8 @@ public:
     void test11();
     void test12();
     void test13();
+    void test14();
+    void test15();
 
 private:
     template <typename TField>
@@ -1108,6 +1110,150 @@ void FieldsTestSuite2::test13()
         static const char ExpectedBuf[] = {0x3, 0x0, 0x0, 0x12};
         static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
         writeAndVerifyFunc(ExpectedBuf, ExpectedBufSize);
+    } while (false);
+}
+
+using Test14_FieldBase = FieldsTestSuite2::BeFieldBase;
+class Test14_Field : public
+    comms::field::Bundle<
+        Test14_FieldBase,
+        std::tuple<
+            comms::field::IntValue<Test14_FieldBase, std::uint8_t>,
+            comms::field::IntValue<
+                Test14_FieldBase, 
+                std::uint32_t, 
+                comms::option::def::FixedLength<3>,
+                comms::option::def::AvailableLengthLimit>
+        >,
+        comms::option::RemLengthMemberField<0>
+    >
+{
+    using Base =
+        comms::field::Bundle<
+            Test14_FieldBase,
+            std::tuple<
+                comms::field::IntValue<Test14_FieldBase, std::uint8_t>,
+                comms::field::IntValue<
+                    Test14_FieldBase, 
+                    std::uint32_t, 
+                    comms::option::def::FixedLength<3>,
+                    comms::option::def::AvailableLengthLimit>
+            >,
+            comms::option::RemLengthMemberField<0>
+        >;
+
+public:
+    COMMS_FIELD_MEMBERS_NAMES(length, value);
+};
+
+void FieldsTestSuite2::test14()
+{
+    using Field = Test14_Field;
+    Field field;
+    field.field_value().value() = 0x1234;
+
+    auto writeAndVerifyFunc =
+        [&field](const char* buf, std::size_t bufSize)
+        {
+            field.refresh();
+            std::vector<std::uint8_t> outBuf;
+            outBuf.resize(field.length());
+            TS_ASSERT_EQUALS(outBuf.size(), bufSize);
+            auto writeIter = &outBuf[0];
+            auto es = field.write(writeIter, outBuf.size());
+            TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+            bool bufAsExpected = std::equal(buf, buf + bufSize, &outBuf[0]);
+
+            if (!bufAsExpected) {
+                std::cout << "Expected buffer: " << std::hex;
+                std::copy_n(buf, bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << "\nActual buffer: ";
+                std::copy_n(&outBuf[0], bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << std::dec << std::endl;
+            }
+            TS_ASSERT(bufAsExpected);
+        };
+
+    do {
+        field.field_value().setForcedLength(0);
+        TS_ASSERT_EQUALS(field.length(), 4U);
+        static const char ExpectedBuf[] = {0x3, 0x0, 0x12, 0x34};
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeAndVerifyFunc(ExpectedBuf, ExpectedBufSize);
+    } while (false);
+}
+
+void FieldsTestSuite2::test15()
+{
+    enum class Enum_Test15 : std::uint16_t
+    {
+        V0 = 0,
+        V1 = 1,
+        V10 = 10,
+        V200 = 200,
+        V500 = 500,
+    };
+
+    using Field = 
+        comms::field::EnumValue<
+            BeFieldBase,
+            Enum_Test15,
+            comms::option::def::AvailableLengthLimit
+        >;
+
+    do {
+        Field field;
+        static const char Buf[] = {
+            static_cast<char>(Enum_Test15::V10)
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(field.value(), Enum_Test15::V10);    
+    } while (false);
+
+    do {
+        Field field;
+        static const char Buf[] = {
+            0x1, static_cast<char>(0xf4)
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.length(), 2U);
+        TS_ASSERT_EQUALS(field.value(), Enum_Test15::V500);    
+    } while (false);
+
+    auto writeAndVerifyFunc =
+        [](Field& field, const char* buf, std::size_t bufSize)
+        {
+            std::vector<std::uint8_t> outBuf;
+            outBuf.resize(field.length());
+            TS_ASSERT_EQUALS(outBuf.size(), bufSize);
+            auto writeIter = &outBuf[0];
+            auto es = field.write(writeIter, outBuf.size());
+            TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+            bool bufAsExpected = std::equal(buf, buf + bufSize, &outBuf[0]);
+
+            if (!bufAsExpected) {
+                std::cout << "Expected buffer: " << std::hex;
+                std::copy_n(buf, bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << "\nActual buffer: ";
+                std::copy_n(&outBuf[0], bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << std::dec << std::endl;
+            }
+            TS_ASSERT(bufAsExpected);
+        };
+
+    do {
+        Field field;
+        field.value() = Enum_Test15::V1;
+        field.setForcedLength(0);
+        TS_ASSERT_EQUALS(field.length(), 2U);
+        static const char ExpectedBuf[] = {0x0, 0x1};
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeAndVerifyFunc(field, ExpectedBuf, ExpectedBufSize);
     } while (false);
 }
 

@@ -78,8 +78,9 @@ public:
             return std::min(BaseImpl::length(), static_cast<std::size_t>(m_forcedLength));
         }
 
+        auto serValue = toSerialised(BaseImpl::value());
         for (std::size_t len = 1U; len < sizeof(SerialisedType); ++len) {
-            if (fitsLength(BaseImpl::value(), len)) {
+            if (fitsLength(serValue, len)) {
                 return len;
             }
         }

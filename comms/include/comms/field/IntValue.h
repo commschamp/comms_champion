@@ -297,13 +297,13 @@ public:
     /// @brief Force serialization length of the field.
     /// @details Available only when @ref comms::option::def::AvailableLengthLimit
     ///     option is used for field definition.
-    /// @param[in] value Forced serialization length. 
+    /// @param[in] len Forced serialization length. 
     ///     @li 0 means default serialization length determined by the storage type
     ///     @li positive value means limit of the serialization length
     ///     @li negative value means the length is determined by the stored value
-    void setForcedLength(int value)
+    void setForcedLength(int len)
     {
-        BaseImpl::setForcedLength(value);
+        BaseImpl::setForcedLength(len);
     }
 
     /// @brief Get forced serialization length

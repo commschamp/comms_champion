@@ -22,8 +22,9 @@ CC_ENABLE_WARNINGS()
 class FieldsTestSuite2 : public CxxTest::TestSuite
 {
 public:
-    typedef comms::option::BigEndian BigEndianOpt;
-    typedef comms::option::LittleEndian LittleEndianOpt;
+    using BigEndianOpt = comms::option::BigEndian;
+    using LittleEndianOpt = comms::option::LittleEndian;
+    using BeFieldBase = comms::Field<BigEndianOpt>;
 
     void test1();
     void test2();
@@ -36,9 +37,10 @@ public:
     void test9();
     void test10();
     void test11();
+    void test12();
+    void test13();
 
 private:
-
     template <typename TField>
     static TField readWriteField(
         const char* buf,
@@ -66,7 +68,7 @@ private:
     }
 };
 
-using Test1_FieldBase = comms::Field<comms::option::BigEndian>;
+using Test1_FieldBase = FieldsTestSuite2::BeFieldBase;
 
 template <std::uint8_t TVal>
 using Test1_IntKeyField =
@@ -954,6 +956,160 @@ void FieldsTestSuite2::test11()
     TS_ASSERT_EQUALS(field, field2); 
 }
 
+using Test12_FieldBase = FieldsTestSuite2::BeFieldBase;
+class Test12_Field : public
+    comms::field::Bundle<
+        Test12_FieldBase,
+        std::tuple<
+            comms::field::IntValue<Test12_FieldBase, std::uint8_t>,
+            comms::field::IntValue<Test12_FieldBase, std::uint64_t, comms::option::def::AvailableLengthLimit>
+        >,
+        comms::option::RemLengthMemberField<0>
+    >
+{
+    using Base =
+        comms::field::Bundle<
+            Test12_FieldBase,
+            std::tuple<
+                comms::field::IntValue<Test12_FieldBase, std::uint8_t>,
+                comms::field::IntValue<Test12_FieldBase, std::uint64_t, comms::option::def::AvailableLengthLimit>
+            >,
+            comms::option::RemLengthMemberField<0>
+        >;
+
+public:
+    COMMS_FIELD_MEMBERS_NAMES(length, value);
+};
+
+void FieldsTestSuite2::test12()
+{
+    using Field = Test12_Field;
+    do {
+        Field field;
+
+        TS_ASSERT_EQUALS(field.length(), 2U);
+
+        static const char Buf[] = {
+            0x2, 0x1, 0x2, 0x3, 0x4
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x0102);    
+    } while (false);
+
+    do {
+        Field field;
+
+        static const char Buf[] = {
+            0x3, 0x1, 0x2, 0x3, 0x4
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x010203);    
+    } while (false);  
+
+    do {
+        Field field;
+
+        static const char Buf[] = {
+            0x4, 0x1, 0x2, 0x3, 0x4
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x01020304);    
+    } while (false);    
+
+    do {
+        Field field;
+
+        static const char Buf[] = {
+            0x5, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x0102030405);    
+    } while (false);    
+
+    do {
+        Field field;
+
+        static const char Buf[] = {
+            0x6, 0x1, 0x2, 0x3, 0x4, 0x5, 06
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x010203040506);    
+    } while (false);        
+
+    do {
+        Field field;
+
+        static const char Buf[] = {
+            0x7, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
+        };
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        field = readWriteField<Field>(&Buf[0], BufSize);
+        TS_ASSERT_EQUALS(field.field_value().value(), 0x01020304050607);    
+    } while (false);
+}
+
+void FieldsTestSuite2::test13()
+{
+    using Field = Test12_Field; // Same field as previous test
+    Field field;
+    field.field_value().value() = 0x12;
+
+    auto writeAndVerifyFunc =
+        [&field](const char* buf, std::size_t bufSize)
+        {
+            field.refresh();
+            std::vector<std::uint8_t> outBuf;
+            outBuf.resize(field.length());
+            TS_ASSERT_EQUALS(outBuf.size(), bufSize);
+            auto writeIter = &outBuf[0];
+            auto es = field.write(writeIter, outBuf.size());
+            TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+            bool bufAsExpected = std::equal(buf, buf + bufSize, &outBuf[0]);
+
+            if (!bufAsExpected) {
+                std::cout << "Expected buffer: " << std::hex;
+                std::copy_n(buf, bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << "\nActual buffer: ";
+                std::copy_n(&outBuf[0], bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+                std::cout << std::dec << std::endl;
+            }
+            TS_ASSERT(bufAsExpected);
+        };
+
+    do {
+        TS_ASSERT_EQUALS(field.length(), 2U);
+        static const char ExpectedBuf[] = {0x1, 0x12};
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeAndVerifyFunc(ExpectedBuf, ExpectedBufSize);
+    } while (false);
+
+    do {
+        field.field_value().setForcedLength(0);
+        TS_ASSERT_EQUALS(field.length(), 9U);
+        static const char ExpectedBuf[] = {0x8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x12};
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeAndVerifyFunc(ExpectedBuf, ExpectedBufSize);
+    } while (false);
+
+    do {
+        field.field_value().setForcedLength(3);
+        TS_ASSERT_EQUALS(field.length(), 4U);
+        static const char ExpectedBuf[] = {0x3, 0x0, 0x0, 0x12};
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeAndVerifyFunc(ExpectedBuf, ExpectedBufSize);
+    } while (false);
+}
 
 template <typename TField>
 void FieldsTestSuite2::writeField(

@@ -585,6 +585,21 @@ T readBig(TIter& iter)
     return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
 }
 
+/// @brief Read integral value from the input area using big
+///     endian notation.
+/// @tparam T Type to read.
+/// @param[in, out] iter Input iterator.
+/// @param[in] size length to read
+/// @return Read value
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
+template <typename T, typename TIter>
+T readBig(TIter& iter, std::size_t size)
+{
+    return details::ReadHelper<>::template read<traits::endian::Big, T>(size, iter);    
+}
+
 /// @brief Write part of integral value into the output area using little
 ///     endian notation.
 /// @tparam TSize Number of bytes to write.
@@ -658,6 +673,21 @@ T readLittle(TIter& iter)
 {
     using ValueType = typename std::decay<T>::type;
     return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
+}
+
+/// @brief Read integral value from the input area using little
+///     endian notation.
+/// @tparam T Type to read.
+/// @param[in, out] iter Input iterator.
+/// @param[in] size length to read
+/// @return Read value
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
+template <typename T, typename TIter>
+T readLittle(TIter& iter, std::size_t size)
+{
+    return details::ReadHelper<>::template read<traits::endian::Little, T>(size, iter);    
 }
 
 /// @brief Same as writeBig<T, TIter>()
@@ -736,6 +766,14 @@ T readData(TIter& iter, const traits::endian::Big& endian)
     return readBig<T>(iter);
 }
 
+/// @brief Same as readBig<T, TIter>()
+template <typename T, typename TIter>
+T readData(TIter& iter, std::size_t size, const traits::endian::Big& endian)
+{
+    static_cast<void>(endian);
+    return readBig<T>(iter, size);
+}
+
 /// @brief Same as readBig<T, TSize, TIter>()
 template <typename T, std::size_t TSize, typename TIter>
 T readData(TIter& iter, const traits::endian::Big& endian)
@@ -758,6 +796,14 @@ T readData(TIter& iter, const traits::endian::Little& endian)
 {
     static_cast<void>(endian);
     return readLittle<T, TSize>(iter);
+}
+
+/// @brief Same as readBig<T, TIter>()
+template <typename T, typename TIter>
+T readData(TIter& iter, std::size_t size, const traits::endian::Little& endian)
+{
+    static_cast<void>(endian);
+    return readLittle<T>(iter, size);
 }
 
 

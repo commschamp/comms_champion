@@ -497,6 +497,8 @@ private:
         "comms::option::def::FixedBitLength option is not applicable to String field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
         "comms::option::def::VarLength option is not applicable to String field");
+    static_assert(!ParsedOptions::HasAvailableLengthLimit,
+            "comms::option::def::AvailableLengthLimit option is not applicable to String field");
     static_assert(!ParsedOptions::HasScalingRatio,
         "comms::option::def::ScalingRatio option is not applicable to String field");
     static_assert(!ParsedOptions::HasUnits,

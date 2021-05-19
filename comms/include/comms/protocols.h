@@ -19,4 +19,5 @@
 #include "protocol/TransportValueLayer.h"
 
 #include "protocol/checksum/BasicSum.h"
+#include "protocol/checksum/BasicXor.h"
 #include "protocol/checksum/Crc.h"

@@ -626,6 +626,8 @@ private:
         "comms::option::def::FixedBitLength option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
         "comms::option::def::VarLength option is not applicable to Bundle field");
+    static_assert(!ParsedOptions::HasAvailableLengthLimit,
+            "comms::option::def::AvailableLengthLimit option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
         "comms::option::def::SequenceElemLengthForcingEnabled option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,

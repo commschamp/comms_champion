@@ -152,7 +152,7 @@
 ///     // Due to the fact that the used checksums have different lengths, the
 ///     // functionality of reading a field's value also needs to be customized.
 ///     template <typename TMsg, typename TIter>
-///     static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+///     static comms::ErrorStatus doReadField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
 ///     {
 ///         if (msgPtr == nullptr) {
 ///             return comms::ErrorStatus::ProtocolError;
@@ -177,7 +177,7 @@
 ///     // Due to the fact that the used checksums have different lengths, the
 ///     // functionality of reading a field's value also needs to be customized.
 ///     template <typename TMsg, typename TIter>
-///     static comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
+///     static comms::ErrorStatus doWriteField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len)
 ///     {
 ///         if (msgPtr == nullptr) {
 ///             return comms::ErrorStatus::ProtocolError;
@@ -255,26 +255,18 @@
 /// It is done by passing @ref comms::option::def::ExtendingClass extension option with
 /// the type of the layer class being defined to the @ref comms::protocol::ChecksumLayer.
 ///
-/// The extending class is expected to define the listed below functions. They do not
+/// The extending class can customize the default behavior by overriding 
+/// the listed below functions. They do not
 /// necessarily need to be @b static, accessing inner private state of the layer object
 /// is also acceptable.
+/// @li @ref comms::protocol::ChecksumLayer::doReadField() "doReadField()" - Member
+/// function that is invoked to read field's value.
+/// @li @ref comms::protocol::ChecksumLayer::doWriteField() "doWriteField()" - Member
+/// function that is invoked to write field's value.
+/// @li @ref comms::protocol::ChecksumLayer::doFieldLength() "doFieldLength()" - Member
+/// function that is invoked to calculate serialization length of the field.
 /// @li @ref comms::protocol::ChecksumLayer::calculateChecksum() "calculateChecksum()" - 
 /// Member function that is responsible to calculate a checksum on provided range.
-/// @li @ref comms::protocol::ChecksumLayer::readField() "readField()" - Member function 
-/// that is responsible to read field's value. Needs to be overridden in case the 
-/// possible checksum values can have different lengths.
-/// @li @ref comms::protocol::ChecksumLayer::writeField() "writeField()" - Member function 
-/// that is responsible to write field's value. Needs to be overridden in case the 
-/// possible checksum values can have different lengths.
-/// @li @ref comms::protocol::ChecksumLayer::doFieldLength() "doFieldLength()" - 
-/// Member function used to calculate serialization length of the checksum field.
-///
-/// @b NOTE, that overriding of @ref comms::protocol::ChecksumLayer::readField() "readField()",
-/// @ref comms::protocol::ChecksumLayer::writeField() "writeField()", and
-/// @ref comms::protocol::ChecksumLayer::doFieldLength() "doFieldLength()" is not necessary
-/// in case all of the used checksum types are of the same length, i.e. use the 
-/// same field abstraction to read/write checksum values. In this case the default
-/// implementation provided by the @ref comms::protocol::ChecksumLayer is enough.
 /// 
 /// The newly defined custom protocol stack layer can be used instead of
 /// @ref comms::protocol::ChecksumLayer when defining 

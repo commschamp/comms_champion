@@ -49,6 +49,7 @@ class AdaptBasicField
             ParsedOptions::HasFixedLengthLimit ||
             ParsedOptions::HasFixedBitLengthLimit ||
             ParsedOptions::HasVarLengthLimits ||
+            ParsedOptions::HasAvailableLengthLimit ||
             ParsedOptions::HasSequenceElemLengthForcing ||
             ParsedOptions::HasSequenceSizeForcing ||
             ParsedOptions::HasSequenceLengthForcing ||
@@ -65,7 +66,7 @@ class AdaptBasicField
             (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
-            "HasSequenceElemLengthForcing, "
+            "AvailableLengthLimit, SequenceElemLengthForcingEnabled, "
             "SequenceSizeForcingEnabled, SequenceLengthForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
             "SequenceSerLengthFieldPrefix, SequenceElemSerLengthFieldPrefix, "
             "SequenceElemFixedSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
@@ -73,11 +74,13 @@ class AdaptBasicField
 
     static const bool VarLengthIncompatible =
             ParsedOptions::HasFixedLengthLimit ||
-            ParsedOptions::HasFixedBitLengthLimit;
+            ParsedOptions::HasFixedBitLengthLimit ||
+            ParsedOptions::HasAvailableLengthLimit;
 
     static_assert(
             (!ParsedOptions::HasVarLengthLimits) || (!VarLengthIncompatible),
-            "VarLength option is incompatible with FixedLength and FixedBitLength");
+            "VarLength option is incompatible with FixedLength, FixedBitLength "
+            "and AvailableLengthLimit");
 
     static_assert(
             1U >= FieldsOptionsCompatibilityCalc<
@@ -156,8 +159,11 @@ class AdaptBasicField
     using VarLengthLimitsAdapted = 
         typename ParsedOptions::template AdaptVarLengthLimits<FixedBitLengthLimitAdapted>;
 
+    using AvailableLengthLimitAdapted =
+        typename ParsedOptions::template AdaptAvailableLengthLimit<VarLengthLimitsAdapted>;       
+
     using SequenceElemLengthForcingAdapted = 
-        typename ParsedOptions::template AdaptSequenceElemLengthForcing<VarLengthLimitsAdapted>;
+        typename ParsedOptions::template AdaptSequenceElemLengthForcing<AvailableLengthLimitAdapted>;
     
     using SequenceElemSerLengthFieldPrefixAdapted = 
         typename ParsedOptions::template AdaptSequenceElemSerLengthFieldPrefix<SequenceElemLengthForcingAdapted>;

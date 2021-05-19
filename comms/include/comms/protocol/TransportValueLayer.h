@@ -11,12 +11,16 @@
 #pragma once
 
 #include "ProtocolLayerBase.h"
+#include "comms/CompileControl.h"
 #include "comms/cast.h"
 #include "comms/util/type_traits.h"
 #include "comms/details/tag.h"
 #include "comms/protocol/details/TransportValueLayerAdapter.h"
 #include "comms/protocol/details/TransportValueLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4189) // Disable erroneous initialized but not referenced variable warning
 
 namespace comms
 {
@@ -77,12 +81,6 @@ class TransportValueLayer : public
                 comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
-        >;
-
-    using ExtendingClass = 
-        details::ProtocolLayerExtendingClassT<
-            ThisClass,
-            details::TransportValueLayerOptionsParser<TOptions...>
         >;
 public:
     /// @brief Type of the field object used to read/write "sync" value.
@@ -145,7 +143,7 @@ public:
         TNextLayerReader&& nextLayerReader,
         TExtraValues... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, ValueTag<>(), extraValues...);
+        auto es = readFieldInternal(field, msg, iter, size, ValueTag<>(), extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -159,7 +157,8 @@ public:
                 "Message interface class hasn't defined transport fields, "
                 "use comms::option::def::ExtraTransportFields option.");            
 
-            static_cast<ExtendingClass*>(this)->reassignFieldValue(*msgPtr, field);
+            auto& thisObj = BaseImpl::thisLayer();
+            thisObj.reassignFieldValue(*msgPtr, field);
         }
         return es;
     }
@@ -189,9 +188,10 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(msg, field);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(msg, field);
 
-        auto es = writeFieldInternal(field, iter, size, ValueTag<>());
+        auto es = writeFieldInternal(field, msg, iter, size, ValueTag<>());
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -305,30 +305,36 @@ private:
         return BaseImpl::doFieldLength();
     }
 
-    template <typename TIter, typename... TExtraValues>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
+        TMsg& msg,
         TIter& iter,
         std::size_t& len,
         PseudoValueTag<>,
         TExtraValues...)
     {
+        static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(len);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter, typename... TExtraValues>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
+        TMsg& msg,
         TIter& iter,
         std::size_t& len,
         NormalValueTag<>,
         TExtraValues... extraValues)
     {
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto beforeReadIter = iter;
-        auto es = field.read(iter, len);
+        
+        auto es = thisObj.doReadField(msgPtr, field, iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, len, extraValues...);
         }
@@ -339,27 +345,31 @@ private:
         return es;
     }
 
-    template <typename TIter, typename... TParams>
+    template <typename TMsg, typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
+        const TMsg& msg,
         TIter& iter,
         std::size_t& len,
         PseudoValueTag<TParams...>) const
     {
+        static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(len);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter, typename... TParams>
+    template <typename TMsg, typename TIter, typename... TParams>
     comms::ErrorStatus writeFieldInternal(
         Field& field,
+        const TMsg& msg,
         TIter& iter,
         std::size_t& len,
         NormalValueTag<TParams...>) const
     {
-        auto es = field.write(iter, len);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto es = thisObj.doWriteField(&msg, field, iter, len);
         if (es == comms::ErrorStatus::Success) {
             COMMS_ASSERT(field.length() <= len);
             len -= field.length();
@@ -397,4 +407,4 @@ constexpr bool isTransportValueLayer()
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP

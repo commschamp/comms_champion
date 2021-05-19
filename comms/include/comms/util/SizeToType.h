@@ -101,6 +101,9 @@ struct SizeToType<TSize, true>
         >::type;
 };
 
+template <std::size_t TSize, bool TSigned = false>
+using SizeToTypeT = typename SizeToType<TSize, TSigned>::Type;
+
 /// @endcond
 
 }  // namespace util

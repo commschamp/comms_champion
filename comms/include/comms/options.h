@@ -332,6 +332,15 @@ struct VarLength
     static_assert(TMin <= TMax, "TMin must not be greater that TMax.");
 };
 
+/// @brief Option used to specify that serialization length can be contolled by 
+///     available data length
+/// @details Allows having less bytes in the input buffer than is required
+///     by the field's default serialization length.
+/// @headerfile comms/options.h
+struct AvailableLengthLimit
+{
+};
+
 /// @brief Option to specify numeric value serialisation offset.
 /// @details Applicable only to numeric fields such as comms::field::IntValue or
 ///     comms::field::EnumValue.

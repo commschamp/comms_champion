@@ -37,6 +37,7 @@ public:
     static constexpr bool HasFixedLengthLimit = false;
     static constexpr bool HasFixedBitLengthLimit = false;
     static constexpr bool HasVarLengthLimits = false;
+    static constexpr bool HasAvailableLengthLimit = false;
     static constexpr bool HasSequenceElemLengthForcing = false;
     static constexpr bool HasSequenceElemSerLengthFieldPrefix = false;
     static constexpr bool HasSequenceElemFixedSerLengthFieldPrefix = false;
@@ -93,6 +94,9 @@ public:
 
     template <typename TField>
     using AdaptVarLengthLimits = TField;
+
+    template <typename TField>
+    using AdaptAvailableLengthLimit = TField;
 
     template <typename TField>
     using AdaptSequenceElemLengthForcing = TField;
@@ -241,6 +245,19 @@ public:
     template <typename TField>
     using AdaptVarLengthLimits = 
         comms::field::adapter::VarLength<MinVarLength, MaxVarLength, TField>;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::def::AvailableLengthLimit,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static constexpr bool HasAvailableLengthLimit = true;
+
+    template <typename TField>
+    using AdaptAvailableLengthLimit = 
+        comms::field::adapter::AvailableLength<TField>;
 };
 
 template <typename... TOptions>

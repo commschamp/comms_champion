@@ -31,6 +31,7 @@
 
 COMMS_MSVC_WARNING_PUSH
 COMMS_MSVC_WARNING_DISABLE(4100) // Disable warning about unreferenced parameters
+COMMS_MSVC_WARNING_DISABLE(4189) // Disable erroneous initialized but not referenced variable warning
 
 namespace comms
 {
@@ -74,17 +75,14 @@ class MsgIdLayer : public
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
 
-    using ExtendingClass = 
-            details::ProtocolLayerExtendingClassT<
-                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
-                details::MsgIdLayerOptionsParser<TOptions...>
-            >;
-
     using BaseImpl =
         details::ProtocolLayerBase<
             TField,
             TNextLayer,
-            ExtendingClass
+            details::ProtocolLayerExtendingClassT<
+                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
+                details::MsgIdLayerOptionsParser<TOptions...>
+            >
         >;
 
     /// @brief Parsed options
@@ -193,7 +191,9 @@ public:
         TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
-        auto es = field.read(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        auto es = thisObj.doReadField(msgPtr, field, iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -257,13 +257,14 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         using MsgType = typename std::decay<decltype(msg)>::type;
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(
+        thisObj.prepareFieldForWrite(
             getMsgId(msg, IdRetrieveTag<MsgType>()), 
             msg, 
             field);
 
-        auto es = field.write(iter, size);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -619,13 +620,14 @@ private:
                 "Explicit message type is expected to expose compile type message ID by "
                 "using \"StaticNumIdImpl\" option");
 
-        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto id = thisObj.getMsgIdFromField(field);
         BaseImpl::setMsgId(id, extraValues...);
         if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
-        static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
+        thisObj.beforeRead(field, msg);
         return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
@@ -693,7 +695,8 @@ private:
                 StaticBinSearchOpTag
             >;
 
-        const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        const auto id = thisObj.getMsgIdFromField(field);
         BaseImpl::setMsgId(id, extraValues...);
 
         auto es = comms::ErrorStatus::InvalidMsgId;
@@ -711,7 +714,7 @@ private:
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;                
 
-            static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
+            thisObj.beforeRead(field, *msg);
             es = doReadInternal(id, idx, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), extraValues...);
             if (es == comms::ErrorStatus::Success) {
                 BaseImpl::setMsgIndex(idx, extraValues...);
@@ -843,13 +846,14 @@ private:
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
-        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto& thisObj = BaseImpl::thisLayer();
+        auto id = thisObj.getMsgIdFromField(field);
         msg = createGenericMsgInternal(id, msgIdx);
         if (!msg) {
             return es;
         }
 
-        static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
+        thisObj.beforeRead(field, *msg);
 
         using Tag = 
             typename comms::util::LazyShallowConditional<
@@ -938,8 +942,9 @@ private:
         TNextLayerWriter&& nextLayerWriter,
         StaticBinSearchOpTag<TParams...>) const
     {
+        auto& thisObj = BaseImpl::thisLayer();
         auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
-        auto id = static_cast<const ExtendingClass*>(this)->getMsgIdFromField(field);
+        auto id = thisObj.getMsgIdFromField(field);
         return comms::dispatchMsgStaticBinSearch(id, msg, handler);
     }
 

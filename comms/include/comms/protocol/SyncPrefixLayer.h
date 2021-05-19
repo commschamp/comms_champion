@@ -10,9 +10,13 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/SyncPrefixLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
+
+COMMS_MSVC_WARNING_PUSH
+COMMS_MSVC_WARNING_DISABLE(4189) // Disable erroneous initialized but not referenced variable warning
 
 namespace comms
 {
@@ -55,12 +59,6 @@ class SyncPrefixLayer : public
                 details::SyncPrefixLayerOptionsParser<TOptions...>
             >            
         >;
-
-    using ExtendingClass =
-        details::ProtocolLayerExtendingClassT<
-            SyncPrefixLayer<TField, TNextLayer, TOptions...>,
-            details::SyncPrefixLayerOptionsParser<TOptions...>
-        >  ;        
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
@@ -115,8 +113,11 @@ public:
         TNextLayerReader&& nextLayerReader,
         TExtraValues... extraValues)
     {
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
         auto beforeReadIter = iter;
-        auto es = field.read(iter, size);
+
+        auto es = thisObj.doReadField(msgPtr, field, iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, extraValues...);
         }
@@ -125,9 +126,7 @@ public:
             return es;
         }
 
-        bool verified = 
-            static_cast<ExtendingClass*>(this)->verifyFieldValue(field);
-
+        bool verified = thisObj.verifyFieldValue(field);
         if (!verified) {
             return comms::ErrorStatus::ProtocolError;
         }
@@ -161,8 +160,9 @@ public:
         std::size_t size,
         TNextLayerWriter&& nextLayerWriter) const
     {
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(field);
-        auto es = field.write(iter, size);
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(field);
+        auto es = thisObj.doWriteField(&msg, field, iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
@@ -225,4 +225,4 @@ constexpr bool isSyncPrefixLayer()
 
 }  // namespace comms
 
-
+COMMS_MSVC_WARNING_POP

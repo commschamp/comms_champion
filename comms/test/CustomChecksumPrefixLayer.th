@@ -163,7 +163,7 @@ private:
 
 
         template <typename TMsg, typename TIter>
-        static comms::ErrorStatus readField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+        static comms::ErrorStatus doReadField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
         {
             if (msgPtr == nullptr) {
                 assert(false); // Should not happen
@@ -171,7 +171,7 @@ private:
             }
 
             if ((CrcLen + Field::maxLength()) <= len) {
-                return Base::readField(msgPtr, field, iter, len);
+                return Base::doReadField(msgPtr, field, iter, len);
             }
 
             using FieldTmp = comms::field::IntValue<typename Field::FieldBase, std::uint8_t>;
@@ -186,7 +186,7 @@ private:
         }
 
         template <typename TMsg, typename TIter>
-        comms::ErrorStatus writeField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len) const
+        comms::ErrorStatus doWriteField(const TMsg* msgPtr, const Field& field, TIter& iter, std::size_t len) const
         {
             if (msgPtr == nullptr) {
                 assert(false); // Should not happen
@@ -195,7 +195,7 @@ private:
 
             auto nextLen = Base::nextLayer().length(*msgPtr);
             if (CrcLen <= nextLen) {
-                return Base::writeField(msgPtr, field, iter, len);
+                return Base::doWriteField(msgPtr, field, iter, len);
             }
 
             using FieldTmp = comms::field::IntValue<typename Field::FieldBase, std::uint8_t>;

@@ -249,6 +249,25 @@ public:
         return BaseImpl::setVersion(version);
     }
 
+    /// @brief Force serialization length of the field.
+    /// @details Available only when @ref comms::option::def::AvailableLengthLimit
+    ///     option is used for field definition.
+    /// @param[in] len Forced serialization length. 
+    ///     @li 0 means default serialization length determined by the storage type
+    ///     @li positive value means limit of the serialization length
+    ///     @li negative value means the length is determined by the stored value
+    void setForcedLength(int len)
+    {
+        BaseImpl::setForcedLength(len);
+    }
+
+    /// @brief Get forced serialization length
+    /// @see @ref setForcedLength()
+    int getForcedLength() const
+    {
+        return BaseImpl::getForcedLength();
+    }    
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;

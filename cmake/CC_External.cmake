@@ -223,10 +223,8 @@ macro (cc_define_external_project_targets inst_dir)
     set (CC_COMMS_FOUND TRUE)
     set (CC_INCLUDE_DIRS "${inst_dir}/include")
 
-    add_library(comms INTERFACE)
-    add_library(cc::comms ALIAS comms)
-
-    target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
+    add_library(cc::comms INTERFACE IMPORTED GLOBAL)
+    target_include_directories(cc::comms INTERFACE ${CC_INCLUDE_DIRS})
 
     while (TRUE)
         if (CC_EXT_TGT_NO_COMMS_CHAMPION OR CC_EXT_TGT_NO_TOOLS)
@@ -266,7 +264,7 @@ macro (cc_define_external_project_targets inst_dir)
             set (cc_lib_name lib${CC_PLUGIN_LIBRARIES}.so)
         endif ()
 
-        add_library(cc::comms_champion UNKNOWN IMPORTED)
+        add_library(cc::comms_champion UNKNOWN IMPORTED GLOBAL)
         file (MAKE_DIRECTORY ${CC_INCLUDE_DIRS})
         set (interface_link_libs cc::comms)        
 

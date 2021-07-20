@@ -224,6 +224,9 @@ macro (cc_define_external_project_targets inst_dir)
     set (CC_INCLUDE_DIRS "${inst_dir}/include")
 
     add_library(cc::comms INTERFACE IMPORTED GLOBAL)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CC_INCLUDE_DIRS}
+    )    
     target_include_directories(cc::comms INTERFACE ${CC_INCLUDE_DIRS})
 
     while (TRUE)

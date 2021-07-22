@@ -69,7 +69,9 @@ class ChecksumPrefixLayer : public
                 ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
                 details::ChecksumLayerOptionsParser<TOptions...>
             >,            
-            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            typename details::template ChecksumLayerOptionsParser<TOptions...>::template SuppressForVerifyBeforeRead<
+                comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            >
         >
 {
     using BaseImpl =
@@ -80,7 +82,9 @@ class ChecksumPrefixLayer : public
                 ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
                 details::ChecksumLayerOptionsParser<TOptions...>
             >,            
-            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            typename details::template ChecksumLayerOptionsParser<TOptions...>::template SuppressForVerifyBeforeRead<
+                comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            >
         >;
 
 public:

@@ -30,6 +30,8 @@ public:
     void test6();
     void test7();
     void test8();
+    void test9();
+    void test10();
 
 private:
 
@@ -160,6 +162,40 @@ private:
     using LeChecksumField1 = ChecksumField1<LeField>;
     using BeBackInsertChecksumField1 = ChecksumField1<BeBackInsertField>;
 
+    template <typename TField, std::size_t TLen>
+    using VersionField =
+        comms::field::IntValue<
+            TField,
+            typename comms::util::SizeToType<TLen>::Type
+        >;
+
+    using BeVersionField1 = VersionField<BeField, 1U>;
+
+    typedef std::tuple<
+        BeVersionField1
+    > ExtraVersionTransport;
+
+    template <typename TOptions = comms::option::EmptyOption>
+    struct ExtraTransportMessageBase : public
+        comms::Message<
+            TOptions,
+            comms::option::ExtraTransportFields<ExtraVersionTransport>
+        >
+    {
+        using Base =
+            comms::Message<
+                TOptions,
+                comms::option::ExtraTransportFields<ExtraVersionTransport>
+            >;
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(version);
+    };
+
+    typedef ExtraTransportMessageBase<NonPolymorphicBigEndianTraits> BeNonPolymorphicExtraTransportMessageBase;
+    typedef Message1<BeNonPolymorphicExtraTransportMessageBase> NonPolymorphicExtraTransportBeMsg1;
+    typedef Message2<BeNonPolymorphicExtraTransportMessageBase> NonPolymorphicExtraTransportBeMsg2;
+
+
     template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
     using ProtocolStack =
         comms::protocol::SyncPrefixLayer<
@@ -198,6 +234,54 @@ private:
                 comms::option::ChecksumLayerVerifyBeforeRead
             >
         >;
+
+    template <typename TSyncField, typename TSizeField, typename TIdField, typename TVersionField, typename TChecksumField, typename TMessage>
+    using ProtocolStackVerifyBefore2 =
+        comms::protocol::SyncPrefixLayer<
+            TSyncField,
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::MsgIdLayer<
+                    TIdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    comms::protocol::TransportValueLayer<
+                        TVersionField,
+                        TMessage::TransportFieldIdx_version,
+                        comms::protocol::ChecksumPrefixLayer<
+                            TChecksumField,
+                            comms::protocol::checksum::BasicSum<>,
+                            comms::protocol::MsgDataLayer<>,
+                            comms::option::ChecksumLayerVerifyBeforeRead
+                        >
+                    >
+                >
+            >
+        >;
+
+    template <typename TSyncField, typename TSizeField, typename TVersionField, typename TIdField, typename TChecksumField, typename TMessage>
+    using ProtocolStackVerifyBefore3 =
+        comms::protocol::SyncPrefixLayer<
+            TSyncField,
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::TransportValueLayer<
+                    TVersionField,
+                    TMessage::TransportFieldIdx_version,                
+                    comms::protocol::MsgIdLayer<
+                        TIdField,
+                        TMessage,
+                        AllMessages<TMessage>,
+                        comms::protocol::ChecksumPrefixLayer<
+                            TChecksumField,
+                            comms::protocol::checksum::BasicSum<>,
+                            comms::protocol::MsgDataLayer<>,
+                            comms::option::ChecksumLayerVerifyBeforeRead
+                        >
+                    >
+                >
+            >
+        >;        
 };
 
 void ChecksumPrefixLayerTestSuite::test1()
@@ -412,3 +496,68 @@ void ChecksumPrefixLayerTestSuite::test8()
     TS_ASSERT_EQUALS(std::get<2>(fields2).value(), 3U);
     TS_ASSERT_EQUALS(std::get<3>(fields2).value(), MessageType1);
 }
+
+void ChecksumPrefixLayerTestSuite::test9()
+{
+    static const char Buf[] = {
+        static_cast<char>(0xab), static_cast<char>(0xcd), // sync
+        0x0, 0x5, // size
+        MessageType1, // id
+        0x05, // version
+        0x03, // checksum
+        0x01, 0x02, // data
+        static_cast<char>(0x3f) // garbage
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStackVerifyBefore2<
+            BeSyncField2,
+            BeSizeField20,
+            BeIdField1,
+            BeVersionField1,
+            BeChecksumField1,
+            BeNonPolymorphicExtraTransportMessageBase
+        > Stack;
+
+    Stack stack;
+
+    NonPolymorphicExtraTransportBeMsg1 msg;
+    commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
+    TS_ASSERT_EQUALS(msg.transportField_version().value(), 0x5);
+}
+
+void ChecksumPrefixLayerTestSuite::test10()
+{
+    static const char Buf[] = {
+        static_cast<char>(0xab), static_cast<char>(0xcd), // sync
+        0x0, 0x5, // size
+        0x05, // version        
+        MessageType1, // id
+        0x03, // checksum
+        0x01, 0x02, // data
+        static_cast<char>(0x3f) // garbage
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStackVerifyBefore3<
+            BeSyncField2,
+            BeSizeField20,
+            BeVersionField1,
+            BeIdField1,
+            BeChecksumField1,
+            BeNonPolymorphicExtraTransportMessageBase
+        > Stack;
+
+    Stack stack;
+
+    NonPolymorphicExtraTransportBeMsg1 msg;
+    commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
+    TS_ASSERT_EQUALS(msg.transportField_version().value(), 0x5);
+}
+

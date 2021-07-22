@@ -32,6 +32,9 @@ public:
     template <typename TLayer>
     using DefineExtendingClass = TLayer;
 
+    template <typename TOpt>
+    using SuppressForVerifyBeforeRead = TOpt;
+
 };
 
 template <typename... TOptions>
@@ -40,6 +43,9 @@ class ChecksumLayerOptionsParser<comms::option::def::ChecksumLayerVerifyBeforeRe
 {
 public:
     static constexpr bool HasVerifyBeforeRead = true;
+
+    template <typename TOpt>
+    using SuppressForVerifyBeforeRead = comms::option::app::EmptyOption;    
 };
 
 template <typename T, typename... TOptions>

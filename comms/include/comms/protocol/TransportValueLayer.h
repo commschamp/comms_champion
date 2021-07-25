@@ -51,6 +51,14 @@ namespace protocol
 ///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
 ///         See also @ref page_custom_transport_value_layer tutorial page.
+///     @li @ref comms::option::def::ProtocolLayerSuppressReadUntilDataSplitForcing - Use 
+///         this option when there is a need to disable passing 
+///         @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit option to the
+///         @ref comms::protocol::ProtocolLayerBase base class. The passing of 
+///         @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit option 
+///         happens when the @ref comms::protocol::TransportValueLayer preceeds (wraps)
+///         @ref comms::protocol::MsgIdLayer and is unable to re-assign the read field value
+///         to the message object, because the latter hasn't been created yet.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
 template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>

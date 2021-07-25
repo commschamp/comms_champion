@@ -76,6 +76,17 @@ public:
 
 template <typename... TOptions>
 class TransportValueLayerOptionsParser<
+    comms::option::def::ProtocolLayerSuppressReadUntilDataSplitForcing, 
+    TOptions...> :
+        public TransportValueLayerOptionsParser<TOptions...>
+{
+public:
+    template <typename TNextLayer>
+    using ForceReadUntilDataSplitIfNeeded = comms::option::app::EmptyOption;
+};
+
+template <typename... TOptions>
+class TransportValueLayerOptionsParser<
     comms::option::app::EmptyOption,
     TOptions...> : public TransportValueLayerOptionsParser<TOptions...>
 {

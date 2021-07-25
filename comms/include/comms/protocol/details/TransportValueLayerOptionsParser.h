@@ -9,6 +9,7 @@
 
 #include "comms/options.h"
 #include "TransportValueLayerBases.h"
+#include "ProtocolLayerDetails.h"
 
 namespace comms
 {
@@ -35,6 +36,19 @@ public:
 
     template <typename TLayer>
     using DefineExtendingClass = TLayer;
+
+    template <typename TNextLayer>
+    using ForceReadUntilDataSplitIfNeeded = 
+        typename comms::util::Conditional<
+            std::is_void<typename ProtocolLayerMsgPtr<TNextLayer>::Type>::value
+        >::template Type <
+            comms::option::app::EmptyOption,
+            comms::option::def::ProtocolLayerForceReadUntilDataSplit
+            // If the MsgPtr is not defined, then the MsgIdLayer is 
+            // probably an outer layer, as the result the message 
+            // object is properly allocated when transport value
+            // read operation is reached.
+        >;
 };
 
 template <typename... TOptions>

@@ -140,7 +140,6 @@ public:
     {
         return static_cast<const ThisLayer&>(*this);
     }
-    
 
     /// @brief Compile time check whether split read "until" and "from" data
     ///     layer is allowed.

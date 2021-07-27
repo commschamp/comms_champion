@@ -154,10 +154,15 @@
 ///     
 ///     // Re-assign the field's value to available message object.
 ///     template <typename TMsg>
-///     static void reassignFieldValue(TMsg& msg, const Field& field)
+///     bool reassignFieldValueToMsg(const Field& field, TMsg* msgPtr)
 ///     {
-///         msg.transportField_version().value() = field.field_version().value();
-///         msg.transportField_flags().value() = field.field_flags().value();
+///         if (msgPtr == nullptr) {
+///             return false;
+///         }
+///
+///         msgPtr->transportField_version().value() = field.field_version().value();
+///         msgPtr->transportField_flags().value() = field.field_flags().value();
+///         return true;
 ///     }  
 ///
 ///     // Update the transport field values to be written when message is serialized.
@@ -188,9 +193,8 @@
 /// function that is invoked to write field's value.
 /// @li @ref comms::protocol::TransportValueLayer::doFieldLength() "doFieldLength()" - Member
 /// function that is invoked to calculate serialization length of the field.
-/// @li @ref comms::protocol::TransportValueLayer::reassignFieldValue() "reassignFieldValue()" -
-/// Member function that is invoked right before reading
-/// message payload. It's responsibility is to re-assign the transport field value to 
+/// @li @ref comms::protocol::TransportValueLayer::reassignFieldValueToMsg() "reassignFieldValueToMsg()" -
+/// Member function that is invoked to re-assign the transport field value to 
 /// the appropriate transport field(s) in the message object.
 /// @li @ref comms::protocol::TransportValueLayer::prepareFieldForWrite() "prepareFieldForWrite()" - 
 /// Member function that is invoked to prepare

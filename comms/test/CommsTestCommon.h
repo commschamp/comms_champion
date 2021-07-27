@@ -934,7 +934,15 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     auto writeIter = comms::writeIteratorFor(msg, &outCheckBuf[0]);
     es = stack.write(*msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
+    bool buffersEqual = std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0]));
+    if (!buffersEqual) {
+        std::cout << "Orig buffer: " << std::hex;
+        std::copy_n(buf, actualBufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nWritten buffer: ";
+        std::copy_n(static_cast<const char*>(&outCheckBuf[0]), actualBufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(buffersEqual);
     return msg;
 }
 

@@ -282,15 +282,7 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        using Tag = 
-            typename comms::util::LazyShallowConditional<
-                std::is_void<typename std::decay<TMsg>::type>::value
-            >::template Type<
-                NoMsgTypeTag,
-                ValidMsgTypeTag
-            >;
-
-        return doUpdateInternal(&msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
+        return doUpdateInternal(&msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), ValidMsgTypeTag<>());
     }
 
 protected:

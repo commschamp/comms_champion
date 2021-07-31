@@ -94,8 +94,9 @@ cc_build_as_external_project(
         -DCC_NO_UNIT_TESTS=ON
 )
 ```
-The CMake code above will create CMake target (default hidden name or which can be updated
-using TGT parameter), which checks out this project from github (the repo can be updated
+The CMake code above will create CMake target (default hidden name of which can be updated
+using TGT parameter), which checks out this project from 
+[github](https://github.com/commschamp/comms_champion) (the repo url can be updated
 using REPO parameter). If this project sources are already checked out, as git submodule
 for example, just pass NO_REPO parameter.
 ```

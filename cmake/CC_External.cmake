@@ -45,6 +45,7 @@
 # ******************************************************
 # - Build comms_champion as external project during normal build process.
 #     cc_build_as_external_project(
+#         TGT <target_name>
 #         SRC_DIR <src_dir>
 #         [BUILD_DIR <build_dir>]
 #         [INSTALL_DIR] <install_dir>]
@@ -57,6 +58,7 @@
 #         [UPDATE_DISCONNECTED]
 #         [NO_DEFAULT_CMAKE_ARGS]
 #     )
+# - TGT - Name of CMake target that can be used to establish dependencies.
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A directory where comms_champion will be build.
 # - INSTALL_DIR - A directory where comms_champion will be installed, also passed as 

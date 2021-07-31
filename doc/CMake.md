@@ -94,7 +94,23 @@ cc_build_as_external_project(
         -DCC_NO_UNIT_TESTS=ON
 )
 ```
-The invocation of the function above will define `cc::comms` and `cc::comms_champion`
+The CMake code above will create CMake target (default hidden name or which can be updated
+using TGT parameter), which checks out this project from github (the repo can be updated
+using REPO parameter). If this project sources are already checked out, as git submodule
+for example, just pass NO_REPO parameter.
+```
+include(/path/to/comms_champion/cmake/CC_External.cmake)
+cc_build_as_external_project(
+    SRC_DIR /path/to/comms_champion/sources
+    BUILD_DIR ${PROJECT_BINARY_DIR}/comms_champion
+    INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+    NO REPO                                    # No checkout, assume sources are in SRC_DIR
+    CMAKE_ARGS 
+        -DCC_NO_UNIT_TESTS=ON
+)
+```
+
+The invocation of the function above will also define `cc::comms` and `cc::comms_champion`
 cmake targets, which can be used as link libraries.
 ```
 target_link_libraries(my_app PRIVATE cc::comms)

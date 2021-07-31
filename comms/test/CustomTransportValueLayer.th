@@ -22,6 +22,7 @@ class CustomTransportValueLayerTestSuite : public CxxTest::TestSuite
 public:
     void test1();
     void test2();
+    void test3();
 
 private:
 
@@ -106,6 +107,12 @@ private:
             comms::option::FixedLength<2>
         >;
 
+    using ChcecksumField =
+        comms::field::IntValue<
+            FieldBase,
+            std::uint8_t
+        >;
+
     class VersionWithFlagsField : public
          comms::field::Bitfield<
             BigEndianField,
@@ -165,8 +172,53 @@ private:
             field.field_version().value() = msg.transportField_version().value();
             field.field_flags().value() = msg.transportField_flags().value();
         }                  
-    };    
+    }; 
 
+    template <
+          typename TNextLayer,
+          typename... TOptions>
+    class CustomReassigningTransportValueLayer : public
+        comms::protocol::TransportValueLayer<
+            VersionWithFlagsField,
+            std::tuple_size<ExtraTransport>::value,
+            TNextLayer,
+            comms::option::ExtendingClass<CustomReassigningTransportValueLayer<TNextLayer, TOptions...> >,
+            TOptions...,
+            comms::option::def::ProtocolLayerSuppressReadUntilDataSplitForcing
+        >
+    {
+        using Base = 
+            comms::protocol::TransportValueLayer<
+                VersionWithFlagsField,
+                std::tuple_size<ExtraTransport>::value,
+                TNextLayer,
+                comms::option::ExtendingClass<CustomReassigningTransportValueLayer<TNextLayer, TOptions...> >,
+                TOptions...,
+                comms::option::def::ProtocolLayerSuppressReadUntilDataSplitForcing
+            >;
+
+    public:
+
+        using Field = typename Base::Field;
+
+        template <typename TMsg>
+        bool reassignFieldValueToMsg(const Field& field, TMsg* msgPtr)
+        {
+            static_cast<void>(msgPtr);
+            // auto& destField = Base::nextLayer().nextLayer().pseudoField();
+            // using DestFieldType = typename std::decay<decltype(destField)>::type;
+            // destField = comms::field_cast<DestFieldType>(field);
+            Base::nextLayer().nextLayer().pseudoField() = field;
+            return true;
+        }  
+
+        template <typename TMsg>
+        static void prepareFieldForWrite(const TMsg& msg, Field& field)
+        {
+            field.field_version().value() = msg.transportField_version().value();
+            field.field_flags().value() = msg.transportField_flags().value();
+        }                  
+    };        
 
     template <typename TMessage>
     using BeforeIdProtocolStack =
@@ -197,6 +249,27 @@ private:
                 >
             >
         >;
+
+    template <typename TMessage>
+    using BeforeIdWithChecksumProtocolStack =
+        comms::protocol::MsgSizeLayer<
+            SizeField,
+            CustomReassigningTransportValueLayer<
+                comms::protocol::MsgIdLayer<
+                    IdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    CustomTransportValueLayer<
+                        comms::protocol::ChecksumLayer<
+                            ChcecksumField,
+                            comms::protocol::checksum::BasicSum<>,
+                            comms::protocol::MsgDataLayer<>
+                        >,
+                        comms::option::def::PseudoValue
+                    >
+                >         
+            >
+        >;        
 };
 
 void CustomTransportValueLayerTestSuite::test1()
@@ -246,6 +319,36 @@ void CustomTransportValueLayerTestSuite::test2()
     Stack stack;
 
     TS_ASSERT_EQUALS(stack.length(), 5U);
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType7);
+    TS_ASSERT_EQUALS(msgPtr->transportField_version().value(), 4U);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0x1);
+
+    auto& msg = dynamic_cast<Message7<MsgBase>&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
+    TS_ASSERT(msg.field_value2().isMissing());
+}
+
+void CustomTransportValueLayerTestSuite::test3()
+{
+    static const char Buf[] = {
+        0x0, 0x6, // size
+        0x14, // versio + flags
+        0x0, MessageType7, // id
+        0x01, 0x02, // data
+        0x03 // checksum
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using MsgBase = ExtraTransportMessageBase<BeOptions>;
+    using Stack = BeforeIdWithChecksumProtocolStack<MsgBase>;
+
+    Stack stack;
+
+    TS_ASSERT_EQUALS(stack.length(), 6U);
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);

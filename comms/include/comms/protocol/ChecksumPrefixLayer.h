@@ -538,7 +538,7 @@ private:
             return es;
         }
 
-        auto fieldLen = thisObj.doFieldLength(&msg);
+        auto fieldLen = thisObj.doFieldLength(msg);
         es = nextLayerWriter.write(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;

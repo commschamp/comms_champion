@@ -1160,8 +1160,8 @@ using OptionalExistsByDefault = ExistsByDefault;
 template <std::size_t TIdx>
 using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndexInitialiser<TIdx> >;
 
-/// @brief Force comms::protocol::ChecksumLayer and
-///     comms::protocol::ChecksumPrefixLayer, to verify checksum prior to
+/// @brief Force @ref comms::protocol::ChecksumLayer and
+///     @ref comms::protocol::ChecksumPrefixLayer, to verify checksum prior to
 ///     forwarding read to the wrapped layer(s).
 /// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
@@ -1188,6 +1188,14 @@ using EmptySerialisation = EmptySerialization;
 ///     contents being read.
 /// @headerfile comms/options.h
 struct ProtocolLayerForceReadUntilDataSplit {};
+
+/// @brief Option to forcefully disable passing the @ref ProtocolLayerForceReadUntilDataSplit
+///     option to the layer definition.
+/// @details Can be used by some customized layers default implementation of
+///     which pass the @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit option
+///     to the @ref comms::protocol::ProtocolLayerBase
+/// @headerfile comms/options.h
+struct ProtocolLayerSuppressReadUntilDataSplitForcing {};
 
 /// @brief Disallow usage of @ref ProtocolLayerForceReadUntilDataSplit option in
 ///     earlier (outer wrapping) layers.

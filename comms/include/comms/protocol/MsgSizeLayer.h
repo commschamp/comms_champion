@@ -262,7 +262,7 @@ public:
                 !std::is_void<LocalMsgPtr>::value
             >::template Type<LocalMsgPtr>;
         auto noMsgPtr = static_cast<ConstNullptrType>(nullptr);
-        return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
+        return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), NoMsgTypeTag<>());
     }
 
     /// @brief Customized update functionality, invoked by @ref update().
@@ -282,7 +282,7 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        return doUpdateInternal(&msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
+        return doUpdateInternal(&msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), ValidMsgTypeTag<>());
     }
 
 protected:
@@ -519,13 +519,14 @@ private:
         return fieldTmp.length();
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename TForwardTag>
     comms::ErrorStatus doUpdateInternal(
         const TMsg* msg,
         Field& field,
         TIter& iter,
         std::size_t size,
-        TNextLayerUpdater&& nextLayerUpdater) const
+        TNextLayerUpdater&& nextLayerUpdater,
+        TForwardTag&& tag) const
     {
         std::size_t lenValue = size - Field::maxLength();
         auto& thisObj = BaseImpl::thisLayer();
@@ -541,15 +542,7 @@ private:
             return es;
         }
 
-        using Tag = 
-            typename comms::util::LazyShallowConditional<
-                std::is_void<typename std::decay<TMsg>::type>::value
-            >::template Type<
-                NoMsgTypeTag,
-                ValidMsgTypeTag
-            >;
-
-        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
+        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), tag);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerUpdater, typename... TParams>
@@ -572,10 +565,7 @@ private:
         TNextLayerUpdater&& nextLayerUpdater,
         ValidMsgTypeTag<TParams...>) const
     {
-        if (msg == nullptr) {
-            return nextLayerUpdater.update(iter, size);
-        }
-        
+        COMMS_ASSERT(msg != nullptr);
         return nextLayerUpdater.update(*msg, iter, size);
     }        
 };

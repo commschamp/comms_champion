@@ -70,7 +70,7 @@
 #   build process using CC_QT_DIR variable.
 # - NO_REPO - Don't checkout sources, SRC_DIR must contain checkout out sources, suitable for this repo being a submodule.
 # - NO_TOOLS - Will disable build of the CommsChampion Tools, will result in 
-#   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
+#   having CC_BUILD_TOOLS_LIBRARY=OFF option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
 # - UPDATE_DISCONNECTED - Pass "UPDATE_DISCONNECTED 1" to ExternalProject_Add()
 # - NO_DEFAULT_CMAKE_ARGS - Exclude passing the extra cmake arguments that copy the 
@@ -342,7 +342,7 @@ function (cc_build_as_external_project)
 
     set (comms_lib_only_param)
     if (CC_EXTERNAL_PROJ_NO_TOOLS)
-        set (comms_lib_only_param "-DCC_COMMS_LIB_ONLY=ON")
+        set (comms_lib_only_param "-DCC_BUILD_TOOLS_LIBRARY=OFF")
     endif ()
 
     if (NOT CC_EXTERNAL_PROJ_TGT)

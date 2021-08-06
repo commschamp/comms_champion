@@ -61,7 +61,7 @@ cc_build_during_config(
     SRC_DIR /path/to/comms_champion
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${cc_install_dir}
-        -DCC_COMMS_LIB_ONLY=ON -DCC_NO_UNIT_TESTS=ON
+        -DCC_BUILD_UNIT_TESTS=OFF -DCC_BUILD_TOOLS_LIBRARY=OFF
 )
 ```
 The code above will install the COMMS library and all the relevant cmake 
@@ -91,7 +91,7 @@ cc_build_as_external_project(
     BUILD_DIR ${PROJECT_BINARY_DIR}/comms_champion
     INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
     CMAKE_ARGS 
-        -DCC_NO_UNIT_TESTS=ON
+        -DCC_BUILD_UNIT_TESTS=OFF
 )
 ```
 The CMake code above will create CMake target (default hidden name of which can be updated
@@ -107,7 +107,7 @@ cc_build_as_external_project(
     INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
     NO REPO                                    # No checkout, assume sources are in SRC_DIR
     CMAKE_ARGS 
-        -DCC_NO_UNIT_TESTS=ON
+        -DCC_BUILD_UNIT_TESTS=OFF
 )
 ```
 

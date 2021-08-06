@@ -48,7 +48,7 @@ the **COMMS** library headers in **install/include** subdirectory.
 $> cd /path/to/comms_champion
 $> mkdir build && cd build
 $> cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/some/install/dir \
-    -DCC_COMMS_LIB_ONLY=ON -DCC_NO_UNIT_TESTS=ON ..
+    -DCC_BUILD_UNIT_TESTS=OFF -DCC_BUILD_TOOLS_LIBRARY=OFF ..
 $> make install 
 ```
 ### Windows + Visual Studio Build Example

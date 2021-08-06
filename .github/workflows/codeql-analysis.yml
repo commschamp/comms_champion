@@ -55,7 +55,7 @@ jobs:
     - run: |
        cmake -E make_directory ${{runner.workspace}}/build
        cd ${{runner.workspace}}/build
-       cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCC_COMMS_LIB_ONLY=ON
+       cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{matrix.type}} -DCMAKE_INSTALL_PREFIX=install -DCC_BUILD_TOOLS_LIBRARY=OFF
        cmake --build . --target install
 
     - name: Perform CodeQL Analysis

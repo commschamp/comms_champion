@@ -1,4 +1,4 @@
-if (NOT CC_ENABLE_DEMO_PROTOCOL)
+if (NOT CC_BUILD_DEMO_PROTOCOL)
     return ()
 endif ()
 

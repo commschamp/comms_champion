@@ -23,7 +23,7 @@ option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 # CC_EXTERNALS_DIR - Directory where pull externals, defaults to 
 #   ${PROJECT_SOURCE_DIR}/externals
 
-# Deprecated options for bacKward compatibility, use the ones above for new builds.
+# Deprecated options for backward compatibility, use the ones above for new builds.
 # option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
 # option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
 # option (CC_NO_UNIT_TESTS "Disable unittests." OFF)

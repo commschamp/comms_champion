@@ -28,6 +28,11 @@ target_include_directories(comms INTERFACE
 )
 
 if (CC_INSTALL_COMMS_LIB)
+    install (
+        FILES ${LIB_COMMS_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
+    )
+
     install(TARGETS comms EXPORT commsExport)
     install(EXPORT commsExport NAMESPACE cc::
         DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake

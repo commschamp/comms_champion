@@ -195,21 +195,6 @@ set (COMMS_CHAMPION_CMAKE_FILES
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
 )    
    
-if (CC_INSTALL_COMMS_LIB)
-    install (
-        FILES ${LIB_COMMS_CMAKE_FILES}
-        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
-    )
-endif ()
-
-if (CC_INSTALL_TOOLS_LIBRARY)
-    install (
-        FILES ${COMMS_CHAMPION_CMAKE_FILES}
-        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
-    )
-endif ()    
-
-
 add_subdirectory (comms)
 add_subdirectory (comms_champion)
 

@@ -23,9 +23,11 @@ function (bin_cc_dump)
     add_executable(${name} ${src} ${moc})
     target_link_libraries(${name} PRIVATE cc::comms_champion Qt5::Core)
     
-    install (
-        TARGETS ${name}
-        DESTINATION ${BIN_INSTALL_DIR})
+    if (CC_INSTALL_TOOLS)
+        install (
+            TARGETS ${name}
+            DESTINATION ${BIN_INSTALL_DIR})
+    endif ()
         
 endfunction ()
 

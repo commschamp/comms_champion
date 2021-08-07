@@ -52,9 +52,11 @@ function (plugin_serial_socket)
     add_library (${name} MODULE ${src} ${moc} ${ui})
     target_link_libraries(${name} PRIVATE cc::${COMMS_CHAMPION_LIB_NAME} Qt5::SerialPort Qt5::Widgets Qt5::Core)
     
-    install (
-        TARGETS ${name}
-        DESTINATION ${PLUGIN_INSTALL_DIR})
+    if (CC_INSTALL_TOOLS)
+        install (
+            TARGETS ${name}
+            DESTINATION ${PLUGIN_INSTALL_DIR})
+    endif ()
     
 endfunction()
 

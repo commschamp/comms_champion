@@ -32,9 +32,11 @@ function (cc_plugin_raw_data_protocol)
     add_library (${name} MODULE ${src} ${moc})
     target_link_libraries(${name} PRIVATE cc::${COMMS_CHAMPION_LIB_NAME})
     
-    install (
-        TARGETS ${name}
-        DESTINATION ${PLUGIN_INSTALL_DIR})
+    if (CC_INSTALL_TOOLS)
+        install (
+            TARGETS ${name}
+            DESTINATION ${PLUGIN_INSTALL_DIR})
+    endif ()
         
 endfunction()
 

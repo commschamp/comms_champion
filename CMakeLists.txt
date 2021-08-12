@@ -2,15 +2,20 @@ cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
 # Available options
-option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
-option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
-option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
-option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
-option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
-option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
-option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when no CMAKE_CXX_STANDARD is defined" OFF)
-option (CC_NO_CCACHE "Disable use of ccache on UNIX systems")
+
+option (CC_INSTALL_COMMS_LIB "Install comms library headers." ON)
+option (CC_BUILD_UNIT_TESTS "Build unittests." ${CC_INSTALL_COMMS_LIB})
 option (CC_UNIT_TESTS_USE_SANITIZERS "Use sanitizers during unittests. Applicable when unittest are enabled." ON)
+option (CC_BUILD_TOOLS_LIBRARY "Build tools library." ON)
+option (CC_INSTALL_TOOLS_LIBRARY "Install tools library." ${CC_BUILD_TOOLS_LIBRARY})
+option (CC_BUILD_TOOLS "Build tools binaries." ${CC_BUILD_TOOLS_LIBRARY})
+option (CC_INSTALL_TOOLS "Install tools binaries." ${CC_BUILD_TOOLS})
+option (CC_BUILD_DEMO_PROTOCOL "Build demo protocol plugin." OFF)
+option (CC_INSTALL_DEMO_PROTOCOL "Install demo protocol plugin." ${CC_BUILD_DEMO_PROTOCOL})
+option (CC_WARN_AS_ERR "Treat warning as error" ON)
+option (CC_USE_CCACHE "Use ccache on UNIX systems if it's available" ON)
+option (CC_SKIP_CXX_STANDARD_FORCING "Use ccache on UNIX systems if it's available" ON)
+option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
@@ -18,12 +23,17 @@ option (CC_UNIT_TESTS_USE_SANITIZERS "Use sanitizers during unittests. Applicabl
 # CC_EXTERNALS_DIR - Directory where pull externals, defaults to 
 #   ${PROJECT_SOURCE_DIR}/externals
 
+# Deprecated options for backward compatibility, use the ones above for new builds.
+# option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
+# option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
+# option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
+# option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
+# option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
+# option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when no CMAKE_CXX_STANDARD is defined" OFF)
+# option (CC_NO_CCACHE "Disable use of ccache on UNIX systems" OFF)
+
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
-endif()
-
-if ((NOT CMAKE_CXX_STANDARD) AND (NOT CC_NO_CXX_STANDARD_FORCING))
-    set (CMAKE_CXX_STANDARD 11)
 endif()
 
 if (NOT CC_EXTERNALS_DIR)
@@ -34,8 +44,60 @@ set (CMAKE_SCRIPTS_DIR "${PROJECT_SOURCE_DIR}/cmake")
 
 ################################################
 
+# Check usage of deprecated options and ovewrite the default values of proper ones
+if ((DEFINED CC_COMMS_LIB_ONLY) AND (${CC_COMMS_LIB_ONLY}))
+    set (CC_INSTALL_COMMS_LIB ON)
+    set (CC_BUILD_TOOLS_LIBRARY OFF)
+    set (CC_INSTALL_TOOLS_LIBRARY OFF)
+    set (CC_BUILD_TOOLS OFF)
+    set (CC_INSTALL_TOOLS OFF)
+    set (CC_BUILD_DEMO_PROTOCOL OFF)
+    set (CC_INSTALL_DEMO_PROTOCOL OFF)
+endif ()
+
+if ((DEFINED CC_LIBS_ONLY) AND (${CC_LIBS_ONLY}))
+    set (CC_INSTALL_COMMS_LIB ON)
+    set (CC_BUILD_TOOLS_LIBRARY ON)
+    set (CC_INSTALL_TOOLS_LIBRARY ON)
+    set (CC_BUILD_TOOLS OFF)
+    set (CC_INSTALL_TOOLS OFF)
+    set (CC_BUILD_DEMO_PROTOCOL OFF)
+    set (CC_INSTALL_DEMO_PROTOCOL OFF)
+endif ()
+
+macro (cc_negate_option old_name new_name)
+    if (DEFINED ${old_name})
+        if (${old_name})
+            set (${new_name} OFF)
+        else ()
+            set (${new_name} ON)
+        endif ()
+    endif ()
+endmacro ()
+
+cc_negate_option(CC_NO_UNIT_TESTS CC_BUILD_UNIT_TESTS)
+cc_negate_option(CC_NO_WARN_AS_ERR CC_WARN_AS_ERR)
+cc_negate_option(CC_NO_CCACHE CC_USE_CCACHE)
+
+if (DEFINED CC_NO_CXX_STANDARD_FORCING)
+    set (CC_SKIP_CXX_STANDARD_FORCING ${CC_NO_CXX_STANDARD_FORCING})
+endif ()
+
+if ((DEFINED CC_ENABLE_DEMO_PROTOCOL) AND (${CC_ENABLE_DEMO_PROTOCOL}))
+    set (CC_BUILD_TOOLS_LIBRARY ON)
+    set (CC_INSTALL_TOOLS_LIBRARY ON)
+    set (CC_BUILD_DEMO_PROTOCOL ON)
+    set (CC_INSTALL_DEMO_PROTOCOL ON)
+endif ()
+
+################################################
+
+if ((NOT CMAKE_CXX_STANDARD) AND (NOT CC_SKIP_CXX_STANDARD_FORCING))
+    set (CMAKE_CXX_STANDARD 11)
+endif()
+
 while (TRUE)
-    if (CC_NO_UNIT_TESTS)
+    if (NOT CC_BUILD_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
         break()
     endif ()
@@ -53,7 +115,7 @@ endwhile ()
 ################################################
 # Compiler options
 set (warn_opt)
-if (NOT CC_NO_WARN_AS_ERR)
+if (CC_WARN_AS_ERR)
     set (warn_opt WARN_AS_ERR)
 endif ()
 
@@ -63,7 +125,7 @@ if (CC_STATIC_RUNTIME)
 endif ()
 
 set (ccache_opt)
-if ((UNIX) AND (NOT CC_NO_CCACHE))
+if ((UNIX) AND (CC_USE_CCACHE))
     set (ccache_opt USE_CCACHE)
 endif ()
 
@@ -135,30 +197,8 @@ set (COMMS_CHAMPION_CMAKE_FILES
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
 )    
    
-install (
-    FILES ${LIB_COMMS_CMAKE_FILES}
-    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
-)
-
-if (NOT CC_COMMS_LIB_ONLY)
-    install (
-        FILES ${COMMS_CHAMPION_CMAKE_FILES}
-        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
-    )
-endif ()
-
-
 add_subdirectory (comms)
-
-if (CC_COMMS_LIB_ONLY)
-    return ()
-endif ()
-
 add_subdirectory (comms_champion)
-
-if (CC_LIBS_ONLY)
-    return ()
-endif ()
 
 add_subdirectory (demo)
 

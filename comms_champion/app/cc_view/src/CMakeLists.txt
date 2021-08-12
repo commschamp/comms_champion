@@ -135,16 +135,17 @@ function (bin_cc_view)
     add_executable(${name} ${src} ${moc} ${ui} ${resources})
     target_link_libraries(${name} PRIVATE cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Widgets Qt5::Core)
     
-    install (
-        TARGETS ${name}
-        DESTINATION ${BIN_INSTALL_DIR})
-        
-    install (
-        FILES image/app_icon.png
-        DESTINATION ${ICON_INSTALL_DIR}
-        RENAME cc_view.png
-    )
-    
+    if (CC_INSTALL_TOOLS)
+        install (
+            TARGETS ${name}
+            DESTINATION ${BIN_INSTALL_DIR})
+            
+        install (
+            FILES image/app_icon.png
+            DESTINATION ${ICON_INSTALL_DIR}
+            RENAME cc_view.png
+        )
+    endif ()
         
 endfunction ()
 

@@ -24,9 +24,13 @@ include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/include
 )
 
+if (NOT CC_BUILD_TOOLS_LIBRARY)
+    return ()
+endif ()    
+
 add_subdirectory (lib)
 
-if (CC_LIBS_ONLY)
+if (NOT CC_BUILD_TOOLS)
     return ()
 endif ()
 

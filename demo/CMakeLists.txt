@@ -1,4 +1,4 @@
-if (NOT CC_ENABLE_DEMO_PROTOCOL)
+if (NOT CC_BUILD_DEMO_PROTOCOL)
     return ()
 endif ()
 
@@ -21,11 +21,6 @@ if (DOXYGEN_FOUND)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
 
-install (
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/demo
-    DESTINATION ${INC_INSTALL_DIR}
-)
-
 include_directories (
     BEFORE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -34,10 +29,17 @@ include_directories (
 
 add_subdirectory (cc_plugin)
 
-install (
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/config/
-    DESTINATION ${CONFIG_INSTALL_DIR}
-)
+if (CC_INSTALL_DEMO_PROTOCOL)
+    install (
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/demo
+        DESTINATION ${INC_INSTALL_DIR}
+    )
+
+    install (
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/config/
+        DESTINATION ${CONFIG_INSTALL_DIR}
+    )
+endif ()
 
 FILE(GLOB_RECURSE headers "include/*.h")
 add_custom_target(demo.headers SOURCES ${headers})

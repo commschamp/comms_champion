@@ -25,6 +25,7 @@ public:
     void test3();
     void test4();
     void test5();
+    void test6();
 
 private:
 
@@ -91,12 +92,25 @@ private:
             std::uint16_t
         >;
 
+    using SizeFieldIncChecksum =
+        comms::field::IntValue<
+            FieldBase,
+            std::uint16_t,
+            comms::option::def::NumValueSerOffset<sizeof(std::uint16_t)>
+        >;        
+
     using IdField =
         comms::field::EnumValue<
             FieldBase,
             MessageType,
             comms::option::FixedLength<2>
         >;
+
+    using ChecksumField =
+        comms::field::IntValue<
+            FieldBase,
+            std::uint16_t
+        >;        
 
     template <typename TMessage>
     using BeforeIdProtocolStack =
@@ -142,12 +156,36 @@ private:
                 >
             >
         >;
+
+    template <typename TMessage, typename... TOpt>
+    using AfterIdWithChecksumProtocolStack =
+        comms::protocol::ChecksumLayer<
+            ChecksumField,
+            comms::protocol::checksum::BasicSum<std::uint16_t>,
+            comms::protocol::MsgSizeLayer<
+                SizeFieldIncChecksum,
+                comms::protocol::MsgIdLayer<
+                    IdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    comms::protocol::TransportValueLayer<
+                        VersionField,
+                        ExtraTransportMessageBase<>::TransportFieldIdx_version,
+                        comms::protocol::MsgDataLayer<>,
+                        TOpt...
+                    >
+                >
+            >
+        >;        
 };
 
 void TransportValueLayerTestSuite::test1()
 {
     static const char Buf[] = {
-        0x0, 0x6, 0x0, 0x4, 0x0, MessageType1, 0x01, 0x02
+        0x0, 0x6, // size
+        0x0, 0x4, // version
+        0x0, MessageType1, // id
+        0x01, 0x02 // data
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -275,4 +313,32 @@ void TransportValueLayerTestSuite::test5()
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
     TS_ASSERT_EQUALS(msgPtr2->transportField_version().value(), 8U);
+}
+
+void TransportValueLayerTestSuite::test6()
+{
+    static const char Buf[] = {
+        0x0, 0x8, // size
+        0x0, MessageType1, // Id
+        0x0, 0x8, // version
+        0x01, 0x02, // data
+        0x00, 0x13, // checksum
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using MsgBase = ExtraTransportMessageBase<BeOptions>;
+    using Stack = AfterIdWithChecksumProtocolStack<MsgBase>;
+
+    Stack stack;
+
+    TS_ASSERT_EQUALS(stack.length(), 8U);
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_version().value(), 8U);
+
+    auto& msg1 = dynamic_cast<Message1<MsgBase>&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }

@@ -67,21 +67,23 @@ function (lib_comms_champion)
 
     target_compile_definitions(${name} PRIVATE -DCC_LIB_EXPORT)    
     target_compile_options(${name} PUBLIC
-        $<$<CXX_COMPILER_ID:MSVC>:/bigobj /wd4127 /wd5054>
+        $<$<CXX_COMPILER_ID:MSVC>:/bigobj /wd4127 /wd5054 /wd5240>
     )
     
     set_target_properties(${name} PROPERTIES VERSION ${COMMS_VERSION})
     
-    install (
-        TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export
-        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-    )
+    if (CC_INSTALL_TOOLS_LIBRARY)    
+        install (
+            TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export
+            LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+            RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+            ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+        )
 
-    install(EXPORT ${COMMS_CHAMPION_LIB_NAME}Export NAMESPACE cc::
-        DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
-    )
+        install(EXPORT ${COMMS_CHAMPION_LIB_NAME}Export NAMESPACE cc::
+            DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
+        )
+    endif ()
     
 endfunction ()
 

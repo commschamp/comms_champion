@@ -45,6 +45,7 @@
 # ******************************************************
 # - Build comms_champion as external project during normal build process.
 #     cc_build_as_external_project(
+#         TGT <target_name>
 #         SRC_DIR <src_dir>
 #         [BUILD_DIR <build_dir>]
 #         [INSTALL_DIR] <install_dir>]
@@ -52,21 +53,24 @@
 #         [REPO <repo>]
 #         [CMAKE_ARGS <arg1> <arg2> ...]
 #         [QT_DIR <path_to_qt>]
+#         [NO_REPO]
 #         [NO_TOOLS]
 #         [UPDATE_DISCONNECTED]
 #         [NO_DEFAULT_CMAKE_ARGS]
 #     )
+# - TGT - Name of CMake target that can be used to establish dependencies.
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A directory where comms_champion will be build.
 # - INSTALL_DIR - A directory where comms_champion will be installed, also passed as 
 #       CMAKE_INSTALL_PREFIX in addition to provided CMAKE_ARGS.
-# - TAG - Override the default tag to checkout.
-# - REPO - Override the default repository of the comms_champion.
+# - TAG - Override the default tag to checkout (unless NO_REPO param is used).
+# - REPO - Override the default repository of the comms_champion (unless NO_REPO param is used).
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
 # - QT_DIR - Path to external Qt5 libraries, will be passed to the comms_champion 
 #   build process using CC_QT_DIR variable.
+# - NO_REPO - Don't checkout sources, SRC_DIR must contain checkout out sources, suitable for this repo being a submodule.
 # - NO_TOOLS - Will disable build of the CommsChampion Tools, will result in 
-#   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
+#   having CC_BUILD_TOOLS_LIBRARY=OFF option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
 # - UPDATE_DISCONNECTED - Pass "UPDATE_DISCONNECTED 1" to ExternalProject_Add()
 # - NO_DEFAULT_CMAKE_ARGS - Exclude passing the extra cmake arguments that copy the 
@@ -223,10 +227,11 @@ macro (cc_define_external_project_targets inst_dir)
     set (CC_COMMS_FOUND TRUE)
     set (CC_INCLUDE_DIRS "${inst_dir}/include")
 
-    add_library(comms INTERFACE)
-    add_library(cc::comms ALIAS comms)
-
-    target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
+    add_library(cc::comms INTERFACE IMPORTED GLOBAL)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CC_INCLUDE_DIRS}
+    )    
+    target_include_directories(cc::comms INTERFACE ${CC_INCLUDE_DIRS})
 
     while (TRUE)
         if (CC_EXT_TGT_NO_COMMS_CHAMPION OR CC_EXT_TGT_NO_TOOLS)
@@ -266,7 +271,7 @@ macro (cc_define_external_project_targets inst_dir)
             set (cc_lib_name lib${CC_PLUGIN_LIBRARIES}.so)
         endif ()
 
-        add_library(cc::comms_champion UNKNOWN IMPORTED)
+        add_library(cc::comms_champion UNKNOWN IMPORTED GLOBAL)
         file (MAKE_DIRECTORY ${CC_INCLUDE_DIRS})
         set (interface_link_libs cc::comms)        
 
@@ -297,7 +302,7 @@ endmacro ()
 
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
-    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED NO_DEFAULT_CMAKE_ARGS)
+    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED NO_DEFAULT_CMAKE_ARGS NO_REPO)
     set (_oneValueArgs SRC_DIR BUILD_DIR INSTALL_DIR REPO TAG QT_DIR TGT)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -314,13 +319,21 @@ function (cc_build_as_external_project)
         set (CC_EXTERNAL_PROJ_INSTALL_DIR ${CC_EXTERNAL_PROJ_BUILD_DIR}/install)
     endif ()  
 
-    if (NOT CC_EXTERNAL_PROJ_REPO)
-        set (CC_EXTERNAL_PROJ_REPO ${CC_EXTERNAL_DEFAULT_REPO})
-    endif ()  
+    set (repo_param)
+    set (repo_tag_param)
+    if (NOT CC_EXTERNAL_PROJ_NO_REPO)
+        if (NOT CC_EXTERNAL_PROJ_REPO)
+            set (CC_EXTERNAL_PROJ_REPO ${CC_EXTERNAL_DEFAULT_REPO})
+        endif ()  
 
-    if (NOT CC_EXTERNAL_PROJ_TAG)
-        set (CC_EXTERNAL_PROJ_TAG ${CC_EXTERNAL_DEFAULT_TAG})
-    endif ()            
+        if (NOT CC_EXTERNAL_PROJ_TAG)
+            set (CC_EXTERNAL_PROJ_TAG ${CC_EXTERNAL_DEFAULT_TAG})
+        endif ()            
+
+
+        set (repo_param GIT_REPOSITORY "${CC_EXTERNAL_PROJ_REPO}")
+        set (repo_tag_param GIT_TAG "${CC_EXTERNAL_PROJ_TAG}")
+    endif ()
 
     set (exteral_proj_qt_dir_param)
     if (CC_EXTERNAL_PROJ_QT_DIR)
@@ -329,7 +342,7 @@ function (cc_build_as_external_project)
 
     set (comms_lib_only_param)
     if (CC_EXTERNAL_PROJ_NO_TOOLS)
-        set (comms_lib_only_param "-DCC_COMMS_LIB_ONLY=ON")
+        set (comms_lib_only_param "-DCC_BUILD_TOOLS_LIBRARY=OFF")
     endif ()
 
     if (NOT CC_EXTERNAL_PROJ_TGT)
@@ -357,8 +370,8 @@ function (cc_build_as_external_project)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
         PREFIX "${CC_EXTERNAL_PROJ_BUILD_DIR}"
-        GIT_REPOSITORY "${CC_EXTERNAL_PROJ_REPO}"
-        GIT_TAG "${CC_EXTERNAL_PROJ_TAG}"
+        ${repo_param}
+        ${repo_tag_param}
         SOURCE_DIR "${CC_EXTERNAL_PROJ_SRC_DIR}"
         BINARY_DIR "${CC_EXTERNAL_PROJ_BUILD_DIR}"
         INSTALL_DIR "${CC_EXTERNAL_PROJ_INSTALL_DIR}"
@@ -386,12 +399,12 @@ function (cc_build_as_external_project)
         ${define_targets_no_tools_param}
     )
 
-    if (TARGET comms)
-        add_dependencies(comms ${CC_EXTERNAL_PROJ_TGT})
+    if (TARGET cc::comms)
+        add_dependencies(cc::comms ${CC_EXTERNAL_PROJ_TGT})
     endif ()
 
-    if (TARGET comms_champion)
-        add_dependencies(comms_champion ${CC_EXTERNAL_PROJ_TGT})
+    if (TARGET cc::comms_champion)
+        add_dependencies(cc::comms_champion ${CC_EXTERNAL_PROJ_TGT})
     endif ()
 
     if ((NOT CC_EXTERNAL_PROJ_NO_DEPLOY_QT) AND WIN32 AND (NOT "${CC_EXTERNAL_PROJ_QT_DIR}" STREQUAL ""))

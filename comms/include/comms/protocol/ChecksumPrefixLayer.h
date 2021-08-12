@@ -69,7 +69,9 @@ class ChecksumPrefixLayer : public
                 ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
                 details::ChecksumLayerOptionsParser<TOptions...>
             >,            
-            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            typename details::template ChecksumLayerOptionsParser<TOptions...>::template SuppressForVerifyBeforeRead<
+                comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            >
         >
 {
     using BaseImpl =
@@ -80,7 +82,9 @@ class ChecksumPrefixLayer : public
                 ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
                 details::ChecksumLayerOptionsParser<TOptions...>
             >,            
-            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            typename details::template ChecksumLayerOptionsParser<TOptions...>::template SuppressForVerifyBeforeRead<
+                comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+            >
         >;
 
 public:
@@ -250,7 +254,12 @@ public:
             return es;
         }
 
-        auto* msgPtr = static_cast<typename BaseImpl::MsgPtr::element_type*>(nullptr);
+        using MsgPtr = typename BaseImpl::MsgPtr;
+        static_assert(
+            !std::is_void<MsgPtr>::value,
+            "Please use update() overload that accepts message object as its first parameter");        
+
+        auto* msgPtr = static_cast<typename MsgPtr::element_type*>(nullptr);
         return fieldUpdateInternal(msgPtr, checksumIter, fromIter, iter, size, field);
     }
 
@@ -529,7 +538,7 @@ private:
             return es;
         }
 
-        auto fieldLen = thisObj.doFieldLength(&msg);
+        auto fieldLen = thisObj.doFieldLength(msg);
         es = nextLayerWriter.write(msg, iter, size - fieldLen);
         if (es != comms::ErrorStatus::Success) {
             return es;

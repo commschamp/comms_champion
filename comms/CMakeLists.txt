@@ -27,15 +27,22 @@ target_include_directories(comms INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-install(TARGETS comms EXPORT commsExport)
-install(EXPORT commsExport NAMESPACE cc::
-    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
-)
+if (CC_INSTALL_COMMS_LIB)
+    install (
+        FILES ${LIB_COMMS_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
+    )
 
-install (
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms
-    DESTINATION ${INC_INSTALL_DIR}
-)
+    install(TARGETS comms EXPORT commsExport)
+    install(EXPORT commsExport NAMESPACE cc::
+        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
+    )
+
+    install (
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms
+        DESTINATION ${INC_INSTALL_DIR}
+    )
+endif ()    
 
 add_subdirectory (test)
 

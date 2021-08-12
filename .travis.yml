@@ -14,7 +14,7 @@ matrix:
         apt:
           packages:
             - g++-4.8    
-      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON"
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_BUILD_TOOLS_LIBRARY=OFF"
     - os: linux
       addons:
         apt:
@@ -315,21 +315,21 @@ script:
   - echo "------------------ Debug build ------------------"
   - mkdir build.debug
   - cd build.debug
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_INSTALL_PREFIX=./install -DCC_ENABLE_DEMO_PROTOCOL=ON
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_INSTALL_PREFIX=./install -DCC_BUILD_DEMO_PROTOCOL=ON
   - make install
   - ctest
   - cd ..
   - echo "------------------ Release build ------------------"  
   - mkdir build.release
   - cd build.release
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install -DCC_ENABLE_DEMO_PROTOCOL=ON
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install -DCC_BUILD_DEMO_PROTOCOL=ON
   - make install
   - ctest
   - cd ..  
   - echo "------------------ MinSize Release build ------------------"  
   - mkdir build.min_size
   - cd build.min_size
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_INSTALL_PREFIX=./install -DCC_ENABLE_DEMO_PROTOCOL=ON
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_INSTALL_PREFIX=./install -DCC_BUILD_DEMO_PROTOCOL=ON
   - make install
   - ctest
   - cd ..    

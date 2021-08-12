@@ -51,6 +51,14 @@ namespace protocol
 ///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
 ///         See also @ref page_custom_transport_value_layer tutorial page.
+///     @li @ref comms::option::def::ProtocolLayerSuppressReadUntilDataSplitForcing - Use 
+///         this option when there is a need to disable passing 
+///         @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit option to the
+///         @ref comms::protocol::ProtocolLayerBase base class. The passing of 
+///         @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit option 
+///         happens when the @ref comms::protocol::TransportValueLayer preceeds (wraps)
+///         @ref comms::protocol::MsgIdLayer and is unable to re-assign the read field value
+///         to the message object, because the latter hasn't been created yet.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
 template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>
@@ -63,7 +71,8 @@ class TransportValueLayer : public
                     TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
                     details::TransportValueLayerOptionsParser<TOptions...>
                 >,
-                comms::option::def::ProtocolLayerForceReadUntilDataSplit
+                typename details::TransportValueLayerOptionsParser<TOptions...>::
+                    template ForceReadUntilDataSplitIfNeeded<TNextLayer>
             >,
             TOptions...
         >
@@ -78,7 +87,8 @@ class TransportValueLayer : public
                     ThisClass,
                     details::TransportValueLayerOptionsParser<TOptions...>
                 >,
-                comms::option::def::ProtocolLayerForceReadUntilDataSplit
+                typename details::TransportValueLayerOptionsParser<TOptions...>::
+                    template ForceReadUntilDataSplitIfNeeded<TNextLayer>
             >,
             TOptions...
         >;
@@ -148,18 +158,28 @@ public:
             return es;
         }
 
-        es = nextLayerReader.read(msg, iter, size, extraValues...);
+        static constexpr bool ForcedReadUntilDataSplit = 
+            BaseImpl::ParsedOptions::HasForceReadUntilDataSplit;
 
-        auto* msgPtr = BaseImpl::toMsgPtr(msg);
-        if (msgPtr != nullptr) {
-            using MsgType = typename std::decay<decltype(*msgPtr)>::type;    
-            static_assert(MsgType::hasTransportFields(),
-                "Message interface class hasn't defined transport fields, "
-                "use comms::option::def::ExtraTransportFields option.");            
+        if (ForcedReadUntilDataSplit) {
+            es = nextLayerReader.read(msg, iter, size, extraValues...);
 
-            auto& thisObj = BaseImpl::thisLayer();
-            thisObj.reassignFieldValue(*msgPtr, field);
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
         }
+
+        auto& thisObj = BaseImpl::thisLayer();
+        auto* msgPtr = BaseImpl::toMsgPtr(msg);
+        bool success = thisObj.reassignFieldValueToMsg(field, msgPtr);
+        if (!success) {
+            return comms::ErrorStatus::ProtocolError;
+        }
+
+        if (!ForcedReadUntilDataSplit) {
+            es = nextLayerReader.read(msg, iter, size, extraValues...);
+        }
+
         return es;
     }
 
@@ -236,7 +256,8 @@ protected:
     ///     May be overridden by the extending class if some complex functionality is required.
     /// @param[out] msg Reference to the created message object
     /// @param[in] field Field, value of which needs to be re-assigned
-    /// @note May be non-static in the extending class
+    /// @deprecated Use @ref comms::protocol::TransportValueLayer::reassignFieldValueToMsg() "reassignFieldValueToMsg()"
+    ///     instead.
     template <typename TMsg>
     static void reassignFieldValue(TMsg& msg, const Field& field)
     {
@@ -252,6 +273,30 @@ protected:
 
         using FieldType = typename std::decay<decltype(transportField)>::type;
         transportField = comms::field_cast<FieldType>(field);
+    }
+
+    /// @brief Re-assign the value from the input field to appropriate transport field
+    ///     in the message object.
+    /// @details Default implementation just assigns to the field accessed using
+    ///     @b TIdx index passed as the template argument to the class definition.@n
+    ///     May be overridden by the extending class if some complex functionality is required.
+    /// @param[in] field Field, value of which needs to be re-assigned
+    /// @param[in, out] msgPtr Pointer to the created message object
+    /// @return @b true in case of successful operation, @b false othewise @n
+    ///     In case @b false is returned, 
+    ///     the @ref comms::protocol::TransportValueLayer::doRead() "doRead()"
+    ///     member function will return @ref comms::ErrorStatus::ProtocolError.
+    /// @note May be non-static in the extending class
+    template <typename TMsg>
+    bool reassignFieldValueToMsg(const Field& field, TMsg* msgPtr)
+    {
+        if (msgPtr == nullptr) {
+            return false;
+        }
+
+        auto& thisObj = BaseImpl::thisLayer();
+        thisObj.reassignFieldValue(*msgPtr, field);
+        return true;
     }
 
     /// @brief Prepare field for writing.

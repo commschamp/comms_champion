@@ -24,6 +24,7 @@
 #         [REPO <repo>]
 #         [CMAKE_ARGS <arg1> <arg2> ...]
 #         [NO_DEFAULT_CMAKE_ARGS]
+#         [NO_REPO]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A build directory, defaults to ${PROJECT_BINARY_DIR}/comms_champion
@@ -41,6 +42,8 @@
 #         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
 #       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
 #       some of the default values.
+# - NO_REPO - Don't checkout sources, SRC_DIR must contain checkout out sources, suitable 
+#       for this repo being a submodule.
 #
 # ******************************************************
 # - Build comms_champion as external project during normal build process.
@@ -68,7 +71,8 @@
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
 # - QT_DIR - Path to external Qt5 libraries, will be passed to the comms_champion 
 #   build process using CC_QT_DIR variable.
-# - NO_REPO - Don't checkout sources, SRC_DIR must contain checkout out sources, suitable for this repo being a submodule.
+# - NO_REPO - Don't checkout sources, SRC_DIR must contain checkout out sources, 
+#       suitable for this repo being a submodule.
 # - NO_TOOLS - Will disable build of the CommsChampion Tools, will result in 
 #   having CC_BUILD_TOOLS_LIBRARY=OFF option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
@@ -155,7 +159,7 @@ endfunction ()
 
 function (cc_build_during_config)
     set (_prefix CC_BUILD)
-    set (_options NO_DEFAULT_CMAKE_ARGS)
+    set (_options NO_DEFAULT_CMAKE_ARGS NO_REPO)
     set (_oneValueArgs SRC_DIR BUILD_DIR REPO TAG)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -176,7 +180,9 @@ function (cc_build_during_config)
         set (CC_BUILD_TAG ${CC_EXTERNAL_DEFAULT_TAG})
     endif () 
 
-    cc_pull_sources(SRC_DIR ${CC_BUILD_SRC_DIR} REPO ${CC_BUILD_REPO} TAG ${CC_BUILD_TAG})      
+    if (NOT CC_BUILD_NO_REPO)
+        cc_pull_sources(SRC_DIR ${CC_BUILD_SRC_DIR} REPO ${CC_BUILD_REPO} TAG ${CC_BUILD_TAG})      
+    endif ()
 
     execute_process (
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CC_BUILD_BUILD_DIR}"

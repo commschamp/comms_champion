@@ -343,7 +343,7 @@ protected:
     /// @param[in] checksum Checksum value to assign
     /// @param[in] msg Pointer to message object being written, may be nullptr.
     /// @param[out] field Field, value of which needs to be populated
-    /// @note May be non-static in the extending class
+    /// @note May be non-static in the extending class. In case of non-static must be const.
     template <typename TChecksum, typename TMsg>
     static void prepareFieldForWrite(TChecksum checksum, const TMsg* msg, Field& field)
     {

@@ -267,6 +267,10 @@
 /// function that is invoked to calculate serialization length of the field.
 /// @li @ref comms::protocol::ChecksumLayer::calculateChecksum() "calculateChecksum()" - 
 /// Member function that is responsible to calculate a checksum on provided range.
+/// @li @ref comms::protocol::ChecksumLayer::getChecksumFromField() "getChecksumFromField()" - 
+/// Retrieve value of the checksum from the field.
+/// @li @ref comms::protocol::ChecksumLayer::prepareFieldForWrite() "prepareFieldForWrite()" -
+/// Assign the calculated checksum value to the field's value.
 /// 
 /// The newly defined custom protocol stack layer can be used instead of
 /// @ref comms::protocol::ChecksumLayer when defining 

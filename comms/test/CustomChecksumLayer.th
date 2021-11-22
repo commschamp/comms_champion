@@ -27,6 +27,7 @@ class CustomChecksumLayerTestSuite : public CxxTest::TestSuite
 public:
     void test1();
     void test2();
+    void test3();
 
 private:
 
@@ -123,9 +124,17 @@ private:
         >;
 
     template <typename TField>
-    using ChecksumtypeField1 = ChecksumTypeField<TField, 1>;
-    using BeChecksumtypeField1 = ChecksumtypeField1<BeField>;
-    using LeChecksumtypeField1 = ChecksumtypeField1<LeField>;
+    using ChecksumTypeField1 = ChecksumTypeField<TField, 1>;
+    using BeChecksumTypeField1 = ChecksumTypeField1<BeField>;
+    using LeChecksumTypeField1 = ChecksumTypeField1<LeField>;
+
+    template <typename TField>
+    using HasChecksumFlagsField =
+        comms::field::IntValue<
+            TField,
+            std::uint8_t
+        >;
+    using BeHasChecksumFlagsField = HasChecksumFlagsField<BeField>;
 
     template <typename TField, std::size_t TLen>
     using ChecksumField =
@@ -139,22 +148,34 @@ private:
     using BeChecksumField2 = ChecksumField2<BeField>;
     using LeChecksumField2 = ChecksumField2<LeField>;
 
-    typedef std::tuple<
-        BeChecksumtypeField1
-    > ExtraTransport;
-
-    template <typename TTraits>
-    using ExtraTransportFieldsTraits = 
-        std::tuple<
-            TTraits,
-            comms::option::ExtraTransportFields<ExtraTransport>
+    template <typename TField, std::size_t TLen>
+    using OptChecksumField =
+        comms::field::Optional<
+            ChecksumField<TField, TLen>,
+            comms::option::def::MissingByDefault
         >;
 
-    using BeExtraTransportFieldsTraits = ExtraTransportFieldsTraits<BeTraits>;
-    using LeExtraTransportFieldsTraits = ExtraTransportFieldsTraits<LeTraits>;
+    template <typename TField>
+    using OptChecksumField2 = OptChecksumField<TField, 2U>;
+    using BeOptChecksumField2 = OptChecksumField2<BeField>;
+    using LeOptChecksumField2 = OptChecksumField2<LeField>;
+
+    typedef std::tuple<
+        BeChecksumTypeField1
+    > ChecksumTypeExtraTransport;
 
     template <typename TTraits>
-    struct ExtraTransportMessageBase : public TestMessageBase<TTraits>
+    using ChecksumTypeExtraTransportFieldsTraits = 
+        std::tuple<
+            TTraits,
+            comms::option::ExtraTransportFields<ChecksumTypeExtraTransport>
+        >;
+
+    using BeChecksumTypeExtraTransportFieldsTraits = ChecksumTypeExtraTransportFieldsTraits<BeTraits>;
+    using LeChecksumTypeExtraTransportFieldsTraits = ChecksumTypeExtraTransportFieldsTraits<LeTraits>;
+
+    template <typename TTraits>
+    struct ChecksumTypeExtraTransportMessageBase : public TestMessageBase<TTraits>
     {
         using Base = TestMessageBase<TTraits>;
 
@@ -162,10 +183,36 @@ private:
         COMMS_MSG_TRANSPORT_FIELDS_NAMES(checksumType);
     };
 
-    using BeMsgBase = ExtraTransportMessageBase<BeExtraTransportFieldsTraits>;
-    using LeMsgBase = ExtraTransportMessageBase<LeExtraTransportFieldsTraits>;
+    using BeChecksumTypeMsgBase = ChecksumTypeExtraTransportMessageBase<BeChecksumTypeExtraTransportFieldsTraits>;
+    using LeChecksumTypeMsgBase = ChecksumTypeExtraTransportMessageBase<LeChecksumTypeExtraTransportFieldsTraits>;
 
-    using BeMsg1 = Message1<BeMsgBase>;
+    using BeCheckumTypeMsg1 = Message1<BeChecksumTypeMsgBase>;
+
+    typedef std::tuple<
+        BeHasChecksumFlagsField
+    > HasChecksumFlagsExtraTransport;
+
+    template <typename TTraits>
+    using HasChecksumFlagsExtraTransportFieldsTraits = 
+        std::tuple<
+            TTraits,
+            comms::option::ExtraTransportFields<HasChecksumFlagsExtraTransport>
+        >;
+
+    using BeHasChecksumExtraTransportFieldsTraits = HasChecksumFlagsExtraTransportFieldsTraits<BeTraits>;
+
+    template <typename TTraits>
+    struct HasChecksumFlagsExtraTransportMessageBase : public TestMessageBase<TTraits>
+    {
+        using Base = TestMessageBase<TTraits>;
+
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(checksumFlags);
+    };
+
+    using BeHasChecksumFlagsMsgBase = HasChecksumFlagsExtraTransportMessageBase<BeHasChecksumExtraTransportFieldsTraits>;
+
+    using BeHasChecksumFlagsMsg1 = Message1<BeHasChecksumFlagsMsgBase>;
 
     template <
           typename TField,
@@ -279,13 +326,107 @@ private:
     };    
 
     template <
+          typename TField,
+          typename TNextLayer,
+          typename... TOptions>
+    class OptionalChecksumLayer : public
+        comms::protocol::ChecksumLayer<
+            TField,
+            comms::protocol::checksum::BasicSum<std::uint16_t>,
+            TNextLayer,
+            comms::option::ExtendingClass<OptionalChecksumLayer<TField, TNextLayer, TOptions...> >,
+            TOptions...
+        >
+    {
+        using Base = 
+            comms::protocol::ChecksumLayer<
+                TField,
+                comms::protocol::checksum::BasicSum<std::uint16_t>,
+                TNextLayer,
+                comms::option::ExtendingClass<OptionalChecksumLayer<TField, TNextLayer, TOptions...> >,
+                TOptions...
+            >;
+    public:
+
+        using Field = typename Base::Field;
+        static_assert(comms::field::isOptional<Field>(), "The provided field is not optional");
+
+        static auto getChecksumFromField(const Field& field) -> typename Field::ValueType::ValueType
+        {
+            if (!field.doesExist()) {
+                return 0;
+            }
+
+            return field.field().value();
+        }
+
+        template <typename TMsg, typename TIter>
+        static comms::ErrorStatus doReadField(const TMsg* msgPtr, Field& field, TIter& iter, std::size_t len)
+        {
+            if (msgPtr == nullptr) {
+                return comms::ErrorStatus::ProtocolError;
+            }
+
+            TS_ASSERT(field.isMissing());
+            if (msgPtr->transportField_checksumFlags().value() != 0) {
+                field.setExists();
+            }
+
+            return Base::doReadField(msgPtr, field, iter, len);
+        }
+
+        template <typename TChecksum, typename TMsg>
+        static void prepareFieldForWrite(TChecksum checksum, const TMsg* msg, Field& field)
+        {
+            comms::cast_assign(field.field().value()) = checksum;
+            auto mode = comms::field::OptionalMode::Missing;
+            if ((msg != nullptr) && (msg->transportField_checksumFlags().value() != 0)) {
+                mode = comms::field::OptionalMode::Exists;
+            }
+
+            field.setMode(mode);
+        }
+
+
+        template <typename TMsg, typename TIter>
+        static typename Field::ValueType::ValueType calculateChecksum(const TMsg* msgPtr, TIter& iter, std::size_t len, bool& checksumValid)
+        {
+            if (msgPtr == nullptr) {
+                static constexpr bool Should_not_happen = false;
+                static_cast<void>(Should_not_happen);
+                COMMS_ASSERT(Should_not_happen);
+                checksumValid = false;
+                return static_cast<typename Field::ValueType::ValueType>(0);
+            }
+
+            if (msgPtr->transportField_checksumFlags().value() == 0) {
+                checksumValid = true;
+                return static_cast<typename Field::ValueType::ValueType>(0);
+            }
+
+            return Base::calculateChecksum(msgPtr, iter, len, checksumValid);
+        } 
+
+        template <typename TMsg>
+        static std::size_t doFieldLength(const TMsg& msg)
+        {
+            if (msg.transportField_checksumFlags().value() == 0) {
+                return 0U;
+            }
+
+            return Field::maxLength();
+        }
+
+    };    
+
+    template <
         typename TSyncField, 
         typename TChecksumField, 
         typename TSizeField, 
         typename TIdField, 
         typename TChecksumTypeField,
         typename TMessage>
-    struct ProtocolStack : public
+    struct CustomChecksumProtocolStack : public
         comms::protocol::SyncPrefixLayer<
             TSyncField,
             CustomChecksumLayer<
@@ -331,6 +472,60 @@ private:
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(sync, checksum, size, id, checksumType, payload);
     };
+
+    template <
+        typename TSyncField, 
+        typename TSizeField, 
+        typename TIdField, 
+        typename TChecksumFlagsField,
+        typename TChecksumField, 
+        typename TMessage>
+    struct CustomOptChecksumProtocolStack : public
+        comms::protocol::SyncPrefixLayer<
+            TSyncField,
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::MsgIdLayer<
+                    TIdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    comms::protocol::TransportValueLayer<
+                        TChecksumFlagsField,
+                        0,
+                        OptionalChecksumLayer<
+                            TChecksumField,
+                            comms::protocol::MsgDataLayer<>
+                        >
+                    >
+                >
+            >
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+        comms::protocol::SyncPrefixLayer<
+            TSyncField,
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::MsgIdLayer<
+                    TIdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    comms::protocol::TransportValueLayer<
+                        TChecksumFlagsField,
+                        0,
+                        OptionalChecksumLayer<
+                            TChecksumField,
+                            comms::protocol::MsgDataLayer<>
+                        >
+                    >
+                >
+            >
+        >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(sync, size, id, checksumFlags, checksum, payload);
+    };    
 };
 
 void CustomChecksumLayerTestSuite::test1()
@@ -347,20 +542,20 @@ void CustomChecksumLayerTestSuite::test1()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     typedef
-        ProtocolStack<
+        CustomChecksumProtocolStack<
             BeSyncField2,
             BeChecksumField2,
             BeSizeField20,
             BeIdField1,
-            BeChecksumtypeField1,
-            BeMsgBase
+            BeChecksumTypeField1,
+            BeChecksumTypeMsgBase
         > Stack;
 
     Stack stack;
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
-    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    auto& msg1 = dynamic_cast<BeCheckumTypeMsg1&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }
 
@@ -378,19 +573,50 @@ void CustomChecksumLayerTestSuite::test2()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     typedef
-        ProtocolStack<
+        CustomChecksumProtocolStack<
             BeSyncField2,
             BeChecksumField2,
             BeSizeField20,
             BeIdField1,
-            BeChecksumtypeField1,
-            BeMsgBase
+            BeChecksumTypeField1,
+            BeChecksumTypeMsgBase
         > Stack;
 
     Stack stack;
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
-    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    auto& msg1 = dynamic_cast<BeCheckumTypeMsg1&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void CustomChecksumLayerTestSuite::test3()
+{
+    static const char Buf[] = {
+        static_cast<char>(0xab), static_cast<char>(0xcd), // sync
+        0x0, 0x6, // size
+        MessageType1, // id
+        0x1, // has checksum
+        0x11, 0x22, // payload
+        0x00, 0x33 // checksum
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        CustomOptChecksumProtocolStack<
+            BeSyncField2,
+            BeSizeField20,
+            BeIdField1,
+            BeHasChecksumFlagsField,
+            BeOptChecksumField2,
+            BeHasChecksumFlagsMsgBase
+        > Stack;
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    // auto& msg1 = dynamic_cast<BeCheckumTypeMsg1&>(*msgPtr);
+    // TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }

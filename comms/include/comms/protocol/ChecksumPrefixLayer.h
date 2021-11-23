@@ -225,8 +225,6 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
 
-        auto& thisObj = BaseImpl::thisLayer();
-        thisObj.prepareFieldForWrite(0, &msg, field);
         return writeInternal(field, msg, iter, size, std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
 
@@ -511,6 +509,7 @@ private:
     {
         auto& thisObj = BaseImpl::thisLayer();
         auto checksumIter = iter;
+        thisObj.prepareFieldForWrite(0U, &msg, field);
         auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -556,6 +555,7 @@ private:
         TWriter&& nextLayerWriter) const
     {
         auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(0U, &msg, field);
         auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;

@@ -316,7 +316,7 @@ protected:
     /// @details Must assign provided size (length) value. 
     ///     May be overridden by the extending class if some complex functionality is required.
     /// @param[in] size Size value to assign
-    /// @param[in] msg Pointer to message object being written, maybe nullptr (in case invoked
+    /// @param[in] msg Pointer to message object being written, may be nullptr (in case invoked
     ///     from @ref comms::protocol::MsgSizeLayer::doUpdate "doUpdate()")
     /// @param[out] field Field, value of which needs to be populated
     /// @note May be non-static in the extending class

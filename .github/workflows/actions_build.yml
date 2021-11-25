@@ -3,8 +3,8 @@ name: Github Actions Build
 on: [push]
 
 jobs:
-  build_gcc_ubuntu_16_04:
-    runs-on: ubuntu-16.04
+  build_gcc_ubuntu_18_04:
+    runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:

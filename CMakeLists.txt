@@ -14,7 +14,7 @@ option (CC_BUILD_DEMO_PROTOCOL "Build demo protocol plugin." OFF)
 option (CC_INSTALL_DEMO_PROTOCOL "Install demo protocol plugin." ${CC_BUILD_DEMO_PROTOCOL})
 option (CC_WARN_AS_ERR "Treat warning as error" ON)
 option (CC_USE_CCACHE "Use ccache on UNIX systems if it's available" ON)
-option (CC_SKIP_CXX_STANDARD_FORCING "Use ccache on UNIX systems if it's available" ON)
+option (CC_SKIP_CXX_STANDARD_FORCING "Do NOT force C++ standard to C++11, use compiler's default one." ON)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 
 # Extra variables

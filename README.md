@@ -169,7 +169,7 @@ or **cc_dump.exe**), which resides in
 **${CMAKE_ISNTALL_PREFIX}/bin** directory. If the execution fails due to missing **Qt5** dlls,
 either set your **%PATH%** variable accordingly or try to execute generated **.bat**
 files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory. Another
-option is to build **deploy_qt** target to deploy Qt5 libraries into installation directory, whill will allow execution of any **.exe** file without and extra manupulations.
+option is to build **deploy_qt** target to deploy Qt5 libraries into installation directory, which will allow execution of any **.exe** file without any extra manipulations.
 
 On Linux platforms use the appropriate shell script 
 (**cc_view.sh** or **cc_dump.sh**), which also resides in

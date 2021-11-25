@@ -225,7 +225,6 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
 
-        field.value() = 0;
         return writeInternal(field, msg, iter, size, std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
 
@@ -347,12 +346,37 @@ protected:
         return TCalc()(iter, len);
     }    
 
-private:
-    static_assert(comms::field::isIntValue<Field>(),
-        "The checksum field is expected to be of IntValue type");
+    /// @brief Retrieve checksum value from the field.
+    /// @details May be overridden by the extending class.
+    ///     Default implementation is
+    ///     @code
+    ///     return field.value();
+    ///     @endcode
+    /// @param[in] field Field for this layer.
+    static auto getChecksumFromField(const Field& field) -> typename Field::ValueType
+    {
+        return field.value();
+    }
 
-    static_assert(Field::minLength() == Field::maxLength(),
-        "The checksum field is expected to be of fixed length");
+    /// @brief Prepare field for writing
+    /// @details Must assign provided checksum value. 
+    ///     May be overridden by the extending class if some complex functionality is required.
+    ///     The default implementation is:
+    ///     @code
+    ///     comms::cast_assign(field.value()) = checksum;
+    ///     @endcode
+    /// @param[in] checksum Checksum value to assign
+    /// @param[in] msg Pointer to message object being written, may be nullptr.
+    /// @param[out] field Field, value of which needs to be populated
+    /// @note May be non-static in the extending class. In case of non-static, must be const
+    template <typename TChecksum, typename TMsg>
+    static void prepareFieldForWrite(TChecksum checksum, const TMsg* msg, Field& field)
+    {
+        static_cast<void>(msg);
+        comms::cast_assign(field.value()) = checksum;
+    }
+
+private:
 
     template <typename... TParams>
     using VerifyBeforeReadTag = comms::details::tag::Tag1<>;
@@ -385,8 +409,7 @@ private:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        auto expectedValue = field.value();
-
+        auto expectedValue = thisObj.getChecksumFromField(field);
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
             BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;
@@ -427,8 +450,7 @@ private:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        auto expectedValue = field.value();
-
+        auto expectedValue = thisObj.getChecksumFromField(field);
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
             BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;
@@ -487,6 +509,7 @@ private:
     {
         auto& thisObj = BaseImpl::thisLayer();
         auto checksumIter = iter;
+        thisObj.prepareFieldForWrite(0U, &msg, field);
         auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -504,7 +527,6 @@ private:
         COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
 
-        using FieldValueType = typename Field::ValueType;
         bool checksumValid = false;
         auto checksum = 
             thisObj.calculateChecksum(
@@ -517,7 +539,7 @@ private:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        field.value() = static_cast<FieldValueType>(checksum);
+        thisObj.prepareFieldForWrite(checksum, &msg, field);
         auto checksumEs = thisObj.writeField(&msg, field, checksumIter, checksumLen);
         static_cast<void>(checksumEs);
         COMMS_ASSERT(checksumEs == comms::ErrorStatus::Success);
@@ -533,6 +555,7 @@ private:
         TWriter&& nextLayerWriter) const
     {
         auto& thisObj = BaseImpl::thisLayer();
+        thisObj.prepareFieldForWrite(0U, &msg, field);
         auto es = thisObj.writeField(&msg, field, iter, size);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -602,9 +625,8 @@ private:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        using FieldValueType = typename Field::ValueType;
-        field.value() = static_cast<FieldValueType>(checksum);
-        return field.write(checksumIter, fieldLen);
+        thisObj.prepareFieldForWrite(checksum, msgPtr, field);
+        return thisObj.doWriteField(msgPtr, field, checksumIter, fieldLen);
     }
 };
 

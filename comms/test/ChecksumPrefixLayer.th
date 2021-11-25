@@ -458,7 +458,12 @@ void ChecksumPrefixLayerTestSuite::test7()
 void ChecksumPrefixLayerTestSuite::test8()
 {
     static const char Buf[] = {
-        static_cast<char>(0xab), static_cast<char>(0xcd), 0x06, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        static_cast<char>(0xab), static_cast<char>(0xcd), // sync
+        0x06, // checksum
+        0x0, 0x3, // size
+        MessageType1, // id
+        0x01, 0x02, //data
+        static_cast<char>(0x3f) // garbage
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;

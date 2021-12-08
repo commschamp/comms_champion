@@ -56,8 +56,6 @@ install(
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
     add_custom_target ("doc_comms"
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${doc_output_dir}
-            COMMAND ${DOXYGEN_EXECUTABLE} ${output_file}
             COMMAND ${CMAKE_COMMAND} 
                 --build ${CC_COMMS_EXTERNAL_PROJ_BUILD_DIR} --target doc_comms
     )

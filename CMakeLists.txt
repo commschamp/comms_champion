@@ -157,27 +157,6 @@ set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-file (READ "${PROJECT_SOURCE_DIR}/comms/include/comms/version.h" version_file)
-string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
-set (major_ver ${CMAKE_MATCH_1})
-string (REGEX MATCH "COMMS_MINOR_VERSION ([0-9]*)U*" _ ${version_file})
-set (minor_ver ${CMAKE_MATCH_1})
-string (REGEX MATCH "COMMS_PATCH_VERSION ([0-9]*)U*" _ ${version_file})
-set (patch_ver ${CMAKE_MATCH_1})
-set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
-
-
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-    VERSION ${COMMS_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
-    VERSION ${COMMS_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-    
 set (LIB_COMMS_CMAKE_FILES
     ${PROJECT_SOURCE_DIR}/cmake/CC_Compile.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_External.cmake

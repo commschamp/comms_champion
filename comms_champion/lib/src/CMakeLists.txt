@@ -70,8 +70,6 @@ function (lib_comms_champion)
         $<$<CXX_COMPILER_ID:MSVC>:/bigobj /wd4127 /wd5054 /wd5240>
     )
     
-    set_target_properties(${name} PROPERTIES VERSION ${COMMS_VERSION})
-    
     if (CC_INSTALL_TOOLS_LIBRARY)    
         install (
             TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export

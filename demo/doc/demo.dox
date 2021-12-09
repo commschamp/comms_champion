@@ -1,5 +1,0 @@
-/// @namespace demo
-/// @brief Main namespace for demo protocol.
-///
-/// @namespace demo::message
-/// @brief Contains definitions of all the messages defined in Demo binary protocol.

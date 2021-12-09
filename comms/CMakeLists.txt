@@ -1,13 +1,6 @@
 set (CC_COMMS_EXTERNAL_PROJ_TGT "cc_comms_external")
 set (CC_COMMS_EXTERNAL_PROJ_REPO "https://github.com/commschamp/comms.git")
 set (CC_COMMS_EXTERNAL_PROJ_TAG "master")
-set (CC_COMMS_EXTERNAL_PROJ_SRC_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms/src")
-set (CC_COMMS_EXTERNAL_PROJ_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms/build")
-set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms/install")
-
-if (CC_INSTALL_COMMS_LIB)
-    set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
-endif ()
 
 set (cxx_standard_opt)
 if (NOT "${CMAKE_CXX_STANDARD}" STREQUAL "")
@@ -36,6 +29,7 @@ ExternalProject_Add(
         -DCC_COMMS_USE_CCACHE=${CC_USE_CCACHE}
         -DCC_COMMS_SKIP_CXX_STANDARD_FORCING=${CC_SKIP_CXX_STANDARD_FORCING}
         -DCC_COMMS_STATIC_RUNTIME=${CC_STATIC_RUNTIME}
+        -DCC_COMMS_EXTERNALS_DIR=${CC_EXTERNALS_DIR}
         ${cxx_standard_opt}
 )
 
@@ -56,7 +50,8 @@ install(
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
     add_custom_target ("doc_comms"
-            COMMAND ${CMAKE_COMMAND} 
-                --build ${CC_COMMS_EXTERNAL_PROJ_BUILD_DIR} --target doc_comms
+        COMMAND ${CMAKE_COMMAND} 
+            --build ${CC_COMMS_EXTERNAL_PROJ_BUILD_DIR} --target doc_comms
+        DEPENDS ${CC_COMMS_EXTERNAL_PROJ_TGT}
     )
 endif ()

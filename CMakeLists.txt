@@ -174,17 +174,16 @@ set (COMMS_CHAMPION_CMAKE_FILES
     ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
-)    
+) 
+
+set (CC_COMMS_EXTERNAL_PROJ_SRC_DIR "${CC_EXTERNALS_DIR}/comms")
+set (CC_COMMS_EXTERNAL_PROJ_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/build")
+set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/install")
+
+if (CC_INSTALL_COMMS_LIB)
+    set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
+endif ()
    
 add_subdirectory (comms)
 add_subdirectory (comms_champion)
 
-add_subdirectory (demo)
-
-if (WIN32 AND CC_QT_DIR)
-    add_custom_target ("deploy_qt"
-        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
-            -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
-            -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
-    )
-endif ()

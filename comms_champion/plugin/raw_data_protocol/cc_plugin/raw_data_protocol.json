@@ -1,7 +1,0 @@
-{
-    "name" : "Raw Data Protocol",
-    "desc" : [
-        "Raw Binary Data Dump Protocol."
-    ],
-    "type" : "protocol"
-}

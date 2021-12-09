@@ -157,25 +157,6 @@ set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-set (LIB_COMMS_CMAKE_FILES
-    ${PROJECT_SOURCE_DIR}/cmake/CC_Compile.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_External.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_CxxtestFuncs.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_Prefetch.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_RunWithValgrindScript.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/LibCommsConfig.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-) 
-
-set (COMMS_CHAMPION_CMAKE_FILES
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
-) 
-
 set (CC_COMMS_EXTERNAL_PROJ_SRC_DIR "${CC_EXTERNALS_DIR}/comms")
 set (CC_COMMS_EXTERNAL_PROJ_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/build")
 set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/install")
@@ -187,3 +168,14 @@ endif ()
 add_subdirectory (comms)
 add_subdirectory (comms_champion)
 
+
+if (CC_INSTALL_TOOLS_LIBRARY)
+    set (COMMS_CHAMPION_CMAKE_FILES
+        ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
+    ) 
+
+    install (
+        FILES ${COMMS_CHAMPION_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
+    )
+endif()  

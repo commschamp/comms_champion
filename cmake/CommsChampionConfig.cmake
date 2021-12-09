@@ -18,59 +18,24 @@
 get_filename_component(_ONE_UP_DIR "${CMAKE_CURRENT_LIST_DIR}" PATH)
 get_filename_component(_TWO_UP_DIR "${_ONE_UP_DIR}" PATH)
 set (LIBCOMMS_CMAKE_DIR "${_TWO_UP_DIR}/LibComms/cmake")
+set (CC_TOOLS_QT_CMAKE_DIR "${_TWO_UP_DIR}/cc_tools_qt/cmake")
 
 if ((NOT TARGET cc::comms) AND (EXISTS ${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake))
     include (${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake)
 endif ()
 
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
-    include (${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
+if ((NOT TARGET cc::cc_tools_qt) AND (EXISTS ${CC_TOOLS_QT_CMAKE_DIR}/cc_tools_qtConfig.cmake))
+    include (${CC_TOOLS_QT_CMAKE_DIR}/cc_tools_qtConfig.cmake)
 endif ()
 
-if (NOT TARGET cc::comms_champion)
-    return ()
+if ((NOT TARGET cc::comms_champion) AND (TARGET cc::cc_tools_qt))
+    add_library(cc::comms_champion ALIAS cc::cc_tools_qt)
 endif ()
 
-# Load information for each installed configuration.
-file(GLOB config_files "${CMAKE_CURRENT_LIST_DIR}/CommsChampionConfig-*.cmake")
-foreach(f ${config_files})
-    include(${f})
-endforeach()
-
-get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
-get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)
-get_filename_component (CC_ROOT_DIR ${CC_INSTALL_LIB_DIR} DIRECTORY)
-
-find_path(CC_INCLUDE_DIR NAMES comms_champion/Message.h PATHS "${CC_ROOT_DIR}" PATH_SUFFIXES include)
-find_library(CC_PLUGIN_LIBRARY  NAMES "comms_champion" PATHS "${CC_ROOT_DIR}" PATH_SUFFIXES lib)
-
-if (MSVC)
-    find_file(CC_NULL_SOCK_LIBRARY NAMES "null_socket.dll" PATHS "${CC_ROOT_DIR}/lib/CommsChampion" PATH_SUFFIXES plugin)
-else ()
-    find_library(CC_NULL_SOCK_LIBRARY  NAMES "null_socket" PATHS "${CC_ROOT_DIR}/lib/CommsChampion" PATH_SUFFIXES plugin)
-endif ()
-
-if (CC_PLUGIN_LIBRARY)
-    get_filename_component  (CC_PLUGIN_LIBRARY_DIR ${CC_PLUGIN_LIBRARY} DIRECTORY)
-endif ()
-
-if (CC_NULL_SOCK_LIBRARY)
-    get_filename_component  (CC_PLUGIN_DIR ${CC_NULL_SOCK_LIBRARY} DIRECTORY)
-endif ()
-
-set (CC_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
-
-find_package(PackageHandleStandardArgs REQUIRED)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(
-    CommsChampion
-    REQUIRED_VARS 
-        CC_ROOT_DIR CC_INCLUDE_DIR CC_PLUGIN_LIBRARY_DIR CC_PLUGIN_LIBRARY CC_CMAKE_DIR)
-
-set (CC_COMMS_CHAMPION_FOUND ${CommsChampion_FOUND})        
-    
-if (CC_COMMS_CHAMPION_FOUND)
-    set (CC_INCLUDE_DIRS ${CC_INCLUDE_DIR})
-    set (CC_PLUGIN_LIBRARIES ${CC_PLUGIN_LIBRARY})
-    set (CC_PLUGIN_LIBRARY_DIRS ${CC_PLUGIN_LIBRARY_DIR})
-endif ()    
-
+set (CC_COMMS_CHAMPION_FOUND ${CC_TOOLS_QT_FOUND})
+set (CC_INCLUDE_DIRS ${CC_TOOLS_QT_INCLUDE_DIRS})
+set (CC_ROOT_DIR ${CC_TOOLS_QT_ROOT_DIR})
+set (CC_PLUGIN_LIBRARIES ${CC_TOOLS_QT_PLUGIN_LIBRARIES})
+set (CC_PLUGIN_LIBRARY_DIRS ${CC_TOOLS_QT_PLUGIN_LIBRARY_DIRS})
+set (CC_PLUGIN_DIR ${CC_TOOLS_QT_PLUGIN_DIR})
+set (CC_CMAKE_DIR ${CC_COMMS_CMAKE_DIR})

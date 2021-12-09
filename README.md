@@ -1,4 +1,16 @@
-![Image: CommsChampion Icon](comms_champion/app/cc_view/src/image/app_icon.png)
+# IMPORTANT NOTICE
+Since release v4.0 this project is deprecated. For convenience it has been split into 
+two separate ones:
+
+- [COMMS Library](https://github.com/commschamp/comms)
+- [CommsChampion Tools](https://github.com/commschamp/cc_tools_qt)
+
+Please use them instead.
+
+This project is now a simple wrapper arount the ones listed above. It 
+still can be used for backward compatibility, but it is not recommended.
+
+----
 
 This project is a core (and a member) of 
 [CommsChampion Ecosystem](https://commschamp.github.io),
@@ -15,174 +27,14 @@ definitions. The tools can be used to visualise, analyse, and debug binary
 communication protocols, which were developed using [COMMS Library](#comms-library).
 
 # COMMS Library
-**COMMS** is the **C++(11)** headers only, platform independent library, 
-which makes the implementation of a communication
-protocol to be an easy and relatively quick process. It provides all the necessary
-types and classes to make the definition of the custom messages, as well as
-wrapping transport data fields, to be simple declarative statements of type and
-class definitions. These statements will specify **WHAT** needs to be implemented. 
-The **COMMS** library internals handle the **HOW** part.
-
-The internals of the **COMMS** library is mostly template classes which use 
-multiple meta-programming techniques. As the result, only the functionality,
-required by the protocol being developed, gets compiled in, providing the best code size and
-speed performance possible. The down side is that compilation process may
-take a significant amount of time and consume a lot of memory.
-
-The **COMMS** library allows having **single implementation** of the binary 
-protocol messages, which can be re-compiled and used for any possible application:
-bare-metal with constrained resources, Linux based embedded systems, even 
-independent GUI analysis tools.
-
-The **COMMS** library was specifically developed to be used in **embedded** systems
-including **bare-metal** ones. It doesn't use exceptions and/or RTTI. It also
-minimises usage of dynamic memory allocation and provides an ability to exclude
-it altogether if required, which may be needed when developing **bare-metal**
-embedded systems. 
-
-Core ideas and architecture of the **COMMS** library is described in
-[Guide to Implementing Communication Protocols in C++](https://commschamp.github.io/comms_protocols_cpp/) free e-book.
-However, at this stage the library internals are much more advanced and sophisticated, than
-examples in the e-book, please don't treat the latter as a guide to library's internals.
-
-Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-read [online](https://commschamp.github.io/comms_doc/) and/or
-downloaded as **doc_comms_vX.zip** archive from 
-[release artefacts](https://github.com/commschamp/comms_champion/releases).
-
-For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
+**IMPORTANT**: The COMMS library has been relocated to a 
+separate [repository](https://github.com/commschamp/comms). Please open
+it to read the description.
 
 # CommsChampion Tools
-This project also contains a set of tool applications (in addition to the 
-[COMMS Library](#comms-library)), which can be used to 
-develop, monitor and debug custom binary communication protocols, that where
-developed using the [COMMS Library](#comms-library). 
-All the applications are plug-in based, i.e. plug-ins are used to define 
-I/O socket, data filters, and the custom protocol itself. The tools
-use [Qt5](http://www.qt.io/) framework for GUI interfaces as well as loading
-and managing plug-ins.
-
-The current list of available applications is below. Please refer to the
-[wiki page](https://github.com/commschamp/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
-for tutorial on how to use them.
-
-- **cc_view** is the main generic GUI application for visualisation and analysis of the
-communication protocols.  
-
-- **cc_dump** is a command line utility, that recognises all the received
-custom binary protocol messages and dumps them all in CSV format to standard output.
-It can also record the incoming message into the file, which can be opened
-later for visual analysis using **cc_view** GUI application. 
-The tool has an ability to receive a file with definition of outgoing messages, 
-created using **cc_view** GUI application, and send them one by one 
-in parallel to dumping/recording the incoming messages.
-
-The [CommsChampion Tools](#commschampion-tools) package provides the following
-plugins that can be used with any application:
-
-- **null_socket** - NULL socket, that doesn't produce any incoming data and
-discards any outgoing data.
-- **echo_socket** - Echo socket, all the data being sent is immediately reported
-as an incoming data.
-- **serial_socket** - Low level socket that sends and receives data over serial
-(RS-232) I/O link.
-- **tcp_client_socket** - Client TCP/IP socket, that connects to remote 
-server, sends and receives data over TCP/IP network link.
-- **tcp_server_socket** - Server TCP/IP socket, waits for and accepts all
-connections from TCP/IP clients, sends and receives data to/from them.
-- **tcp_proxy_socket** - Proxy server TCP/IP socket, combines Server and Client
-side of TCP/IP connection, can be used to monitor traffic of the messages between
-remote a client and a server.
-- **udp_socket** - Generic (client/server) UDP/IP socket.
-- **raw_data_protocol** - Protocol definition that defines only a single message
-type with one field of unlimited length data. It can be used to review the
-raw data being received from I/O socket.
-
-### Developing Custom Socket/Filter/Protocol Plugin
-The full tutorial as well as API documentation can be downloaded as
-**doc_commschampion_vX.zip** archive from
-from [release artefacts](https://github.com/commschamp/comms_champion/releases).
-
-# Demos and Examples
-Over the years the 
-[COMMS Library](#comms-library) grew with features and accumulated
-multiple nuances to be remembered when defining a new protocol. In order to
-simplify protocol definition work, a separate toolset, called 
-[commsdsl](https://github.com/commschamp/commsdsl) (hosted as separate repository), 
-has been developed. It allows much easier and simpler definition of the protocol, 
-using schema files written in XML based domain specific language, called 
-[CommsDSL](https://github.com/commschamp/CommsDSL-Specification). The toolset
-will generate a C++11 code that defines the protocol using appropriate
-[COMMS Library](#comms-library) classes and functions, as well as generate extra code
-required to implement a protocol definition plugin for 
-[CommsChampion Tools](#commschampion-tools). Many binary protocols 
-may have nuances that are difficult to express in existing schema language. 
-In order to still allow usage of the schema files for the protocol definition, the
-toolset allows injection of extra custom code to modify or extend the generated
-one. The generated code itself is also highly compile time customisable. It
-allows selection of custom data structures for data storage as well as polymorphic
-interfaces relevant to the application being developed.
-
-As the result, manual implementation of binary communication protocols **from 
-scratch** using 
-[COMMS Library](#comms-library) is not recommended and should be avoided. Please use
-**commsdsl2comms** code generator from 
-[commsdsl](https://github.com/commschamp/commsdsl) project, which also
-lists multiple available protocols (with usage examples) that can be used
-as reference.
-
-# Licence
-The [COMMS Library](#comms-library) is licensed under
-the [MPL-2.0](http://mozilla.org/MPL/2.0/) license.
-
-The [CommsChampion Tools](#commschampion-tools) use open-source 
-[Qt5](http://www.qt.io/) libraries, hence licenced under the 
-[GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-
-
-# Supported Compilers
-The [COMMS Library](#comms-library) requires proper C++11 support which
-is provided by the following compilers:
-- **GCC**: >=4.8
-- **Clang**: >=3.9
-- **MSVC**: >= 2015
-
-# How to Build
-Detailed instructions on how to build and install all the components can be
-found in [doc/BUILD.md](doc/BUILD.md) file.
-
-# How to Use COMMS Library
-The COMMS library [doxygen documentation](https://commschamp.github.io/comms_doc/) 
-contains detailed tutorial and examples how to use the provided 
-classes and functions.
-
-The [cc_tutorial](https://github.com/commschamp/cc_tutorial/) repository 
-contains a full tutorial how to use the library in conjunction with 
-[commsdsl2comms](https://github.com/commschamp/commsdsl) code generator.
-
-# Other documentation
-Please check the [doc](doc) folder for the available additional documentation.
-
-# How to Run CommsChampion Tools applications
-On Windows platforms try to run the *.exe binary (**cc_view.exe**
-or **cc_dump.exe**), which resides in 
-**${CMAKE_ISNTALL_PREFIX}/bin** directory. If the execution fails due to missing **Qt5** dlls,
-either set your **%PATH%** variable accordingly or try to execute generated **.bat**
-files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory. Another
-option is to build **deploy_qt** target to deploy Qt5 libraries into installation directory, which will allow execution of any **.exe** file without any extra manipulations.
-
-On Linux platforms use the appropriate shell script 
-(**cc_view.sh** or **cc_dump.sh**), which also resides in
-**${CMAKE_ISNTALL_PREFIX}/bin** directory.
- 
-Please note that available plugins must reside in the **${CMAKE_ISNTALL_PREFIX}/lib/CommsChampion/plugin** directory.
-
-The tools support multiple command line options, please use "-h" or "--help" for
-the full list.
-
->$> ./install/bin/cc_view.sh -h
-
->$> ./install/bin/cc_dump.sh -h
+**IMPORTANT**: The tools have been relocated to a 
+separate [repository](https://github.com/commschamp/cc_tools_qt). Please open
+it to read the description.
 
 # Branching Model
 This repository will follow the 

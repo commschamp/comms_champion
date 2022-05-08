@@ -4,7 +4,7 @@ endif ()
 
 set (CC_TOOLS_QT_EXTERNAL_PROJ_TGT "cc_tools_qt_external")
 set (CC_TOOLS_QT_EXTERNAL_PROJ_REPO "https://github.com/commschamp/cc_tools_qt.git")
-set (CC_TOOLS_QT_EXTERNAL_PROJ_TAG "master")
+set (CC_TOOLS_QT_EXTERNAL_PROJ_TAG "v4.0")
 set (CC_TOOLS_QT_EXTERNAL_PROJ_SRC_DIR "${CC_EXTERNALS_DIR}/cc_tools_qt")
 set (CC_TOOLS_QT_EXTERNAL_PROJ_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/cc_tools_qt/build")
 set (CC_TOOLS_QT_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/cc_tools_qt/install")

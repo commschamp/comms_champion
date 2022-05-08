@@ -1,6 +1,6 @@
 set (CC_COMMS_EXTERNAL_PROJ_TGT "cc_comms_external")
 set (CC_COMMS_EXTERNAL_PROJ_REPO "https://github.com/commschamp/comms.git")
-set (CC_COMMS_EXTERNAL_PROJ_TAG "master")
+set (CC_COMMS_EXTERNAL_PROJ_TAG "v4.0")
 
 set (cxx_standard_opt)
 if (NOT "${CMAKE_CXX_STANDARD}" STREQUAL "")

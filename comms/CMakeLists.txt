@@ -1,51 +1,57 @@
-find_package (Doxygen)
-if (DOXYGEN_FOUND)
-    set (doc_output_dir "${CMAKE_INSTALL_PREFIX}/${DOC_INSTALL_DIR}/comms")
-    
-    set (match_str "OUTPUT_DIRECTORY[^\n]*")
-    set (replacement_str "OUTPUT_DIRECTORY = ${doc_output_dir}")
-    set (output_file "${CMAKE_CURRENT_BINARY_DIR}/doxygen.conf")
+set (CC_COMMS_EXTERNAL_PROJ_TGT "cc_comms_external")
+set (CC_COMMS_EXTERNAL_PROJ_REPO "https://github.com/commschamp/comms.git")
+set (CC_COMMS_EXTERNAL_PROJ_TAG "v4.0")
 
-    set (config_file "${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygen.conf")
-    file (READ ${config_file} config_text)
-    string (REGEX REPLACE "${match_str}" "${replacement_str}" modified_config_text "${config_text}")
-    file (WRITE "${output_file}" "${modified_config_text}")
-
-    add_custom_target ("doc_comms"
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${doc_output_dir}
-            COMMAND ${DOXYGEN_EXECUTABLE} ${output_file}
-            COMMAND ${CMAKE_COMMAND} -DDOC_OUTPUT_DIR="${doc_output_dir}" -P 
-                            ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set (cxx_standard_opt)
+if (NOT "${CMAKE_CXX_STANDARD}" STREQUAL "")
+    set (cxx_standard_opt -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD})
 endif ()
 
-add_library(comms INTERFACE)
-add_library (cc::comms ALIAS comms)
-
-target_include_directories(comms INTERFACE
-  $<INSTALL_INTERFACE:include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+include(ExternalProject)
+ExternalProject_Add(
+    "${CC_COMMS_EXTERNAL_PROJ_TGT}"
+    PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
+    GIT_REPOSITORY "${CC_COMMS_EXTERNAL_PROJ_REPO}"
+    GIT_TAG ${CC_COMMS_EXTERNAL_PROJ_TAG}
+    SOURCE_DIR "${CC_COMMS_EXTERNAL_PROJ_SRC_DIR}"
+    BINARY_DIR "${CC_COMMS_EXTERNAL_PROJ_BUILD_DIR}"
+    INSTALL_DIR "${CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR}"
+    CMAKE_ARGS 
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} 
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+        -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_INSTALL_PREFIX=${CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR}
+        -DCC_COMMS_BUILD_UNIT_TESTS=${CC_BUILD_UNIT_TESTS}
+        -DCC_COMMS_UNIT_TESTS_USE_SANITIZERS=${CC_UNIT_TESTS_USE_SANITIZERS}
+        -DCC_COMMS_WARN_AS_ERR=${CC_WARN_AS_ERR}
+        -DCC_COMMS_USE_CCACHE=${CC_USE_CCACHE}
+        -DCC_COMMS_SKIP_CXX_STANDARD_FORCING=${CC_SKIP_CXX_STANDARD_FORCING}
+        -DCC_COMMS_STATIC_RUNTIME=${CC_STATIC_RUNTIME}
+        -DCC_COMMS_EXTERNALS_DIR=${CC_EXTERNALS_DIR}
+        ${cxx_standard_opt}
 )
 
-if (CC_INSTALL_COMMS_LIB)
-    install (
-        FILES ${LIB_COMMS_CMAKE_FILES}
-        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
+set (comms_inc_dir "${CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR}/include")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${comms_inc_dir}
+)    
+
+add_library(cc::comms INTERFACE IMPORTED GLOBAL)
+target_include_directories(cc::comms INTERFACE ${comms_inc_dir})
+add_dependencies(cc::comms ${CC_COMMS_EXTERNAL_PROJ_TGT})
+
+install(
+    FILES dummy.txt
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+find_package (Doxygen)
+if (DOXYGEN_FOUND)
+    add_custom_target ("doc_comms"
+        COMMAND ${CMAKE_COMMAND} 
+            --build ${CC_COMMS_EXTERNAL_PROJ_BUILD_DIR} --target doc_comms
+        DEPENDS ${CC_COMMS_EXTERNAL_PROJ_TGT}
     )
-
-    install(TARGETS comms EXPORT commsExport)
-    install(EXPORT commsExport NAMESPACE cc::
-        DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake
-    )
-
-    install (
-        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms
-        DESTINATION ${INC_INSTALL_DIR}
-    )
-endif ()    
-
-add_subdirectory (test)
-
-FILE(GLOB_RECURSE headers "*.h")
-add_custom_target(comms.headers SOURCES ${headers})
-
+endif ()

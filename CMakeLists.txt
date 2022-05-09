@@ -157,55 +157,25 @@ set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-file (READ "${PROJECT_SOURCE_DIR}/comms/include/comms/version.h" version_file)
-string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
-set (major_ver ${CMAKE_MATCH_1})
-string (REGEX MATCH "COMMS_MINOR_VERSION ([0-9]*)U*" _ ${version_file})
-set (minor_ver ${CMAKE_MATCH_1})
-string (REGEX MATCH "COMMS_PATCH_VERSION ([0-9]*)U*" _ ${version_file})
-set (patch_ver ${CMAKE_MATCH_1})
-set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
+set (CC_COMMS_EXTERNAL_PROJ_SRC_DIR "${CC_EXTERNALS_DIR}/comms")
+set (CC_COMMS_EXTERNAL_PROJ_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/build")
+set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/comms_ext/install")
 
-
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-    VERSION ${COMMS_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
-    VERSION ${COMMS_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-    
-set (LIB_COMMS_CMAKE_FILES
-    ${PROJECT_SOURCE_DIR}/cmake/CC_Compile.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_External.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_CxxtestFuncs.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_Prefetch.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_RunWithValgrindScript.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/LibCommsConfig.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-) 
-
-set (COMMS_CHAMPION_CMAKE_FILES
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
-)    
+if (CC_INSTALL_COMMS_LIB)
+    set (CC_COMMS_EXTERNAL_PROJ_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
+endif ()
    
 add_subdirectory (comms)
 add_subdirectory (comms_champion)
 
-add_subdirectory (demo)
 
-if (WIN32 AND CC_QT_DIR)
-    add_custom_target ("deploy_qt"
-        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
-            -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
-            -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
+if (CC_INSTALL_TOOLS_LIBRARY)
+    set (COMMS_CHAMPION_CMAKE_FILES
+        ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
+    ) 
+
+    install (
+        FILES ${COMMS_CHAMPION_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
     )
-endif ()
+endif()  

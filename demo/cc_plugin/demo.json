@@ -1,7 +1,0 @@
-{
-    "name" : "Demo Protocol",
-    "desc" : [
-        "Demonstration binary protocol to show ability of the CommsChampion tool."
-    ],
-    "type" : "protocol"
-}
